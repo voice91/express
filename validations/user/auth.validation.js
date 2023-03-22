@@ -11,6 +11,8 @@ export const register = {
     email: Joi.string().required().email(),
     password: Joi.string().required(),
     name: Joi.string().required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
   }),
 };
 
