@@ -47,32 +47,9 @@ export async function createDeal(body) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'borrowers not found!');
     }
   }
-  // const dealNotes = await DealNotes.find({ _id: { $in: body.dealNotes } });
-  // if (!dealNotes) {
-  //   throw new ApiError(httpStatus.BAD_REQUEST, 'field dealNotes is not valid');
-  // }
-
-  // const tasks = await Task.find({ _id: { $in: body.tasks } });
-  // if (!tasks) {
-  //   throw new ApiError(httpStatus.BAD_REQUEST, 'field tasks is not valid');
-  // }
-
-  // const user = await User.findOne({ _id: body.user });
-  // if (!user) {
-  //   throw new ApiError(httpStatus.BAD_REQUEST, 'field user is not valid');
-  // }
-  // const documents = await DealDocument.find({ _id: { $in: body.documents } });
-  // if (!documents) {
-  //   throw new ApiError(httpStatus.BAD_REQUEST, 'field documents is not valid');
-  // }
-  // const lenderPlacement = await LenderPlacement.find({ _id: { $in: body.lenderPlacement } });
-  // if (!lenderPlacement.length) {
-  //   throw new ApiError(httpStatus.BAD_REQUEST, 'field lenderPlacement is not valid');
-  // }
   const deal = await Deal.create(body);
   return deal;
 }
-
 export async function updateDeal(filter, body, options = {}) {
   const lendersArr = body.involvedUsers.map((item) => item.lenders);
 
