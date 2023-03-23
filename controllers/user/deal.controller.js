@@ -19,7 +19,7 @@ export const get = catchAsync(async (req, res) => {
   const user = req.user._id;
   const filter = {
     _id: dealId,
-    user: user,
+    user,
   };
   const options = {};
   const deal = await dealService.getOne(filter, options);
@@ -31,7 +31,12 @@ export const list = catchAsync(async (req, res) => {
   const user = req.user._id;
   const queryParams = getDealFilterQuery(query);
   const filter = {
-    user: user,
+    $or: [
+      { user },
+      { 'involvedUsers.advisors': user },
+      { 'involvedUsers.borrowers': user },
+      { 'involvedUsers.lenders': user },
+    ],
     ...queryParams,
   };
   const options = {
@@ -50,7 +55,7 @@ export const paginate = catchAsync(async (req, res) => {
     [sortingObj.sort]: sortingObj.order,
   };
   const filter = {
-    user: user,
+    user,
     ...queryParams,
   };
   const options = {
@@ -70,7 +75,7 @@ export const remove = catchAsync(async (req, res) => {
   const user = req.user._id;
   const filter = {
     _id: dealId,
-    user: user,
+    user,
   };
   const deal = await dealService.removeDeal(filter);
   return res.status(httpStatus.OK).send({ results: deal });
