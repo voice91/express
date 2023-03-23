@@ -41,6 +41,7 @@ export const list = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['sort', 'limit', 'page']),
+    populate: [{ path: 'notes' }, { path: 'documents' }],
   };
   const deal = await dealService.getDealList(filter, options);
   return res.status(httpStatus.OK).send({ results: deal });
@@ -55,12 +56,18 @@ export const paginate = catchAsync(async (req, res) => {
     [sortingObj.sort]: sortingObj.order,
   };
   const filter = {
-    user,
+    $or: [
+      { user },
+      { 'involvedUsers.advisors': user },
+      { 'involvedUsers.borrowers': user },
+      { 'involvedUsers.lenders': user },
+    ],
     ...queryParams,
   };
   const options = {
     sort: sortObj,
     ...pick(query, ['limit', 'page']),
+    populate: [{ path: 'notes' }, { path: 'documents' }],
   };
   const deal = await dealService.getDealListWithPagination(filter, options);
   deal.results = deal.results.map((dealObject) => ({
