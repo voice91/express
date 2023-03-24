@@ -44,9 +44,17 @@ const DealNotesSchema = new mongoose.Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'User',
     },
+    context: {
+      type: String,
+    },
+    lastReadBy: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'User',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
+
 DealNotesSchema.plugin(toJSON);
 DealNotesSchema.plugin(mongoosePaginateV2);
 DealNotesSchema.plugin(softDelete, {
