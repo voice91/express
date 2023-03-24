@@ -169,13 +169,6 @@ const DealSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumLoanTypeOfDeal),
     },
     /**
-     * list of all questions and answers and associated document attached associated to the deal
-     * */
-    tasks: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'Task',
-    },
-    /**
      * User creating the deal
      * */
     user: {
@@ -195,15 +188,22 @@ const DealSchema = new mongoose.Schema(
 
 DealSchema.virtual('notes', {
   ref: 'DealNotes',
-  localField: '_id', // Of deal collection
-  foreignField: 'deal', // Of user collection
+  localField: '_id',
+  foreignField: 'deal',
   justOne: false,
 });
 
 DealSchema.virtual('documents', {
   ref: 'DealDocument',
-  localField: '_id', // Of deal collection
-  foreignField: 'deal', // Of user collection
+  localField: '_id',
+  foreignField: 'deal',
+  justOne: false,
+});
+
+DealSchema.virtual('task', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'deal',
   justOne: false,
 });
 

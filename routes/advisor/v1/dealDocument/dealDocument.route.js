@@ -3,6 +3,7 @@ import { dealDocumentController } from 'controllers/advisor';
 import { dealDocumentValidation } from 'validations/advisor';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import checkAccessOfDeal from 'middlewares/checkUserOfDeal';
 
 const router = express.Router();
 router
@@ -10,7 +11,12 @@ router
   /**
    * createDealDocument
    * */
-  .post(auth('advisor'), validate(dealDocumentValidation.createDealDocument), dealDocumentController.create)
+  .post(
+    auth('advisor'),
+    validate(dealDocumentValidation.createDealDocument),
+    checkAccessOfDeal,
+    dealDocumentController.create
+  )
   /**
    * getDealDocument
    * */
@@ -30,5 +36,10 @@ router
   /**
    * updateDealDocument
    * */
-  .put(auth('advisor'), validate(dealDocumentValidation.updateDealDocument), dealDocumentController.update);
+  .put(
+    auth('advisor'),
+    validate(dealDocumentValidation.updateDealDocument),
+    checkAccessOfDeal,
+    dealDocumentController.update
+  );
 export default router;

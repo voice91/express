@@ -3,7 +3,6 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
-import config from 'config/config';
 import enumFields from 'models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
@@ -13,24 +12,18 @@ export const createDealDocument = {
     documentType: Joi.string()
       .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
       .required(),
-    file: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(png|jpg|pdf|doc|docx|ppt|pptx|xls|xlsx)$)`
-      )
-    ),
+    file: Joi.string().required(),
     fileName: Joi.string().required(),
+    deal: Joi.objectId().required(),
   }),
 };
 
 export const updateDealDocument = {
   body: Joi.object().keys({
     documentType: Joi.string().valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument)),
-    file: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(png|jpg|pdf|doc|docx|ppt|pptx|xls|xlsx)$)`
-      )
-    ),
+    file: Joi.string().required(),
     fileName: Joi.string(),
+    deal: Joi.objectId().required(),
   }),
   params: Joi.object().keys({
     dealDocumentId: Joi.objectId().required(),
