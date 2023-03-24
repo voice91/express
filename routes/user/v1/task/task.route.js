@@ -3,8 +3,15 @@ import { taskController } from 'controllers/user';
 import { taskValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import checkAccessOfDeal from '../../../../middlewares/checkUserOfDeal';
 
 const router = express.Router();
+router
+  .route('/')
+  /**
+   * createTask
+   * */
+  .post(auth('advisor'), validate(taskValidation.createTask), checkAccessOfDeal, taskController.create);
 router
   .route('/')
   /**
@@ -26,7 +33,7 @@ router
   /**
    * updateTask
    * */
-  .put(auth('user'), validate(taskValidation.updateTask), taskController.update)
+  .put(auth('user'), validate(taskValidation.updateTask), checkAccessOfDeal, taskController.update)
   /**
    * deleteTaskById
    * */

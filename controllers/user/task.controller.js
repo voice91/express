@@ -9,8 +9,34 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
-import config from 'config/config';
 import { pick } from '../../utils/pick';
+import { Deal } from '../../models';
+import ApiError from '../../utils/ApiError';
+
+export const create = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.createdBy = req.user;
+  body.updatedBy = req.user;
+  const { user } = req;
+  const moveFileObj = {
+    ...(body.taskDocuments && { taskDocuments: body.taskDocuments }),
+  };
+  const dealId = body.deal;
+  const dealObj = await Deal.findById(dealId);
+  if (!dealObj) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
+  }
+  body._id = mongoose.Types.ObjectId();
+  await moveFiles({ body, user, moveFileObj });
+  const options = {};
+  const taskResult = await taskService.createTask(body, options);
+  if (taskResult) {
+    const uploadedFileUrls = [];
+    uploadedFileUrls.push(...taskResult.taskDocuments);
+    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+  }
+  return res.status(httpStatus.CREATED).send({ results: taskResult });
+});
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });

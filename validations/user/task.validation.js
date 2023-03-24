@@ -7,9 +7,24 @@ import config from 'config/config';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
+export const createTask = {
+  body: Joi.object().keys({
+    taskQuestion: Joi.string().required(),
+    askingParty: Joi.objectId().required(),
+    taskAnswer: Joi.string(),
+    taskDocuments: Joi.array().items(
+      Joi.string().regex(
+        new RegExp(
+          `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|pptx|xls|xlsx)$)`
+        )
+      )
+    ),
+  }),
+};
 export const updateTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string(),
+    deal: Joi.objectId().required(),
     askingParty: Joi.objectId(),
     taskAnswer: Joi.string(),
     taskDocuments: Joi.array().items(

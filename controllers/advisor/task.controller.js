@@ -9,8 +9,11 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
+// eslint-disable-next-line no-unused-vars
 import config from 'config/config';
 import { pick } from '../../utils/pick';
+import {Deal} from "../../models";
+import ApiError from "../../utils/ApiError";
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -94,6 +97,11 @@ export const create = catchAsync(async (req, res) => {
   const moveFileObj = {
     ...(body.taskDocuments && { taskDocuments: body.taskDocuments }),
   };
+  const dealId = body.deal;
+  const dealObj = await Deal.findById(dealId);
+  if (!dealObj) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
+  }
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
