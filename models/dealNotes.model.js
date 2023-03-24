@@ -44,7 +44,7 @@ const DealNotesSchema = new mongoose.Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'User',
     },
-    context: {
+    content: {
       type: String,
     },
     lastReadBy: {
