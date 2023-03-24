@@ -169,20 +169,6 @@ const DealSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumLoanTypeOfDeal),
     },
     /**
-     * list of all questions and answers and associated document attached associated to the deal
-     * */
-    tasks: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'Task',
-    },
-    /**
-     * list of all user&#39;s notes associated to the deal
-     * */
-    dealNotes: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'DealNotes',
-    },
-    /**
      * User creating the deal
      * */
     user: {
@@ -196,13 +182,31 @@ const DealSchema = new mongoose.Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'LenderPlacement',
     },
-    documents: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'DealDocument',
-    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
+
+DealSchema.virtual('notes', {
+  ref: 'DealNotes',
+  localField: '_id',
+  foreignField: 'deal',
+  justOne: false,
+});
+
+DealSchema.virtual('documents', {
+  ref: 'DealDocument',
+  localField: '_id',
+  foreignField: 'deal',
+  justOne: false,
+});
+
+DealSchema.virtual('task', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'deal',
+  justOne: false,
+});
+
 DealSchema.plugin(toJSON);
 DealSchema.plugin(mongoosePaginateV2);
 DealSchema.plugin(softDelete, {

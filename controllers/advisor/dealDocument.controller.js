@@ -9,8 +9,9 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
-import config from 'config/config';
 import { pick } from '../../utils/pick';
+import { Deal } from '../../models';
+import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -20,7 +21,7 @@ const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
 // this is used to move file to new specified path as shown in basePath, used in create and update controller.
 const moveFiles = async ({ body, user, moveFileObj }) => {
   await asyncForEach(Object.keys(moveFileObj), async (key) => {
-    const fieldValidation = FileFieldValidationEnum[`${key}OfDealDocument`];
+    const fieldValidation = FileFieldValidationEnum[`${key}OfDealdocument`];
     const basePath = `users/${user._id}/dealDocument/${body._id}/${key}/${mongoose.Types.ObjectId()}/`;
     if (Array.isArray(moveFileObj[key])) {
       const newUrlsArray = [];
@@ -94,6 +95,11 @@ export const create = catchAsync(async (req, res) => {
   const moveFileObj = {
     ...(body.file && { file: body.file }),
   };
+  const dealId = body.deal;
+  const dealObj = await Deal.findById(dealId);
+  if (!dealObj) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
+  }
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
@@ -114,6 +120,11 @@ export const update = catchAsync(async (req, res) => {
   const moveFileObj = {
     ...(body.file && { file: body.file }),
   };
+  const dealId = body.deal;
+  const dealObj = await Deal.findById(dealId);
+  if (!dealObj) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
+  }
   body._id = dealDocumentId;
   await moveFiles({ body, user, moveFileObj });
   const filter = {
