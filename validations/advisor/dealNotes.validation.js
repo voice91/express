@@ -11,7 +11,7 @@ export const createDealNotes = {
     deal: Joi.objectId().required(),
     pinnedByUsers: Joi.array().items(Joi.objectId()),
     flagedByUser: Joi.array().items(Joi.objectId()),
-    content: Joi.String(),
+    content: Joi.string(),
     lastReadBy: Joi.array().items(Joi.objectId()),
   }),
 };
@@ -21,7 +21,7 @@ export const updateDealNotes = {
     deal: Joi.objectId(),
     pinnedByUsers: Joi.array().items(Joi.objectId()),
     flagedByUser: Joi.array().items(Joi.objectId()),
-    content: Joi.String(),
+    content: Joi.string(),
     lastReadBy: Joi.array().items(Joi.objectId()),
   }),
   params: Joi.object().keys({
