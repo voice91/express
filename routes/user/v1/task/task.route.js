@@ -3,20 +3,26 @@ import { taskController } from 'controllers/user';
 import { taskValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import checkAccessOfDeal from '../../../../middlewares/checkUserOfDeal';
 
 const router = express.Router();
 router
   .route('/')
   /**
+   * createTask
+   * */
+  .post(auth('user'), validate(taskValidation.createTask), checkAccessOfDeal, taskController.create)
+  /**
    * getTask
    * */
-  .get(auth('user'), validate(taskValidation.getTask), taskController.list);
+  .get(auth('user'), validate(taskValidation.getTask), checkAccessOfDeal, taskController.list);
+
 router
   .route('/paginated')
   /**
    * getTaskPaginated
    * */
-  .get(auth('user'), validate(taskValidation.paginatedTask), taskController.paginate);
+  .get(auth('user'), validate(taskValidation.paginatedTask), checkAccessOfDeal, taskController.paginate);
 router
   .route('/:taskId')
   /**
@@ -26,7 +32,7 @@ router
   /**
    * updateTask
    * */
-  .put(auth('user'), validate(taskValidation.updateTask), taskController.update)
+  .put(auth('user'), validate(taskValidation.updateTask), checkAccessOfDeal, taskController.update)
   /**
    * deleteTaskById
    * */

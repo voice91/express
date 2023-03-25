@@ -3,6 +3,7 @@ import { dealNotesController } from 'controllers/advisor';
 import { dealNotesValidation } from 'validations/advisor';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import checkAccessOfDeal from '../../../../middlewares/checkUserOfDeal';
 
 const router = express.Router();
 router
@@ -10,27 +11,27 @@ router
   /**
    * createDealNotes
    * */
-  .post(auth('advisor'), validate(dealNotesValidation.createDealNotes), dealNotesController.create)
+  .post(auth('advisor'), validate(dealNotesValidation.createDealNotes), checkAccessOfDeal, dealNotesController.create)
   /**
    * getDealNotes
    * */
-  .get(auth('advisor'), validate(dealNotesValidation.getDealNotes), dealNotesController.list);
+  .get(auth('advisor'), validate(dealNotesValidation.getDealNotes), checkAccessOfDeal, dealNotesController.list);
 router
   .route('/paginated')
   /**
    * getDealNotesPaginated
    * */
-  .get(auth('advisor'), validate(dealNotesValidation.paginatedDealNotes), dealNotesController.paginate);
+  .get(auth('advisor'), validate(dealNotesValidation.paginatedDealNotes), checkAccessOfDeal, dealNotesController.paginate);
 router
   .route('/:dealNotesId')
   /**
    * getDealNotesById
    * */
-  .get(auth('advisor'), validate(dealNotesValidation.getDealNotesById), dealNotesController.get)
+  .get(auth('advisor'), validate(dealNotesValidation.getDealNotesById), checkAccessOfDeal, dealNotesController.get)
   /**
    * updateDealNotes
    * */
-  .put(auth('advisor'), validate(dealNotesValidation.updateDealNotes), dealNotesController.update)
+  .put(auth('advisor'), validate(dealNotesValidation.updateDealNotes), checkAccessOfDeal, dealNotesController.update)
   /**
    * deleteDealNotesById
    * */

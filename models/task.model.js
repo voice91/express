@@ -51,6 +51,11 @@ const TaskSchema = new mongoose.Schema(
     taskDocuments: {
       type: [String],
     },
+    deal: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Deal',
+      required: true,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );

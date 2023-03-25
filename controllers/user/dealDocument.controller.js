@@ -21,7 +21,7 @@ const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
 // this is used to move file to new specified path as shown in basePath, used in create and update controller.
 const moveFiles = async ({ body, user, moveFileObj }) => {
   await asyncForEach(Object.keys(moveFileObj), async (key) => {
-    const fieldValidation = FileFieldValidationEnum[`${key}OfDealDocument`];
+    const fieldValidation = FileFieldValidationEnum[`${key}OfDealdocument`];
     const basePath = `users/${user._id}/dealDocument/${body._id}/${key}/${mongoose.Types.ObjectId()}/`;
     if (Array.isArray(moveFileObj[key])) {
       const newUrlsArray = [];
