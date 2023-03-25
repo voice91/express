@@ -12,8 +12,8 @@ import { asyncForEach } from 'utils/common';
 // eslint-disable-next-line no-unused-vars
 import config from 'config/config';
 import { pick } from '../../utils/pick';
-import {Deal} from "../../models";
-import ApiError from "../../utils/ApiError";
+import { Deal } from '../../models';
+import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });

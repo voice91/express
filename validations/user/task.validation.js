@@ -12,6 +12,7 @@ export const createTask = {
     taskQuestion: Joi.string().required(),
     askingParty: Joi.objectId().required(),
     taskAnswer: Joi.string(),
+    deal: Joi.objectId().required(),
     taskDocuments: Joi.array().items(
       Joi.string().regex(
         new RegExp(

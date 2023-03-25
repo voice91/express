@@ -11,19 +11,18 @@ router
   /**
    * createTask
    * */
-  .post(auth('advisor'), validate(taskValidation.createTask), checkAccessOfDeal, taskController.create);
-router
-  .route('/')
+  .post(auth('user'), validate(taskValidation.createTask), checkAccessOfDeal, taskController.create)
   /**
    * getTask
    * */
-  .get(auth('user'), validate(taskValidation.getTask), taskController.list);
+  .get(auth('user'), validate(taskValidation.getTask), checkAccessOfDeal, taskController.list);
+
 router
   .route('/paginated')
   /**
    * getTaskPaginated
    * */
-  .get(auth('user'), validate(taskValidation.paginatedTask), taskController.paginate);
+  .get(auth('user'), validate(taskValidation.paginatedTask), checkAccessOfDeal, taskController.paginate);
 router
   .route('/:taskId')
   /**

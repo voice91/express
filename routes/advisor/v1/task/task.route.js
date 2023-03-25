@@ -15,13 +15,13 @@ router
   /**
    * getTask
    * */
-  .get(auth('advisor'), validate(taskValidation.getTask), taskController.list);
+  .get(auth('advisor'), validate(taskValidation.getTask), checkAccessOfDeal, taskController.list);
 router
   .route('/paginated')
   /**
    * getTaskPaginated
    * */
-  .get(auth('advisor'), validate(taskValidation.paginatedTask), taskController.paginate);
+  .get(auth('advisor'), validate(taskValidation.paginatedTask), checkAccessOfDeal, taskController.paginate);
 router
   .route('/:taskId')
   /**
