@@ -54,9 +54,9 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
   });
 };
 export const get = catchAsync(async (req, res) => {
-  const { taskId } = req.params;
+  const { deal } = req.params;
   const filter = {
-    _id: taskId,
+    _id: deal,
   };
   const options = {};
   const task = await taskService.getOne(filter, options);
@@ -71,15 +71,15 @@ export const list = catchAsync(async (req, res) => {
 });
 
 export const paginate = catchAsync(async (req, res) => {
-  const { query } = req;
-  const sortingObj = pick(query, ['sort', 'order']);
+  const { params } = req;
+  const sortingObj = pick(params, ['sort', 'order']);
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
   const filter = {};
   const options = {
     sort: sortObj,
-    ...pick(query, ['limit', 'page']),
+    ...pick(params, ['limit', 'page']),
   };
   const task = await taskService.getTaskListWithPagination(filter, options);
   task.results = task.results.map((taskObject) => ({

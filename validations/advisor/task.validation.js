@@ -55,10 +55,16 @@ export const deleteTaskById = {
 
 export const getTask = {
   body: Joi.object().keys({}).unknown(true),
+  params: Joi.object().keys({
+    deal: Joi.objectId().required(),
+  }),
 };
 
 export const paginatedTask = {
   body: Joi.object().keys({}).unknown(true),
+  params: Joi.object().keys({
+    deal: Joi.objectId().required(),
+  }),
   query: Joi.object()
     .keys({
       page: Joi.number().default(1),
