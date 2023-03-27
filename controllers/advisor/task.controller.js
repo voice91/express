@@ -54,9 +54,9 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
   });
 };
 export const get = catchAsync(async (req, res) => {
-  const { deal } = req.params;
+  const { taskId } = req.params;
   const filter = {
-    _id: deal,
+    _id: taskId,
   };
   const options = {};
   const task = await taskService.getOne(filter, options);
@@ -71,15 +71,17 @@ export const list = catchAsync(async (req, res) => {
 });
 
 export const paginate = catchAsync(async (req, res) => {
-  const { params } = req;
-  const sortingObj = pick(params, ['sort', 'order']);
+  const { dealId } = req.params;
+  const sortingObj = pick(dealId, ['sort', 'order']);
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
-  const filter = {};
+  const filter = {
+    deal: req.params.dealId,
+  };
   const options = {
     sort: sortObj,
-    ...pick(params, ['limit', 'page']),
+    ...pick(dealId, ['limit', 'page']),
   };
   const task = await taskService.getTaskListWithPagination(filter, options);
   task.results = task.results.map((taskObject) => ({
@@ -127,6 +129,11 @@ export const update = catchAsync(async (req, res) => {
   const filter = {
     _id: taskId,
   };
+  body.$push = { taskDocuments: body.taskDocuments };
+  // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
+  // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
+  delete body.taskDocuments;
+
   const options = { new: true };
   const taskResult = await taskService.updateTask(filter, body, options);
   // tempS3

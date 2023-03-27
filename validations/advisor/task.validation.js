@@ -10,7 +10,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 export const createTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string().required(),
-    askingParty: Joi.objectId().required(),
     taskAnswer: Joi.string(),
     deal: Joi.objectId().required(),
     taskDocuments: Joi.array().items(
@@ -26,15 +25,9 @@ export const createTask = {
 export const updateTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string(),
-    askingParty: Joi.objectId(),
     taskAnswer: Joi.string(),
-    taskDocuments: Joi.array().items(
-      Joi.string().regex(
-        new RegExp(
-          `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|pptx|xls|xlsx)$)`
-        )
-      )
-    ),
+    deal: Joi.objectId().required(),
+    taskDocuments: Joi.string(),
   }),
   params: Joi.object().keys({
     taskId: Joi.objectId().required(),
@@ -63,7 +56,7 @@ export const getTask = {
 export const paginatedTask = {
   body: Joi.object().keys({}).unknown(true),
   params: Joi.object().keys({
-    deal: Joi.objectId().required(),
+    dealId: Joi.objectId().required(),
   }),
   query: Joi.object()
     .keys({

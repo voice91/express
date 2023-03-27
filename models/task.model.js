@@ -37,7 +37,6 @@ const TaskSchema = new mongoose.Schema(
     askingParty: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
     },
     /**
      * Free text response, from the borrower (the advisor can also answer on behalf of the borrower)

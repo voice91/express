@@ -4,6 +4,7 @@ import { dealDocumentValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
 import checkAccessOfDeal from '../../../../middlewares/checkUserOfDeal';
+import checkAccessOfDealQuery from '../../../../middlewares/checkUserOfDealQuery';
 
 const router = express.Router();
 router
@@ -11,11 +12,13 @@ router
   /**
    * createDealDocument
    * */
-  .post(auth('user'), validate(dealDocumentValidation.createDealDocument), checkAccessOfDeal, dealDocumentController.create)
+  .post(auth('user'), validate(dealDocumentValidation.createDealDocument), checkAccessOfDeal, dealDocumentController.create);
+router
+  .route('/:dealId')
   /**
    * getDealDocument
    * */
-  .get(auth('user'), validate(dealDocumentValidation.getDealDocument), dealDocumentController.list);
+  .get(auth('user'), validate(dealDocumentValidation.getDealDocument), checkAccessOfDealQuery, dealDocumentController.list);
 router
   .route('/paginated')
   /**
