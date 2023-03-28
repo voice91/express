@@ -4,7 +4,6 @@ import { taskValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
 import checkAccessOfDeal from '../../../../middlewares/checkUserOfDeal';
-import checkAccessOfDealQuery from '../../../../middlewares/checkUserOfDealQuery';
 
 const router = express.Router();
 router
@@ -23,7 +22,7 @@ router
   /**
    * getTaskPaginated
    * */
-  .get(auth('user'), validate(taskValidation.paginatedTask), checkAccessOfDealQuery, taskController.paginate);
+  .get(auth('user'), validate(taskValidation.paginatedTask), checkAccessOfDeal, taskController.paginate);
 router
   .route('/:taskId')
   /**

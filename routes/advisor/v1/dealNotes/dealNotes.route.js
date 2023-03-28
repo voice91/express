@@ -17,7 +17,13 @@ router
    * */
   .get(auth('advisor'), validate(dealNotesValidation.getDealNotes), checkAccessOfDeal, dealNotesController.list);
 router
-  .route('/paginated')
+  .route('/deal/:dealId/paginated')
+  /**
+   * getDealNotesPaginated
+   * */
+  .get(auth('advisor'), validate(dealNotesValidation.paginatedDealNotes), checkAccessOfDeal, dealNotesController.paginate);
+router
+  .route('/deal/:dealId/paginated')
   /**
    * getDealNotesPaginated
    * */

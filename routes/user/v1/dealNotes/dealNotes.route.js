@@ -13,7 +13,7 @@ router
    * */
   .post(auth('user'), validate(dealNotesValidation.createDealNotes), checkAccessOfDeal, dealNotesController.create);
 router
-  .route('/paginated')
+  .route('/deal/:dealId/paginated')
   /**
    * getDealNotesPaginated
    * */

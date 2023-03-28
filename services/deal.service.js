@@ -27,23 +27,24 @@ export async function getDealListWithPagination(filter, options = {}) {
 }
 
 export async function createDeal(body) {
-  if (body.involvedUsers.advisors) {
-    const advisorsArr = body.involvedUsers.advisors.map((item) => item);
-
-    const advisors = await User.find({ _id: { $in: advisorsArr } });
-    if (advisors.length !== advisorsArr.length) {
+  if (body.involvedUsers && body.involvedUsers.advisors) {
+    const advisor = body.involvedUsers.advisors;
+    const advisors = await User.find({ _id: { $in: advisor } });
+    if (advisors.length !== advisor.length) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'advisors not found!');
     }
-  } else if (body.involvedUsers.lenders) {
-    const lendersArr = body.involvedUsers.lenders.map((item) => item);
-    const lenders = await User.find({ _id: { $in: lendersArr } });
-    if (lenders.length !== lendersArr.length) {
+  }
+  if (body.involvedUsers && body.involvedUsers.lenders) {
+    const lender = body.involvedUsers.lenders;
+    const lenders = await User.find({ _id: { $in: lender } });
+    if (lenders.length !== lender.length) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'lenders not found!');
     }
-  } else {
-    const borrowersArr = body.involvedUsers.borrowers.map((item) => item);
-    const borrowers = await User.find({ _id: { $in: borrowersArr } });
-    if (borrowers.length !== borrowersArr.length) {
+  }
+  if (body.involvedUsers && body.involvedUsers.borrowers) {
+    const borrower = body.involvedUsers.borrowers;
+    const borrowers = await User.find({ _id: { $in: borrower } });
+    if (borrowers.length !== borrower.length) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'borrowers not found!');
     }
   }
@@ -51,23 +52,24 @@ export async function createDeal(body) {
   return deal;
 }
 export async function updateDeal(filter, body, options = {}) {
-  if (body.involvedUsers.advisors) {
-    const advisorsArr = body.involvedUsers.advisors.map((item) => item);
-
-    const advisors = await User.find({ _id: { $in: advisorsArr } });
-    if (advisors.length !== advisorsArr.length) {
+  if (body.involvedUsers && body.involvedUsers.advisors) {
+    const advisor = body.involvedUsers.advisors;
+    const advisors = await User.find({ _id: { $in: advisor } });
+    if (advisors.length !== advisor.length) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'advisors not found!');
     }
-  } else if (body.involvedUsers.lenders) {
-    const lendersArr = body.involvedUsers.lenders.map((item) => item);
-    const lenders = await User.find({ _id: { $in: lendersArr } });
-    if (lenders.length !== lendersArr.length) {
+  }
+  if (body.involvedUsers && body.involvedUsers.lenders) {
+    const lender = body.involvedUsers.lenders;
+    const lenders = await User.find({ _id: { $in: lender } });
+    if (lenders.length !== lender.length) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'lenders not found!');
     }
-  } else {
-    const borrowersArr = body.involvedUsers.borrowers.map((item) => item);
-    const borrowers = await User.find({ _id: { $in: borrowersArr } });
-    if (borrowers.length !== borrowersArr.length) {
+  }
+  if (body.involvedUsers && body.involvedUsers.borrowers) {
+    const borrower = body.involvedUsers.borrowers;
+    const borrowers = await User.find({ _id: { $in: borrower } });
+    if (borrowers.length !== borrower.length) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'borrowers not found!');
     }
   }

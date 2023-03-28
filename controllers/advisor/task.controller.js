@@ -71,8 +71,8 @@ export const list = catchAsync(async (req, res) => {
 });
 
 export const paginate = catchAsync(async (req, res) => {
-  const { dealId } = req.params;
-  const sortingObj = pick(dealId, ['sort', 'order']);
+  const { query } = req;
+  const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
@@ -81,7 +81,7 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const options = {
     sort: sortObj,
-    ...pick(dealId, ['limit', 'page']),
+    ...pick(query, ['limit', 'page']),
   };
   const task = await taskService.getTaskListWithPagination(filter, options);
   task.results = task.results.map((taskObject) => ({
