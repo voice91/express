@@ -32,11 +32,11 @@ const DealDocumentSchema = new mongoose.Schema(
       default: enumModel.EnumDocumentTypeOfDealDocument.OTHERS,
     },
     file: {
-      type: String,
+      type: [String],
       required: true,
     },
     fileName: {
-      type: String,
+      type: [String],
       required: true,
     },
     deal: {

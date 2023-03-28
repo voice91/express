@@ -12,8 +12,8 @@ export const createDealDocument = {
     documentType: Joi.string()
       .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
       .required(),
-    file: Joi.string().required(),
-    fileName: Joi.string(),
+    file: Joi.array().items(Joi.string()),
+    fileName: Joi.array().items(Joi.string()),
     deal: Joi.objectId().required(),
   }),
 };
@@ -38,9 +38,6 @@ export const getDealDocumentById = {
 
 export const getDealDocument = {
   body: Joi.object().keys({}).unknown(true),
-  params: Joi.object().keys({
-    dealId: Joi.objectId().required(),
-  }),
 };
 
 export const paginatedDealDocument = {
