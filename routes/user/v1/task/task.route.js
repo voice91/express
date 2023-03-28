@@ -18,7 +18,7 @@ router
   .get(auth('user'), validate(taskValidation.getTask), checkAccessOfDeal, taskController.list);
 
 router
-  .route('/paginated')
+  .route('/deal/:dealId/paginated')
   /**
    * getTaskPaginated
    * */

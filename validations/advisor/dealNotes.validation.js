@@ -54,6 +54,9 @@ export const getDealNotes = {
 
 export const paginatedDealNotes = {
   body: Joi.object().keys({}).unknown(true),
+  params: Joi.object().keys({
+    dealId: Joi.objectId().required(),
+  }),
   query: Joi.object()
     .keys({
       page: Joi.number().default(1),

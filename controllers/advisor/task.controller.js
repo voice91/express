@@ -76,7 +76,9 @@ export const paginate = catchAsync(async (req, res) => {
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
-  const filter = {};
+  const filter = {
+    deal: req.params.dealId,
+  };
   const options = {
     sort: sortObj,
     ...pick(query, ['limit', 'page']),
@@ -127,6 +129,11 @@ export const update = catchAsync(async (req, res) => {
   const filter = {
     _id: taskId,
   };
+  body.$push = { taskDocuments: body.taskDocuments };
+  // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
+  // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
+  delete body.taskDocuments;
+
   const options = { new: true };
   const taskResult = await taskService.updateTask(filter, body, options);
   // tempS3

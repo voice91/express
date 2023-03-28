@@ -19,7 +19,7 @@ export const get = catchAsync(async (req, res) => {
   const user = req.user._id;
   const filter = {
     _id: dealNotesId,
-    user: user,
+    user,
   };
   const options = {};
   const dealNotes = await dealNotesService.getOne(filter, options);
@@ -31,7 +31,7 @@ export const list = catchAsync(async (req, res) => {
   const user = req.user._id;
   const queryParams = getDealNotesFilterQuery(query);
   const filter = {
-    user: user,
+    user,
     ...queryParams,
   };
   const options = {
@@ -43,15 +43,12 @@ export const list = catchAsync(async (req, res) => {
 
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
-  const user = req.user._id;
-  const queryParams = getDealNotesFilterQuery(query);
   const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
   const filter = {
-    user: user,
-    ...queryParams,
+    deal: req.params.dealId,
   };
   const options = {
     sort: sortObj,
@@ -83,7 +80,7 @@ export const update = catchAsync(async (req, res) => {
   const user = req.user._id;
   const filter = {
     _id: dealNotesId,
-    user: user,
+    user,
   };
   const options = { new: true };
   const dealNotes = await dealNotesService.updateDealNotes(filter, body, options);
@@ -95,7 +92,7 @@ export const remove = catchAsync(async (req, res) => {
   const user = req.user._id;
   const filter = {
     _id: dealNotesId,
-    user: user,
+    user,
   };
   const dealNotes = await dealNotesService.removeDealNotes(filter);
   return res.status(httpStatus.OK).send({ results: dealNotes });

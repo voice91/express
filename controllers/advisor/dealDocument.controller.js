@@ -62,7 +62,9 @@ export const get = catchAsync(async (req, res) => {
 });
 
 export const list = catchAsync(async (req, res) => {
-  const filter = {};
+  const filter = {
+    deal: req.params.dealId,
+  };
   const options = {};
   const dealDocument = await dealDocumentService.getDealDocumentList(filter, options);
   return res.status(httpStatus.OK).send({ results: dealDocument });

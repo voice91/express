@@ -6,9 +6,10 @@ const checkAccessOfDeal = async (req, res, next) => {
   try {
     const user = req.user._id;
 
+    const dealId = req.body.deal || req.params.dealId;
     const filter = {
       $and: [
-        { _id: req.body.deal },
+        { _id: dealId },
         {
           $or: [
             { user },

@@ -16,11 +16,13 @@ router
     validate(dealDocumentValidation.createDealDocument),
     checkAccessOfDeal,
     dealDocumentController.create
-  )
+  );
+router
+  .route('/deal/:dealId')
   /**
    * getDealDocument
    * */
-  .get(auth('advisor'), validate(dealDocumentValidation.getDealDocument), dealDocumentController.list);
+  .get(auth('advisor'), validate(dealDocumentValidation.getDealDocument), checkAccessOfDeal, dealDocumentController.list);
 router
   .route('/paginated')
   /**

@@ -11,11 +11,13 @@ router
   /**
    * createDealDocument
    * */
-  .post(auth('user'), validate(dealDocumentValidation.createDealDocument), checkAccessOfDeal, dealDocumentController.create)
+  .post(auth('user'), validate(dealDocumentValidation.createDealDocument), checkAccessOfDeal, dealDocumentController.create);
+router
+  .route('/deal/:dealId')
   /**
    * getDealDocument
    * */
-  .get(auth('user'), validate(dealDocumentValidation.getDealDocument), dealDocumentController.list);
+  .get(auth('user'), validate(dealDocumentValidation.getDealDocument), checkAccessOfDeal, dealDocumentController.list);
 router
   .route('/paginated')
   /**
@@ -27,7 +29,7 @@ router
   /**
    * getDealDocumentById
    * */
-  .get(auth('user'), validate(dealDocumentValidation.getDealDocumentById), dealDocumentController.get)
+  .get(auth('user'), validate(dealDocumentValidation.getDealDocumentById), checkAccessOfDeal, dealDocumentController.get)
   /**
    * updateDealDocument
    * */
