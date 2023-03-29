@@ -126,7 +126,8 @@ export const update = catchAsync(async (req, res) => {
   };
 
   const filterForQuestion = {
-    $and: [{ _id: taskId }, { createdBy: { $in: [req.user._id] } }],
+    _id: taskId,
+    createdBy: { $in: [req.user._id] },
   };
   const questionAskedBy = await Task.findOne(filterForQuestion);
 
