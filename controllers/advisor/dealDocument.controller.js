@@ -103,10 +103,9 @@ export const create = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
   }
   body._id = mongoose.Types.ObjectId();
-  const documentBody = { ...body };
   await moveFiles({ body, user, moveFileObj });
   const options = {};
-  const dealDocumentResult = await dealDocumentService.createDealDocument(documentBody, options);
+  const dealDocumentResult = await dealDocumentService.createDealDocument(body, options);
   if (dealDocumentResult) {
     const uploadedFileUrls = [];
     uploadedFileUrls.push(dealDocumentResult.file);

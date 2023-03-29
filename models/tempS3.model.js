@@ -10,7 +10,7 @@ const tempS3Schema = new Schema(
       type: mongoose.Types.ObjectId,
       ref: 'User',
     },
-    url: [String],
+    url: String,
     key: String,
     fields: {
       ContentType: String,

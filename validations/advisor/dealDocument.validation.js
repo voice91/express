@@ -12,8 +12,8 @@ export const createDealDocument = {
     documentType: Joi.string()
       .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
       .required(),
-    file: Joi.array().items(Joi.string()),
-    fileName: Joi.array().items(Joi.string()),
+    file: Joi.string().required(),
+    fileName: Joi.string(),
     deal: Joi.objectId().required(),
   }),
 };
