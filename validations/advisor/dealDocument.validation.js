@@ -13,7 +13,7 @@ export const createDealDocument = {
       .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
       .required(),
     file: Joi.string().required(),
-    fileName: Joi.string().required(),
+    fileName: Joi.string(),
     deal: Joi.objectId().required(),
   }),
 };

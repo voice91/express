@@ -38,9 +38,6 @@ export const getDealDocumentById = {
 
 export const getDealDocument = {
   body: Joi.object().keys({}).unknown(true),
-  params: Joi.object().keys({
-    dealId: Joi.objectId().required(),
-  }),
 };
 
 export const paginatedDealDocument = {
