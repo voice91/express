@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
 import { pick } from '../../utils/pick';
-import { Deal } from '../../models';
+import { Task } from '../../models';
 import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
@@ -97,11 +97,6 @@ export const create = catchAsync(async (req, res) => {
   const moveFileObj = {
     ...(body.taskDocuments && { taskDocuments: body.taskDocuments }),
   };
-  const dealId = body.deal;
-  const dealObj = await Deal.findById(dealId);
-  if (!dealObj) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
-  }
   body._id = mongoose.Types.ObjectId();
   // eslint-disable-next-line no-use-before-define
   await moveFiles({ body, user, moveFileObj });
@@ -128,6 +123,16 @@ export const update = catchAsync(async (req, res) => {
   const filter = {
     _id: taskId,
   };
+  const filterForQuestion = {
+    _id: taskId,
+    createdBy: { $in: [req.user._id] },
+  };
+  const questionAskedBy = await Task.findOne(filterForQuestion);
+
+  if (questionAskedBy) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "You can't give response to your own question");
+  }
+
   body.$push = { taskDocuments: body.taskDocuments };
   // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
   // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
