@@ -6,6 +6,8 @@ import httpStatus from 'http-status';
 import { dealService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import { User } from '../../models';
+import ApiError from '../../utils/ApiError';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -82,6 +84,18 @@ export const create = catchAsync(async (req, res) => {
   body.createdBy = req.user;
   body.updatedBy = req.user;
   body.user = req.user._id;
+  const user = req.user._id;
+
+  const filter = {
+    _id: user,
+    email: { $in: [req.body.dealMembers] },
+  };
+
+  const userEmailExist = await User.findOne(filter);
+  if (userEmailExist) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You can only add email of User you want to add');
+  }
+
   const options = {};
   const deal = await dealService.createDeal(body, options);
   return res.status(httpStatus.CREATED).send({ results: deal });
