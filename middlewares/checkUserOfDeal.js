@@ -7,6 +7,11 @@ const checkAccessOfDeal = async (req, res, next) => {
     const user = req.user._id;
 
     const dealId = req.body.deal || req.params.dealId;
+    const dealObj = await Deal.findById(dealId);
+    if (!dealObj) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
+    }
+
     const filter = {
       $and: [
         { _id: dealId },
