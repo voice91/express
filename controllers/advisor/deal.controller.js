@@ -84,16 +84,22 @@ export const create = catchAsync(async (req, res) => {
   body.createdBy = req.user;
   body.updatedBy = req.user;
   body.user = req.user._id;
-  const user = req.user._id;
 
   const filter = {
-    _id: user,
-    email: { $in: [req.body.dealMembers] },
+    $and: [
+      {
+        email: { $in: req.body.dealMembers },
+      },
+      {
+        $or: [{ role: 'advisor' }, { role: 'lender' }],
+      },
+    ],
   };
 
-  const userEmailExist = await User.findOne(filter);
-  if (userEmailExist) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'You can only add email of User you want to add');
+  const userEmailExists = await User.findOne(filter);
+
+  if (userEmailExists) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "This email is associated with advisor's or lender's account");
   }
 
   const options = {};

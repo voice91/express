@@ -169,7 +169,7 @@ const DealSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumLoanTypeOfDeal),
     },
     dealMembers: {
-      type: String,
+      type: [String],
       // eslint-disable-next-line security/detect-unsafe-regex
       match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
     },
