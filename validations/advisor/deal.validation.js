@@ -39,6 +39,7 @@ export const createDeal = {
       .valid(...Object.values(enumFields.EnumLoanPurposeOfDeal))
       .required(),
     loanType: Joi.string().valid(...Object.values(enumFields.EnumLoanTypeOfDeal)),
+    dealMembers: Joi.array().items(Joi.string().email()),
     tasks: Joi.array().items(Joi.objectId()),
     dealNotes: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.array().items(Joi.objectId()),

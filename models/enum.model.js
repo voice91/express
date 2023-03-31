@@ -44,6 +44,7 @@ const EnumLoanTypeOfDeal = {
   PERMANENT: 'permanent',
   TRANSITIONAL: 'transitional',
   CONSTRUCTION: 'construction',
+  STABILIZED: 'Stabilized',
 };
 const EnumLenderProgramTypeOfLenderProgram = {
   CONSTRUCTION: 'construction',
@@ -136,6 +137,11 @@ const EnumTypeOfToken = {
   VERIFY_EMAIL: 'verifyEmail',
   REFRESH: 'refresh',
 };
+const EnumTypeOfStatus = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+};
+
 module.exports = {
   EnumContentType,
   EnumCodeTypeOfCode,
@@ -155,4 +161,5 @@ module.exports = {
   EnumDocumentTypeOfDealDocument,
   EnumFileOfDealDocument,
   EnumTypeOfToken,
+  EnumTypeOfStatus,
 };

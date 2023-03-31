@@ -4,7 +4,10 @@
  */
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
-import { Deal, User } from 'models';
+import { Deal, Invitation, User } from 'models';
+import mongoose from 'mongoose';
+import _ from 'lodash';
+import enumModel from '../models/enum.model';
 
 export async function getDealById(id, options = {}) {
   const deal = await Deal.findById(id, options.projection, options);
@@ -48,8 +51,56 @@ export async function createDeal(body) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'borrowers not found!');
     }
   }
-  const deal = await Deal.create(body);
-  return deal;
+
+  const dealId = mongoose.Types.ObjectId();
+  const deal = { _id: dealId };
+  if (body.dealMembers && body.dealMembers.length) {
+    const existingUsers = await User.find({ email: { $in: body.dealMembers } });
+    // eslint-disable-next-line no-param-reassign
+    body.involvedUsers.borrowers = existingUsers.map((item) => item._id);
+    if (existingUsers.length) {
+      // In existing users we get the user document of the the emails we pass in the dealMembers if it exists in the system so in the below line we are checking now whether the role of the user is 'user' or not
+      // If it is not user(borrower) then we'll throw the error as in the deal we can only add borrowers(user)
+      if (existingUsers.some((user) => user.role !== enumModel.EnumRoleOfUser.USER)) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Deal members email can be of borrower's only");
+      }
+      // userEmailNotExist ==> Here,we will get the emails that are not in our system.
+      const userEmailNotExists = _.differenceBy(
+        body.dealMembers,
+        existingUsers.map((item) => item.email)
+      );
+
+      if (userEmailNotExists.length) {
+        await Invitation.insertMany(
+          userEmailNotExists.map((nonExistingEmail) => ({
+            deal: deal._id,
+            invitedBy: body.user,
+            inviteeEmail: nonExistingEmail,
+          }))
+        );
+      }
+      // as our existingUsers is array we are using map on it. below line will help us to insert many document in our db at once, and we have passed the object in the map we have to enter in our db
+      // so we will get deal id, the user from which we login or who is creating deal their id will go in invitedBy and in emailExists we get the whole document and we just want id of the person which we are inviting the deal so we did emailExists._id
+      await Invitation.insertMany(
+        existingUsers.map((emailExists) => ({
+          deal: deal._id,
+          status: 'accepted',
+          invitedBy: body.user,
+          invitee: emailExists._id,
+        }))
+      );
+    } else {
+      await Invitation.insertMany(
+        body.dealMembers.map((nonExistingEmail) => ({
+          deal: deal._id,
+          invitedBy: body.user,
+          inviteeEmail: nonExistingEmail,
+        }))
+      );
+    }
+  }
+
+  return Deal.create({ ...body, ...deal });
 }
 export async function updateDeal(filter, body, options = {}) {
   if (body.involvedUsers && body.involvedUsers.advisors) {
