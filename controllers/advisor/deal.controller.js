@@ -83,7 +83,6 @@ export const create = catchAsync(async (req, res) => {
   body.updatedBy = req.user;
   body.user = req.user._id;
   const options = {};
-
   const deal = await dealService.createDeal(body, options);
   return res.status(httpStatus.CREATED).send({ results: deal });
 });
