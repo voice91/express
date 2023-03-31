@@ -3,6 +3,7 @@
  */
 module.exports.User = require('./user.model');
 module.exports.Deal = require('./deal.model');
+module.exports.Invitation = require('./invitation.model');
 module.exports.DealNotes = require('./dealNotes.model');
 module.exports.LenderProgram = require('./lenderProgram.model');
 module.exports.LendingInstitution = require('./lendingInstitution.model');

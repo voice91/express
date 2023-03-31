@@ -4,7 +4,10 @@
  */
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
-import { Deal, User } from 'models';
+import { Deal, Invitation, User } from 'models';
+import mongoose from 'mongoose';
+import _ from 'lodash';
+import enumModel from '../models/enum.model';
 
 export async function getDealById(id, options = {}) {
   const deal = await Deal.findById(id, options.projection, options);
@@ -48,8 +51,45 @@ export async function createDeal(body) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'borrowers not found!');
     }
   }
-  const deal = await Deal.create(body);
-  return deal;
+
+  const dealId = mongoose.Types.ObjectId();
+  const deal = { _id: dealId };
+  if (body.dealMembers && body.dealMembers.length) {
+    const existingUser = await User.find({ email: { $in: body.dealMembers } });
+
+    if (existingUser.length) {
+      if (existingUser.some((user) => user.role !== enumModel.EnumRoleOfUser.USER)) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Deal members email can be of borrower's only");
+      }
+      const userEmailNotExists = _.differenceBy(
+        body.dealMembers,
+        existingUser.map((item) => item.email)
+      );
+
+      if (userEmailNotExists.length) {
+        await Invitation.insertMany(
+          userEmailNotExists.map((nonExistingEmail) => ({
+            deal: deal._id,
+            invitedBy: body.user,
+            inviteeEmail: nonExistingEmail,
+          }))
+        );
+      }
+      await Invitation.insertMany(
+        existingUser.map((emailExists) => ({ deal: deal._id, invitedBy: body.user, invitee: emailExists._id }))
+      );
+    } else {
+      await Invitation.insertMany(
+        body.dealMembers.map((nonExistingEmail) => ({
+          deal: deal._id,
+          invitedBy: body.user,
+          inviteeEmail: nonExistingEmail,
+        }))
+      );
+    }
+  }
+
+  return Deal.create({ ...body, ...deal });
 }
 export async function updateDeal(filter, body, options = {}) {
   if (body.involvedUsers && body.involvedUsers.advisors) {

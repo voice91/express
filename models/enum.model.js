@@ -136,6 +136,13 @@ const EnumTypeOfToken = {
   VERIFY_EMAIL: 'verifyEmail',
   REFRESH: 'refresh',
 };
+
+const EnumTypeOfStatus = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+};
+
 module.exports = {
   EnumContentType,
   EnumCodeTypeOfCode,
@@ -155,4 +162,5 @@ module.exports = {
   EnumDocumentTypeOfDealDocument,
   EnumFileOfDealDocument,
   EnumTypeOfToken,
+  EnumTypeOfStatus,
 };

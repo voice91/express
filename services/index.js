@@ -3,6 +3,7 @@
  */
 module.exports.userService = require('./user.service');
 module.exports.dealService = require('./deal.service');
+module.exports.invitationService = require('./invitation.service');
 module.exports.dealNotesService = require('./dealNotes.service');
 module.exports.lenderProgramService = require('./lenderProgram.service');
 module.exports.lendingInstitutionService = require('./lendingInstitution.service');

@@ -6,8 +6,6 @@ import httpStatus from 'http-status';
 import { dealService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
-import { User } from '../../models';
-import ApiError from '../../utils/ApiError';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -84,25 +82,8 @@ export const create = catchAsync(async (req, res) => {
   body.createdBy = req.user;
   body.updatedBy = req.user;
   body.user = req.user._id;
-
-  const filter = {
-    $and: [
-      {
-        email: { $in: req.body.dealMembers },
-      },
-      {
-        $or: [{ role: 'advisor' }, { role: 'lender' }],
-      },
-    ],
-  };
-
-  const userEmailExists = await User.findOne(filter);
-
-  if (userEmailExists) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "This email is associated with advisor's or lender's account");
-  }
-
   const options = {};
+
   const deal = await dealService.createDeal(body, options);
   return res.status(httpStatus.CREATED).send({ results: deal });
 });
