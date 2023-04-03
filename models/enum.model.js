@@ -44,7 +44,7 @@ const EnumLoanTypeOfDeal = {
   PERMANENT: 'permanent',
   TRANSITIONAL: 'transitional',
   CONSTRUCTION: 'construction',
-  STABILIZED: 'Stabilized',
+  STABILIZED: 'stabilized',
 };
 const EnumLenderProgramTypeOfLenderProgram = {
   CONSTRUCTION: 'construction',
