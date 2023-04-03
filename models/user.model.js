@@ -56,95 +56,101 @@ const DeviceTokenSchema = new mongoose.Schema({
     enum: Object.values(enumModel.EnumPlatformOfDeviceToken),
   },
 });
-const UserSchema = new mongoose.Schema({
-  /**
-   * Name of User
-   * */
-  name: {
-    type: String,
+const UserSchema = new mongoose.Schema(
+  {
+    /**
+     * Name of User
+     * */
+    name: {
+      type: String,
+    },
+    /**
+     * Email address of User
+     * */
+    email: {
+      type: String,
+      // eslint-disable-next-line security/detect-unsafe-regex
+      match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+    },
+    /**
+     * For email verification
+     * */
+    emailVerified: {
+      type: Boolean,
+      private: true,
+    },
+    /**
+     * role
+     * */
+    role: {
+      type: String,
+      enum: Object.values(enumModel.EnumRoleOfUser),
+      default: enumModel.EnumRoleOfUser.USER,
+    },
+    /**
+     * custom server authentication
+     * */
+    codes: {
+      type: [CodeSchema],
+    },
+    /**
+     * password for authentication
+     * */
+    password: {
+      type: String,
+      private: true,
+    },
+    /**
+     * Google based authentication
+     * */
+    googleProvider: {
+      type: OauthSchema,
+    },
+    /**
+     * To store device tokens
+     * */
+    deviceTokens: {
+      type: [DeviceTokenSchema],
+    },
+    /**
+     * First name of User
+     * */
+    firstName: {
+      type: String,
+      required: true,
+    },
+    /**
+     * Last name of User
+     * */
+    lastName: {
+      type: String,
+      required: true,
+    },
+    /**
+     * Free text with combination of country code and phone number
+     * */
+    phoneNumber: {
+      type: String,
+    },
+    /**
+     * The name of the company of the user
+     * */
+    company: {
+      type: String,
+    },
+    /**
+     * Updated whenever the user signs, by default null
+     * */
+    lastSignIn: {
+      type: Date,
+      default: new Date(),
+    },
   },
-  /**
-   * Email address of User
-   * */
-  email: {
-    type: String,
-    // eslint-disable-next-line security/detect-unsafe-regex
-    match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-  },
-  /**
-   * For email verification
-   * */
-  emailVerified: {
-    type: Boolean,
-    private: true,
-  },
-  /**
-   * role
-   * */
-  role: {
-    type: String,
-    enum: Object.values(enumModel.EnumRoleOfUser),
-    default: enumModel.EnumRoleOfUser.USER,
-  },
-  /**
-   * custom server authentication
-   * */
-  codes: {
-    type: [CodeSchema],
-  },
-  /**
-   * password for authentication
-   * */
-  password: {
-    type: String,
-    private: true,
-  },
-  /**
-   * Google based authentication
-   * */
-  googleProvider: {
-    type: OauthSchema,
-  },
-  /**
-   * To store device tokens
-   * */
-  deviceTokens: {
-    type: [DeviceTokenSchema],
-  },
-  /**
-   * First name of User
-   * */
-  firstName: {
-    type: String,
-    required: true,
-  },
-  /**
-   * Last name of User
-   * */
-  lastName: {
-    type: String,
-    required: true,
-  },
-  /**
-   * Free text with combination of country code and phone number
-   * */
-  phoneNumber: {
-    type: String,
-  },
-  /**
-   * The name of the company of the user
-   * */
-  company: {
-    type: String,
-  },
-  /**
-   * Updated whenever the user signs, by default null
-   * */
-  lastSignIn: {
-    type: Date,
-    default: new Date(),
-  },
-});
+  {
+    timestamps: true,
+    autoCreate: true,
+  }
+);
 UserSchema.plugin(toJSON);
 UserSchema.plugin(mongoosePaginateV2);
 /**

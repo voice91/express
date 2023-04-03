@@ -52,7 +52,7 @@ const InvitationSchema = new mongoose.Schema(
       default: enumModel.EnumTypeOfStatus.PENDING,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 InvitationSchema.plugin(toJSON);
 InvitationSchema.plugin(mongoosePaginateV2);

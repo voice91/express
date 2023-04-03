@@ -14,7 +14,7 @@ const errorLogSchema = new Schema(
       type: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true, autoCreate: true }
 );
 const ErrorLog = mongoose.models.ErrorLog || mongoose.model('ErrorLog', errorLogSchema);
 module.exports = ErrorLog;

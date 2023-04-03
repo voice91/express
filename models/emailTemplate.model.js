@@ -51,7 +51,7 @@ const EmailTemplateSchema = new mongoose.Schema(
       type: String,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 EmailTemplateSchema.plugin(toJSON);
 EmailTemplateSchema.plugin(mongoosePaginateV2);

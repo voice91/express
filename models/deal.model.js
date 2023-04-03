@@ -183,7 +183,7 @@ const DealSchema = new mongoose.Schema(
       ref: 'LenderPlacement',
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 
 DealSchema.virtual('notes', {

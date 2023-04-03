@@ -29,6 +29,7 @@ const tokenSchema = mongoose.Schema(
   },
   {
     timestamps: true,
+    autoCreate: true,
   }
 );
 // add plugin that converts mongoose to json

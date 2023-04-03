@@ -52,7 +52,7 @@ const LenderProgramSchema = new mongoose.Schema(
       type: Number,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 LenderProgramSchema.plugin(toJSON);
 LenderProgramSchema.plugin(mongoosePaginateV2);

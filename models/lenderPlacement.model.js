@@ -121,7 +121,7 @@ const LenderPlacementSchema = new mongoose.Schema(
       type: String,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 LenderPlacementSchema.plugin(toJSON);
 LenderPlacementSchema.plugin(mongoosePaginateV2);

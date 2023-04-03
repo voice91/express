@@ -27,7 +27,7 @@ const tempS3Schema = new Schema(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true, autoCreate: true }
 );
 const TempS3 = mongoose.models.TempS3 || mongoose.model('TempS3', tempS3Schema);
 module.exports = TempS3;

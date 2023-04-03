@@ -64,7 +64,7 @@ const LendingInstitutionSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 LendingInstitutionSchema.plugin(toJSON);
 LendingInstitutionSchema.plugin(mongoosePaginateV2);

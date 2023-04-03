@@ -45,7 +45,7 @@ const DealDocumentSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 DealDocumentSchema.plugin(toJSON);
 DealDocumentSchema.plugin(mongoosePaginateV2);

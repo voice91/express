@@ -40,7 +40,7 @@ const ActivityLogSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 ActivityLogSchema.plugin(toJSON);
 ActivityLogSchema.plugin(mongoosePaginateV2);

@@ -52,7 +52,7 @@ const DealNotesSchema = new mongoose.Schema(
       ref: 'User',
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 
 DealNotesSchema.plugin(toJSON);

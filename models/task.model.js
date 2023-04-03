@@ -56,7 +56,7 @@ const TaskSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
 TaskSchema.plugin(toJSON);
 TaskSchema.plugin(mongoosePaginateV2);
