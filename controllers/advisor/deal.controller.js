@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { dealService } from 'services';
+import { dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 
@@ -83,7 +83,12 @@ export const create = catchAsync(async (req, res) => {
   body.updatedBy = req.user;
   body.user = req.user._id;
   const options = {};
+  const { dealMembers } = req.body;
   const deal = await dealService.createDeal(body, options);
+  // eslint-disable-next-line no-unused-vars
+  const sendingMail = dealMembers.map((user) => {
+    return emailService.sendInvitationEmail(user).then().catch();
+  });
   return res.status(httpStatus.CREATED).send({ results: deal });
 });
 
