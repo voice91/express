@@ -31,13 +31,8 @@ export const loginUserWithEmailAndPassword = async (email, password) => {
 
 export const verifyEmail = async (verifyRequest) => {
   const { token } = verifyRequest;
-  console.log('===>token', token);
-
   const verifyEmailTokenDoc = await tokenService.verifyToken(token, EnumTypeOfToken.VERIFY_EMAIL);
-  console.log('===>verifyEmailTokenDoc', verifyEmailTokenDoc);
   const { user } = verifyEmailTokenDoc;
-  console.log('===>user', user);
-
   await Token.deleteMany({ user, type: EnumTypeOfToken.VERIFY_EMAIL });
   const filter = {
     _id: user,
