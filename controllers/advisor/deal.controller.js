@@ -85,10 +85,11 @@ export const create = catchAsync(async (req, res) => {
   const options = {};
   const { dealMembers } = req.body;
   const deal = await dealService.createDeal(body, options);
-  // eslint-disable-next-line no-unused-vars
-  const sendingMail = dealMembers.map((user) => {
-    return emailService.sendInvitationEmail(user).then().catch();
-  });
+  await Promise.allSettled(
+    dealMembers.map((user) => {
+      return emailService.sendInvitationEmail(user).then().catch();
+    })
+  );
   return res.status(httpStatus.CREATED).send({ results: deal });
 });
 

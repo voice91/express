@@ -159,11 +159,8 @@ text-align: center
 <div>Dear Borrower,</div>
 <br>
   <div>We are so excited to invite you to the deal that is both intriguing and timely</div><br>
-  <img src="${config.front.url}/images/logo.jpg"><br><br>
-  <div class="text-center">Swaray LLC</div>
-  <div class="text-center">627 Promontory Drive East</div>
-  <div class="text-center">Newport Beach, CA 92660</div><br>
-  <a class="text-center" target="_blank" href="https://www.google.com" >unsubscribe from this list</a><br><br>
+   <a class="text-center" target="_blank" href="${config.front.url}/login" >Login to Lender web app</a><br><br>
+  <div class="text-center"></div>
   </div>
   </body>
   </html>

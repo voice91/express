@@ -3,7 +3,7 @@
  */
 import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
-import { User, Token } from 'models';
+import { User, Token, Invitation, Deal } from 'models';
 import { userService, tokenService, emailService } from 'services';
 import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
 import bcrypt from 'bcryptjs';
@@ -31,12 +31,21 @@ export const loginUserWithEmailAndPassword = async (email, password) => {
 
 export const verifyEmail = async (verifyRequest) => {
   const { token } = verifyRequest;
+  console.log('===>token', token);
+
   const verifyEmailTokenDoc = await tokenService.verifyToken(token, EnumTypeOfToken.VERIFY_EMAIL);
+  console.log('===>verifyEmailTokenDoc', verifyEmailTokenDoc);
   const { user } = verifyEmailTokenDoc;
+  console.log('===>user', user);
+
   await Token.deleteMany({ user, type: EnumTypeOfToken.VERIFY_EMAIL });
   const filter = {
     _id: user,
   };
+  const findBorrower = await User.findById({ _id: user });
+  const userIsBorrower = await Invitation.find({ inviteeEmail: findBorrower.email });
+  const userDealId = userIsBorrower.map((item) => item.deal);
+  await Deal.updateMany({ _id: userDealId }, { $addToSet: { 'involvedUsers.borrowers': user } });
   return userService.updateUser(filter, { emailVerified: true });
 };
 
