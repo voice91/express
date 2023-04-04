@@ -34,6 +34,17 @@ const InvolvedUserSchema = new mongoose.Schema({
     ref: 'User',
   },
 });
+const pointSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['Point'],
+    required: true,
+  },
+  coordinates: {
+    type: [Number],
+    required: true,
+  },
+});
 const DealSchema = new mongoose.Schema(
   {
     /**
@@ -98,17 +109,7 @@ const DealSchema = new mongoose.Schema(
     /**
      * map co-ordinates to be stored as the exact location
      * */
-    mapLocation: {
-      type: {
-        type: String,
-        enum: ['Point'],
-        required: true,
-      },
-      coordinates: {
-        type: [Number],
-        required: true,
-      },
-    },
+    mapLocation: pointSchema,
     /**
      * hashmap of users involved in the deal. Collection of user-ids (ObjecIds from User collection) in the respective section
      * */
@@ -136,7 +137,6 @@ const DealSchema = new mongoose.Schema(
     involvedUsersAdvisor: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'User',
-      required: true,
     },
     /**
      * Property Type
