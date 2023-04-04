@@ -55,9 +55,9 @@ export async function createDeal(body) {
   const dealId = mongoose.Types.ObjectId();
   const deal = { _id: dealId };
   if (body.dealMembers && body.dealMembers.length) {
+    Object.assign(body.involvedUsers, { advisors: body.user });
     const existingUsers = await User.find({ email: { $in: body.dealMembers } });
-    // eslint-disable-next-line no-param-reassign
-    body.involvedUsers.borrowers = existingUsers.map((item) => item._id);
+    Object.assign(body.involvedUsers, { borrowers: existingUsers.map((item) => item._id) });
     if (existingUsers.length) {
       // In existing users we get the user document of the the emails we pass in the dealMembers if it exists in the system so in the below line we are checking now whether the role of the user is 'user' or not
       // If it is not user(borrower) then we'll throw the error as in the deal we can only add borrowers(user)
