@@ -82,6 +82,7 @@ export const paginate = catchAsync(async (req, res) => {
   const options = {
     sort: sortObj,
     ...pick(query, ['limit', 'page']),
+    populate: { path: 'createdBy' },
   };
   const task = await taskService.getTaskListWithPagination(filter, options);
   task.results = task.results.map((taskObject) => ({
