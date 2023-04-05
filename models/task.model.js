@@ -55,6 +55,10 @@ const TaskSchema = new mongoose.Schema(
       ref: 'Deal',
       required: true,
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
