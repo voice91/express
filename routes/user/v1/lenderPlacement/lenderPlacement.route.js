@@ -8,10 +8,6 @@ const router = express.Router();
 router
   .route('/')
   /**
-   * createLenderPlacement
-   * */
-  .post(auth('user'), validate(lenderPlacementValidation.createLenderPlacement), lenderPlacementController.create)
-  /**
    * getLenderPlacement
    * */
   .get(auth('user'), validate(lenderPlacementValidation.getLenderPlacement), lenderPlacementController.list);
@@ -27,10 +23,6 @@ router
    * getLenderPlacementById
    * */
   .get(auth('user'), validate(lenderPlacementValidation.getLenderPlacementById), lenderPlacementController.get)
-  /**
-   * updateLenderPlacement
-   * */
-  .put(auth('user'), validate(lenderPlacementValidation.updateLenderPlacement), lenderPlacementController.update)
   /**
    * deleteLenderPlacementById
    * */

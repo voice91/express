@@ -8,10 +8,6 @@ const router = express.Router();
 router
   .route('/')
   /**
-   * createLenderProgram
-   * */
-  .post(auth('user'), validate(lenderProgramValidation.createLenderProgram), lenderProgramController.create)
-  /**
    * getLenderProgram
    * */
   .get(auth('user'), validate(lenderProgramValidation.getLenderProgram), lenderProgramController.list);

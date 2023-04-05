@@ -8,10 +8,6 @@ const router = express.Router();
 router
   .route('/')
   /**
-   * createLendingInstitution
-   * */
-  .post(auth('user'), validate(lendingInstitutionValidation.createLendingInstitution), lendingInstitutionController.create)
-  /**
    * getLendingInstitution
    * */
   .get(auth('user'), validate(lendingInstitutionValidation.getLendingInstitution), lendingInstitutionController.list);
