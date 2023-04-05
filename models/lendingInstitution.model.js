@@ -47,22 +47,6 @@ const LendingInstitutionSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumLenderTypeOfLendingInstitution),
       required: true,
     },
-    /**
-     * Lender program ids (respective entries in the LenderProgram collection table)
-     * */
-    lenderPrograms: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'LenderProgram',
-      required: true,
-    },
-    /**
-     * A list of contacts available for the institution
-     * */
-    contacts: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'LenderContact',
-      required: true,
-    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );

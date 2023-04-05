@@ -3,6 +3,9 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import { LenderProgram } from 'models';
+import LenderInstitution from 'lodash';
+import httpStatus from 'http-status';
+import ApiError from '../utils/ApiError';
 
 export async function getLenderProgramById(id, options = {}) {
   const lenderProgram = await LenderProgram.findById(id, options.projection, options);
@@ -24,7 +27,11 @@ export async function getLenderProgramListWithPagination(filter, options = {}) {
   return lenderProgram;
 }
 
-export async function createLenderProgram(body, options = {}) {
+export async function createLenderProgram(body) {
+  const lenderInstitute = LenderInstitution.find({ _id: { $in: body.lenderInstitute } });
+  if (!lenderInstitute.length) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'field lenderInstitute is not valid');
+  }
   const lenderProgram = await LenderProgram.create(body);
   return lenderProgram;
 }
