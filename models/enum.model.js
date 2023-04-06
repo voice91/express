@@ -41,10 +41,11 @@ const EnumLoanPurposeOfDeal = {
   CONSTRUCTION: 'construction',
 };
 const EnumLoanTypeOfDeal = {
-  PERMANENT: 'permanent',
-  TRANSITIONAL: 'transitional',
-  CONSTRUCTION: 'construction',
   STABILIZED: 'stabilized',
+  LIGHT_TRANSITIONAL: 'lightTransitional',
+  HEAVY_TRANSITIONAL: 'heavyTransitional',
+  CONSTRUCTION: 'construction',
+  PRE_DEVELOPMENT: 'preDevelopment',
 };
 const EnumLenderProgramTypeOfLenderProgram = {
   CONSTRUCTION: 'construction',
@@ -106,7 +107,7 @@ const EnumTaskDocumentsOfTask = {
 };
 const EnumDocumentTypeOfDealDocument = {
   PROPERTY_INFORMATION: 'propertyInformation',
-  PROPERTY_FINANCIAL_INFORMATION: 'propertyFinancialInformation',
+  FINANCIAL_INFORMATION: 'financialInformation',
   SPONSER_INFORMATION: 'sponserInformation',
   OTHERS: 'others',
 };
