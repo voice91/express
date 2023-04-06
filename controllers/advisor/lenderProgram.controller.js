@@ -34,6 +34,7 @@ export const paginate = catchAsync(async (req, res) => {
   const options = {
     sort: sortObj,
     ...pick(query, ['limit', 'page']),
+    populate: [{ path: 'lenderInstitute' }],
   };
   const lenderProgram = await lenderProgramService.getLenderProgramListWithPagination(filter, options);
   lenderProgram.results = lenderProgram.results.map((lenderProgramObject) => ({
