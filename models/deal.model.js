@@ -95,8 +95,8 @@ const DealSchema = new mongoose.Schema(
      * */
     state: {
       type: String,
+      enum: Object.values(enumModel.EnumStatesOfDeal),
       required: true,
-      maxLength: 30,
     },
     /**
      * zip code
