@@ -3,7 +3,6 @@ import { lenderContactController } from 'controllers/advisor';
 import { lenderContactValidation } from 'validations/advisor';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
-import checkUserOfDeal from '../../../../middlewares/checkUserOfDeal';
 
 const router = express.Router();
 router
@@ -11,12 +10,7 @@ router
   /**
    * createLenderContact
    * */
-  .post(
-    auth('advisor'),
-    validate(lenderContactValidation.createLenderContact),
-    checkUserOfDeal,
-    lenderContactController.create
-  )
+  .post(auth('advisor'), validate(lenderContactValidation.createLenderContact), lenderContactController.create)
   /**
    * getLenderContact
    * */

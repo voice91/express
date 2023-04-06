@@ -3,7 +3,6 @@ import { lendingInstitutionController } from 'controllers/advisor';
 import { lendingInstitutionValidation } from 'validations/advisor';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
-import checkUserOfDeal from '../../../../middlewares/checkUserOfDeal';
 
 const router = express.Router();
 router
@@ -14,7 +13,6 @@ router
   .post(
     auth('advisor'),
     validate(lendingInstitutionValidation.createLendingInstitution),
-    checkUserOfDeal,
     lendingInstitutionController.create
   )
   /**

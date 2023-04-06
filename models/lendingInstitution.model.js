@@ -47,11 +47,6 @@ const LendingInstitutionSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumLenderTypeOfLendingInstitution),
       required: true,
     },
-    deal: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Deal',
-      required: true,
-    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
