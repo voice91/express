@@ -95,9 +95,14 @@ const LenderContactSchema = new mongoose.Schema(
     state: {
       type: String,
     },
-    lendingInstitute: {
+    lenderInstitute: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'LendingInstitution',
+    },
+    deal: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Deal',
+      required: true,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }

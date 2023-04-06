@@ -51,9 +51,14 @@ const LenderProgramSchema = new mongoose.Schema(
     maxLoanSize: {
       type: Number,
     },
-    lendingInstitute: {
+    lenderInstitute: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'LendingInstitution',
+    },
+    deal: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Deal',
+      required: true,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }

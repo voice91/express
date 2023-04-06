@@ -14,6 +14,7 @@ export const createLendingInstitution = {
     lenderType: Joi.string()
       .valid(...Object.values(enumFields.EnumLenderTypeOfLendingInstitution))
       .required(),
+    deal: Joi.objectId().required(),
   }),
 };
 
