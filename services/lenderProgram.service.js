@@ -27,8 +27,8 @@ export async function getLenderProgramListWithPagination(filter, options = {}) {
 }
 
 export async function createLenderProgram(body) {
-  const lenderInstitute = await LendingInstitution.find({ _id: { $in: body.lenderInstitute } });
-  if (!lenderInstitute.length) {
+  const lenderInstitute = await LendingInstitution.findOne({ _id: body.lenderInstitute });
+  if (!lenderInstitute) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field lenderInstitute is not valid');
   }
   const lenderProgram = await LenderProgram.create(body);
