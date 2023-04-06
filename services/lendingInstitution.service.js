@@ -26,15 +26,7 @@ export async function getLendingInstitutionListWithPagination(filter, options = 
   return lendingInstitution;
 }
 
-export async function createLendingInstitution(body, options = {}) {
-  const lenderPrograms = await LenderProgram.find({ _id: { $in: body.lenderPrograms } });
-  if (!lenderPrograms.length) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'field lenderPrograms is not valid');
-  }
-  const contacts = await LenderContact.findOne({ _id: body.contacts });
-  if (!contacts) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'field contacts is not valid');
-  }
+export async function createLendingInstitution(body) {
   const lendingInstitution = await LendingInstitution.create(body);
   return lendingInstitution;
 }

@@ -15,6 +15,7 @@ export const createLenderProgram = {
     statesArray: Joi.array().items(Joi.string()),
     minLoanSize: Joi.number().integer(),
     maxLoanSize: Joi.number().integer(),
+    lenderInstitute: Joi.objectId().required(),
   }),
 };
 

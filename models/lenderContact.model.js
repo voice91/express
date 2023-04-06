@@ -95,6 +95,10 @@ const LenderContactSchema = new mongoose.Schema(
     state: {
       type: String,
     },
+    lenderInstitute: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LendingInstitution',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );

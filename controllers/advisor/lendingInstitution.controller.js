@@ -64,8 +64,8 @@ export const paginate = catchAsync(async (req, res) => {
 
 export const create = catchAsync(async (req, res) => {
   const { body } = req;
-  body.createdBy = req.user;
-  body.updatedBy = req.user;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
   const options = {};
   const lendingInstitution = await lendingInstitutionService.createLendingInstitution(body, options);
   return res.status(httpStatus.CREATED).send({ results: lendingInstitution });

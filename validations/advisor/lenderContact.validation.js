@@ -19,6 +19,7 @@ export const createLenderContact = {
     city: Joi.string(),
     note: Joi.string(),
     state: Joi.string(),
+    lenderInstitute: Joi.objectId().required(),
   }),
 };
 
