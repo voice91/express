@@ -52,3 +52,9 @@ export const paginatedDealDocument = {
     })
     .unknown(true),
 };
+
+export const deleteDealDocumentById = {
+  params: Joi.object().keys({
+    dealDocumentId: Joi.objectId().required(),
+  }),
+};
