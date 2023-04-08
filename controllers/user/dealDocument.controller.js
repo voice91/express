@@ -142,3 +142,12 @@ export const update = catchAsync(async (req, res) => {
   }
   return res.status(httpStatus.OK).send({ results: dealDocumentResult });
 });
+
+export const remove = catchAsync(async (req, res) => {
+  const { dealDocumentId } = req.params;
+  const filter = {
+    _id: dealDocumentId,
+  };
+  const dealDocument = await dealDocumentService.removeDealDocument(filter);
+  return res.status(httpStatus.OK).send({ results: dealDocument });
+});
