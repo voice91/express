@@ -37,7 +37,6 @@ const LendingInstitutionSchema = new mongoose.Schema(
      * */
     lenderNameInternal: {
       type: String,
-      required: true,
     },
     /**
      * Type of lender

@@ -38,6 +38,8 @@ const LenderProgramSchema = new mongoose.Schema(
      * */
     statesArray: {
       type: [String],
+      enum: Object.values(enumModel.EnumStatesOfDeal),
+      required: true,
     },
     /**
      * The minimum loan amount for the given program
@@ -50,6 +52,15 @@ const LenderProgramSchema = new mongoose.Schema(
      * */
     maxLoanSize: {
       type: Number,
+    },
+    propertyType: {
+      type: [String],
+      enum: Object.values(enumModel.EnumAssetTypeOfDeal),
+      required: true,
+    },
+    loanType: {
+      type: [String],
+      enum: Object.values(enumModel.EnumLoanTypeOfLenderProgram),
     },
     lenderInstitute: {
       type: mongoose.Schema.Types.ObjectId,

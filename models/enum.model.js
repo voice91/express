@@ -77,6 +77,13 @@ const EnumStageOfDeal = {
   CLOSING: 'closing',
   CLOSED: 'closed',
 };
+const EnumLoanTypeOfLenderProgram = {
+  CONSTRUCTION: 'construction',
+  LIGHT_BRIDGE: 'lightBridge',
+  HEAVY_BRIDGE: 'heavyBridge',
+  PERMANENT: 'permanent',
+  LAND: 'land',
+};
 const EnumAssetTypeOfDeal = {
   MULTIFAMILY: 'multifamily',
   OFFICE: 'office',
@@ -88,6 +95,7 @@ const EnumAssetTypeOfDeal = {
   MOBILE_HOME_PARK: 'mobileHomePark',
   STUDENT_HOUSING: 'studentHousing',
   SPECIALTY: 'specialty',
+  CONDOS: 'condos',
 };
 const EnumLoanPurposeOfDeal = {
   PURCHASE: 'purchase',
@@ -106,6 +114,12 @@ const EnumLenderProgramTypeOfLenderProgram = {
   TRANSITIONAL: 'transitional',
   STABILIZED: 'stabilized',
   LAND: 'land',
+  BRIDGE: 'bridge',
+  PERMANENT: 'permanent',
+  MAIN: 'main',
+  SPECIALTY_BRIDGE: 'specialtyBridge',
+  TRANSITIONAL_BRIDGE: 'transitionalBridge',
+  CONVENTIONAL: 'conventional',
 };
 const EnumLenderTypeOfLendingInstitution = {
   CREDIT_UNION: 'creditUnion',
@@ -117,6 +131,7 @@ const EnumLenderTypeOfLendingInstitution = {
   LIFECO: 'lifeco',
   DEBT_FUND: 'debtFund',
   HARD_MONEY: 'hardMoney',
+  BANK: 'bank',
 };
 const EnumStageOfLenderPlacement = {
   NEW: 'new',
@@ -218,4 +233,5 @@ module.exports = {
   EnumTypeOfToken,
   EnumTypeOfStatus,
   EnumStatesOfDeal,
+  EnumLoanTypeOfLenderProgram,
 };

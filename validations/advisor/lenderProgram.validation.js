@@ -25,6 +25,7 @@ export const updateLenderProgram = {
     statesArray: Joi.array().items(Joi.string()),
     minLoanSize: Joi.number().integer(),
     maxLoanSize: Joi.number().integer(),
+    lenderInstitute: Joi.objectId().required(),
   }),
   params: Joi.object().keys({
     lenderProgramId: Joi.objectId().required(),
