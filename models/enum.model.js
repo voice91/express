@@ -88,6 +88,7 @@ const EnumAssetTypeOfDeal = {
   MOBILE_HOME_PARK: 'mobileHomePark',
   STUDENT_HOUSING: 'studentHousing',
   SPECIALTY: 'specialty',
+  CONDOS: 'condos',
 };
 const EnumLoanPurposeOfDeal = {
   PURCHASE: 'purchase',
@@ -101,12 +102,6 @@ const EnumLoanTypeOfDeal = {
   CONSTRUCTION: 'construction',
   PRE_DEVELOPMENT: 'preDevelopment',
 };
-const EnumLenderProgramTypeOfLenderProgram = {
-  CONSTRUCTION: 'construction',
-  TRANSITIONAL: 'transitional',
-  STABILIZED: 'stabilized',
-  LAND: 'land',
-};
 const EnumLenderTypeOfLendingInstitution = {
   CREDIT_UNION: 'creditUnion',
   LOCAL_BANK: 'localBank',
@@ -117,6 +112,7 @@ const EnumLenderTypeOfLendingInstitution = {
   LIFECO: 'lifeco',
   DEBT_FUND: 'debtFund',
   HARD_MONEY: 'hardMoney',
+  BANK: 'bank',
 };
 const EnumStageOfLenderPlacement = {
   NEW: 'new',
@@ -158,6 +154,26 @@ const EnumTaskDocumentsOfTask = {
   PPTX: 'pptx',
   XLS: 'xls',
   XLSX: 'xlsx',
+};
+const EnumLoanTypeOfLenderProgram = {
+  CONSTRUCTION: 'construction',
+  CONSTRUCTIONS: 'Construction',
+  LIGHT_BRIDGE: 'lightBridge',
+  HEAVY_BRIDGE: 'heavyBridge',
+  PERMANENT: 'permanent',
+  LAND: 'land',
+};
+const EnumLenderProgramTypeOfLenderProgram = {
+  CONSTRUCTION: 'Construction',
+  TRANSITIONAL: 'transitional',
+  STABILIZED: 'stabilized',
+  LAND: 'land',
+  BRIDGE: 'bridge',
+  PERMANENT: 'permanent',
+  MAIN: 'main',
+  SPECIALTY_BRIDGE: 'specialtyBridge',
+  TRANSITIONAL_BRIDGE: 'transitionalBridge',
+  CONVENTIONAL: 'conventional',
 };
 const EnumDocumentTypeOfDealDocument = {
   PROPERTY_INFORMATION: 'propertyInformation',
@@ -218,4 +234,5 @@ module.exports = {
   EnumTypeOfToken,
   EnumTypeOfStatus,
   EnumStatesOfDeal,
+  EnumLoanTypeOfLenderProgram,
 };

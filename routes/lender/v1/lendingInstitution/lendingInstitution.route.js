@@ -3,6 +3,9 @@ import { lendingInstitutionController } from 'controllers/lender';
 import { lendingInstitutionValidation } from 'validations/lender';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import multer from 'multer';
+
+const upload = multer({ dest: 'uploads/' });
 
 const router = express.Router();
 router
@@ -25,6 +28,11 @@ router
     validate(lendingInstitutionValidation.paginatedLendingInstitution),
     lendingInstitutionController.paginate
   );
+router
+  /**
+   * FileUpload
+   * */
+  .post('/upload', upload.single('file'), lendingInstitutionController.insertDataFromFile);
 router
   .route('/:lendingInstitutionId')
   /**
