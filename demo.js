@@ -34,6 +34,12 @@ mongoose
       return { ...item, lenderType: CsvLenderTypeMapping[item.lenderType] };
     });
 
+    await Promise.all(
+      lenderInstitutes.map((lenderInst) =>
+        LendingInstitution.findOneAndUpdate({ lenderNameVisible: lenderInst.name }, { ...lenderInst }, { upsert: true })
+      )
+    );
+
     // const lenderWorkbook = XLSX.readFile('Lender.xlsx');
     const lenderProgram = lenderWorkbook.SheetNames[2];
     const lenderProgramSheet = lenderWorkbook.Sheets[lenderProgram];
@@ -158,7 +164,7 @@ mongoose
       });
     });
 
-    await LendingInstitution.insertMany(lenderInstitutes);
+    // await LendingInstitution.insertMany(lenderInstitutes);
     await LenderProgram.insertMany(lenderPrograms);
     await LenderContact.insertMany(lenderContacts);
   })
