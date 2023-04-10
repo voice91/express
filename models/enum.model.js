@@ -164,7 +164,7 @@ const EnumLoanTypeOfLenderProgram = {
   LAND: 'land',
 };
 const EnumLenderProgramTypeOfLenderProgram = {
-  CONSTRUCTION: 'Construction',
+  CONSTRUCTION: 'construction',
   TRANSITIONAL: 'transitional',
   STABILIZED: 'stabilized',
   LAND: 'land',

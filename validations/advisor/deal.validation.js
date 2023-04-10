@@ -19,9 +19,7 @@ const involvedUsersEmbed = Joi.object().keys({
 export const createDeal = {
   body: Joi.object().keys({
     dealName: Joi.string().required(),
-    stage: Joi.string()
-      .valid(...Object.values(enumFields.EnumStageOfDeal))
-      .required(),
+    stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfDeal)),
     address: Joi.string().required(),
     city: Joi.string().required(),
     state: Joi.string()
