@@ -77,13 +77,6 @@ const EnumStageOfDeal = {
   CLOSING: 'closing',
   CLOSED: 'closed',
 };
-const EnumLoanTypeOfLenderProgram = {
-  CONSTRUCTION: 'construction',
-  LIGHT_BRIDGE: 'lightBridge',
-  HEAVY_BRIDGE: 'heavyBridge',
-  PERMANENT: 'permanent',
-  LAND: 'land',
-};
 const EnumAssetTypeOfDeal = {
   MULTIFAMILY: 'multifamily',
   OFFICE: 'office',
@@ -108,18 +101,6 @@ const EnumLoanTypeOfDeal = {
   HEAVY_TRANSITIONAL: 'heavyTransitional',
   CONSTRUCTION: 'construction',
   PRE_DEVELOPMENT: 'preDevelopment',
-};
-const EnumLenderProgramTypeOfLenderProgram = {
-  CONSTRUCTION: 'construction',
-  TRANSITIONAL: 'transitional',
-  STABILIZED: 'stabilized',
-  LAND: 'land',
-  BRIDGE: 'bridge',
-  PERMANENT: 'permanent',
-  MAIN: 'main',
-  SPECIALTY_BRIDGE: 'specialtyBridge',
-  TRANSITIONAL_BRIDGE: 'transitionalBridge',
-  CONVENTIONAL: 'conventional',
 };
 const EnumLenderTypeOfLendingInstitution = {
   CREDIT_UNION: 'creditUnion',
@@ -173,6 +154,26 @@ const EnumTaskDocumentsOfTask = {
   PPTX: 'pptx',
   XLS: 'xls',
   XLSX: 'xlsx',
+};
+const EnumLoanTypeOfLenderProgram = {
+  CONSTRUCTION: 'construction',
+  CONSTRUCTIONS: 'Construction',
+  LIGHT_BRIDGE: 'lightBridge',
+  HEAVY_BRIDGE: 'heavyBridge',
+  PERMANENT: 'permanent',
+  LAND: 'land',
+};
+const EnumLenderProgramTypeOfLenderProgram = {
+  CONSTRUCTION: 'construction',
+  TRANSITIONAL: 'transitional',
+  STABILIZED: 'stabilized',
+  LAND: 'land',
+  BRIDGE: 'bridge',
+  PERMANENT: 'permanent',
+  MAIN: 'main',
+  SPECIALTY_BRIDGE: 'specialtyBridge',
+  TRANSITIONAL_BRIDGE: 'transitionalBridge',
+  CONVENTIONAL: 'conventional',
 };
 const EnumDocumentTypeOfDealDocument = {
   PROPERTY_INFORMATION: 'propertyInformation',
