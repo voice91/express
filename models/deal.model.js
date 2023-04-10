@@ -71,7 +71,6 @@ const DealSchema = new mongoose.Schema(
     stage: {
       type: String,
       enum: Object.values(enumModel.EnumStageOfDeal),
-      required: true,
       default: enumModel.EnumStageOfDeal.INTAKE,
     },
     /**
