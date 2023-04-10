@@ -33,5 +33,6 @@ router
   /**
    * updateDealDocument
    * */
-  .put(auth('user'), validate(dealDocumentValidation.updateDealDocument), checkAccessOfDeal, dealDocumentController.update);
+  .put(auth('user'), validate(dealDocumentValidation.updateDealDocument), checkAccessOfDeal, dealDocumentController.update)
+  .delete(auth('advisor'), validate(dealDocumentValidation.deleteDealDocumentById), dealDocumentController.remove);
 export default router;
