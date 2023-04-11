@@ -19,6 +19,13 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   socketAPI.io.attach(server);
   initSockets();
 });
+mongoose.Promise = global.Promise;
+const db = mongoose.connection;
+db.on('connected', function () {
+  // when database is connected then we are running the migration
+  // eslint-disable-next-line global-require
+  require('./migrateMongo')();
+});
 const exitHandler = () => {
   if (server) {
     server.close(() => {

@@ -8,6 +8,17 @@ import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import { toJSON, softDelete } from './plugins';
 
+const TaskDocumentSchema = new mongoose.Schema({
+  url: {
+    type: String,
+    required: true,
+  },
+  fileName: {
+    type: String,
+    required: true,
+  },
+});
+
 const TaskSchema = new mongoose.Schema(
   {
     /**
@@ -48,7 +59,7 @@ const TaskSchema = new mongoose.Schema(
      * List of documents that pertain to the question, that borrower and advisor can upload and all can download/view
      * */
     taskDocuments: {
-      type: [String],
+      type: [TaskDocumentSchema],
     },
     deal: {
       type: mongoose.Schema.Types.ObjectId,
