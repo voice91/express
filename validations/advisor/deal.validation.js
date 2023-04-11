@@ -25,7 +25,7 @@ export const createDeal = {
     state: Joi.string()
       .valid(...Object.values(enumFields.EnumStatesOfDeal))
       .required(),
-    zipcode: Joi.number().integer().required(),
+    zipcode: Joi.number().integer().min(100).max(999999).required(),
     mapLocation: locationSchema,
     involvedUsers: involvedUsersEmbed,
     involvedUsersLender: Joi.array().items(Joi.objectId()),

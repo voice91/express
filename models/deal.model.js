@@ -103,7 +103,8 @@ const DealSchema = new mongoose.Schema(
     zipcode: {
       type: Number,
       required: true,
-      max: 100,
+      min: 100,
+      max: 999999,
     },
     /**
      * map co-ordinates to be stored as the exact location
