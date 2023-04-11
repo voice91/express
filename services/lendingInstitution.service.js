@@ -7,6 +7,7 @@ import httpStatus from 'http-status';
 import { LendingInstitution, LenderProgram, LenderContact } from 'models';
 import XLSX from 'xlsx';
 import _ from 'lodash';
+import { logger } from 'config/logger';
 import {
   EnumAssetTypeOfDeal,
   EnumLenderProgramTypeOfLenderProgram,
@@ -74,6 +75,8 @@ export async function insertDataFromFile(file) {
     const lenderInstitution = lenderWorkbook.SheetNames[1];
     const lenderInstitutionSheet = lenderWorkbook.Sheets[lenderInstitution];
     const lenderInstitutionSheetData = XLSX.utils.sheet_to_json(lenderInstitutionSheet);
+    logger.info('Read lenderInstitutionSheetData');
+
     const CsvLenderTypeMapping = {
       Bank: EnumLenderTypeOfLendingInstitution.BANK,
       'Debt Fund': EnumLenderTypeOfLendingInstitution.DEBT_FUND,
@@ -84,6 +87,7 @@ export async function insertDataFromFile(file) {
     const lenderInstitutes = lenderInstitutionSheetData.map((item) => {
       return { ...item, lenderType: CsvLenderTypeMapping[item.lenderType] };
     });
+    logger.info('Get lenderInstitutes');
 
     await Promise.all(
       lenderInstitutes.map((lenderInst) =>
@@ -94,10 +98,12 @@ export async function insertDataFromFile(file) {
         )
       )
     );
+    logger.info('Insert lenderInstitute Data');
 
     const lenderProgram = lenderWorkbook.SheetNames[2];
     const lenderProgramSheet = lenderWorkbook.Sheets[lenderProgram];
     const lenderProgramSheetData = XLSX.utils.sheet_to_json(lenderProgramSheet);
+    logger.info('Read lenderProgramSheetData');
 
     const CsvLenderProgramTypeMapping = {
       Construction: EnumLenderProgramTypeOfLenderProgram.CONSTRUCTION,
@@ -144,6 +150,7 @@ export async function insertDataFromFile(file) {
     const lenderProgramType = lenderProgramSheetData.map((item) => {
       return { ...item, lenderProgramType: CsvLenderProgramTypeMapping[item.lenderProgramType] };
     });
+    logger.info('lenderProgramType');
 
     // _.flatten method is a lodash method used to flatten the array. It takes simple array or array of arrays and return array.
     const lenderPropertyType = lenderProgramType.map((item) => {
@@ -152,6 +159,7 @@ export async function insertDataFromFile(file) {
         propertyType: _.flatten(item.propertyType.split(',').map((data) => CsvLenderPropertyTypeMapping[data])),
       };
     });
+    logger.info('lenderPropertyType');
 
     const lenderLoanType = lenderPropertyType.map((item) => {
       return {
@@ -164,14 +172,18 @@ export async function insertDataFromFile(file) {
         ),
       };
     });
+    logger.info('lenderLoanType');
+
     const lenderStatesArray = lenderLoanType.map((item) => {
       return {
         ...item,
         statesArray: _.flatten(item.statesArray.split(',').map((data) => CsvStatesArrayMapping[data])),
       };
     });
+    logger.info('lenderStatesArray');
 
     const lenderInstitute = await LendingInstitution.find({});
+    logger.info('Find lenderInstitute Data');
 
     const lenderPrograms = _.compact(
       // eslint-disable-next-line array-callback-return
@@ -192,10 +204,12 @@ export async function insertDataFromFile(file) {
     );
 
     await LenderProgram.insertMany(lenderPrograms);
+    logger.info('Insert lenderProgram Data');
 
     const lenderContact = lenderWorkbook.SheetNames[3];
     const lenderContactSheet = lenderWorkbook.Sheets[lenderContact];
     const lenderContactSheetData = XLSX.utils.sheet_to_json(lenderContactSheet);
+    logger.info('Read lenderContactSheetData');
 
     const lenderContacts = _.compact(
       // eslint-disable-next-line array-callback-return
@@ -223,8 +237,11 @@ export async function insertDataFromFile(file) {
         LenderContact.findOneAndUpdate({ email: lenderCon.email }, { ...lenderCon }, { upsert: true })
       )
     );
+    logger.info('Insert lenderContact Data');
+
     return { status: true, message: 'data insert from file' };
   } catch (e) {
+    logger.info(e);
     throw new Error('error from insertDataFromFile services ', e.message);
   }
 }
