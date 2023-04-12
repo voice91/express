@@ -53,9 +53,7 @@ export const updateDeal = {
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfDeal)),
     address: Joi.string(),
     city: Joi.string(),
-    state: Joi.string()
-      .valid(...Object.values(enumFields.EnumStatesOfDeal))
-      .required(),
+    state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
     zipcode: Joi.number().integer(),
     mapLocation: locationSchema,
     involvedUsers: involvedUsersEmbed,
