@@ -43,11 +43,15 @@ export const deleteDealNotesById = {
 
 export const getDealNotes = {
   body: Joi.object().keys({}).unknown(true),
+  params: Joi.object().keys({
+    dealId: Joi.objectId().required(),
+  }),
   query: Joi.object()
     .keys({
       page: Joi.string(),
       limit: Joi.string(),
       sort: Joi.string(),
+      order: Joi.string().valid('asc', 'desc').default('asc'),
     })
     .unknown(true),
 };

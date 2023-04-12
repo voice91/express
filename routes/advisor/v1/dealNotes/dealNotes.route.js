@@ -11,7 +11,9 @@ router
   /**
    * createDealNotes
    * */
-  .post(auth('advisor'), validate(dealNotesValidation.createDealNotes), checkAccessOfDeal, dealNotesController.create)
+  .post(auth('advisor'), validate(dealNotesValidation.createDealNotes), checkAccessOfDeal, dealNotesController.create);
+router
+  .route('/deal/:dealId')
   /**
    * getDealNotes
    * */

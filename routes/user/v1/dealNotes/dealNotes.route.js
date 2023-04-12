@@ -18,4 +18,10 @@ router
    * getDealNotesPaginated
    * */
   .get(auth('user'), validate(dealNotesValidation.paginatedDealNotes), checkAccessOfDeal, dealNotesController.paginate);
+router
+  .route('/deal/:dealId')
+  /**
+   * getDealNotes
+   * */
+  .get(auth('user'), validate(dealNotesValidation.getDealNotes), checkAccessOfDeal, dealNotesController.list);
 export default router;
