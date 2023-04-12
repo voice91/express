@@ -112,12 +112,12 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
+  const { taskDocuments } = body;
   body.updatedBy = req.user;
   const { taskId } = req.params;
   const { user } = req;
-  const { fileName } = body.taskDocuments;
   const moveFileObj = {
-    ...(body.taskDocuments && { taskDocuments: body.taskDocuments.url }),
+    ...(body.taskDocuments && { taskDocuments: body.taskDocuments.map((item) => item.url) }),
   };
   body._id = taskId;
   await moveFiles({ body, user, moveFileObj });
@@ -134,7 +134,7 @@ export const update = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "You can't give response to your own question");
   }
 
-  body.$push = { taskDocuments: { url: body.taskDocuments, fileName } };
+  body.$push = { taskDocuments };
   // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
   // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
   delete body.taskDocuments;
@@ -145,7 +145,8 @@ export const update = catchAsync(async (req, res) => {
   if (taskResult) {
     const uploadedFileUrls = [];
     uploadedFileUrls.push(...taskResult.taskDocuments);
-    await TempS3.updateMany({ url: { $in: uploadedFileUrls.url } }, { active: true });
+    const uploadedFileUrl = uploadedFileUrls.map((data) => data.url);
+    await TempS3.updateMany({ url: { $in: uploadedFileUrl } }, { active: true });
   }
   return res.status(httpStatus.OK).send({ results: taskResult });
 });

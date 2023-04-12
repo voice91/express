@@ -15,7 +15,7 @@ export const createTask = {
     taskQuestion: Joi.string().required(),
     taskAnswer: Joi.string(),
     deal: Joi.objectId().required(),
-    taskDocuments: taskDocumentSchema,
+    taskDocuments: Joi.array().items(taskDocumentSchema),
   }),
 };
 export const updateTask = {
@@ -23,7 +23,7 @@ export const updateTask = {
     taskQuestion: Joi.string(),
     deal: Joi.objectId().required(),
     taskAnswer: Joi.string(),
-    taskDocuments: taskDocumentSchema,
+    taskDocuments: Joi.array().items(taskDocumentSchema),
   }),
   params: Joi.object().keys({
     taskId: Joi.objectId().required(),
