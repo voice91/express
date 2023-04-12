@@ -28,14 +28,18 @@ export const get = catchAsync(async (req, res) => {
 
 export const list = catchAsync(async (req, res) => {
   const { query } = req;
-  const user = req.user._id;
   const queryParams = getDealNotesFilterQuery(query);
   const filter = {
-    user,
+    deal: req.params.dealId,
     ...queryParams,
   };
+  const sortingObj = pick(query, ['sort', 'order']);
+  const sortObj = {
+    [sortingObj.sort]: sortingObj.order,
+  };
   const options = {
-    ...pick(query, ['sort', 'limit', 'page']),
+    sort: sortObj,
+    ...pick(query, ['limit', 'page']),
   };
   const dealNotes = await dealNotesService.getDealNotesList(filter, options);
   return res.status(httpStatus.OK).send({ results: dealNotes });
