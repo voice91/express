@@ -70,7 +70,7 @@ const EnumStatesOfDeal = {
 };
 
 const EnumStageOfDeal = {
-  INTAKE: 'intake',
+  NEW: 'new',
   PREPARING_MATERIALS: 'preparingMaterials',
   OUT_IN_MARKET: 'outInMarket',
   SELECTING_QUOTES: 'selectingQuotes',

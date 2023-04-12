@@ -71,7 +71,7 @@ const DealSchema = new mongoose.Schema(
     stage: {
       type: String,
       enum: Object.values(enumModel.EnumStageOfDeal),
-      default: enumModel.EnumStageOfDeal.INTAKE,
+      default: enumModel.EnumStageOfDeal.NEW,
     },
     /**
      * Address of the property stored as free text
