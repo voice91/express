@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach } from 'utils/common';
+import { asyncForEach, encodeUrl } from 'utils/common';
 import { pick } from '../../utils/pick';
 import { Deal } from '../../models';
 import ApiError from '../../utils/ApiError';
@@ -105,6 +105,7 @@ export const create = catchAsync(async (req, res) => {
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
+  body.file = encodeUrl(body.file);
   const dealDocumentResult = await dealDocumentService.createDealDocument(body, options);
   if (dealDocumentResult) {
     const uploadedFileUrls = [];
