@@ -3,22 +3,19 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
-import config from 'config/config';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
+const taskDocumentSchema = Joi.object().keys({
+  url: Joi.string().required(),
+  fileName: Joi.string().required(),
+});
 export const createTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string().required(),
     taskAnswer: Joi.string(),
     deal: Joi.objectId().required(),
-    taskDocuments: Joi.array().items(
-      Joi.string().regex(
-        new RegExp(
-          `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|pptx|xls|xlsx)$)`
-        )
-      )
-    ),
+    taskDocuments: Joi.array().items(taskDocumentSchema),
   }),
 };
 
@@ -27,7 +24,7 @@ export const updateTask = {
     taskQuestion: Joi.string(),
     taskAnswer: Joi.string(),
     deal: Joi.objectId().required(),
-    taskDocuments: Joi.string(),
+    taskDocuments: Joi.array().items(taskDocumentSchema),
   }),
   params: Joi.object().keys({
     taskId: Joi.objectId().required(),
