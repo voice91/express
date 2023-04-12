@@ -129,3 +129,13 @@ export const getMimeType = (allowedExtension) => {
     return obj ? obj.mimeType : '';
   });
 };
+
+export const encodeUrl = (url) => {
+  const fileUrl = url.split('/');
+  const fileUrlToEncode = fileUrl[fileUrl.length - 1];
+  const encodedUrl = encodeURI(fileUrlToEncode);
+  const fileRemoveUnEncodedPart = fileUrl.splice(0, fileUrl.length - 1);
+  fileRemoveUnEncodedPart.push(encodedUrl);
+  const finalEncodedUrl = fileRemoveUnEncodedPart.join('/');
+  return finalEncodedUrl;
+};
