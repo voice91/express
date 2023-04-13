@@ -17,7 +17,14 @@ export async function getOne(query, options = {}) {
 }
 
 export async function getLenderPlacementList(filter, options = {}) {
-  const lenderPlacement = await LenderPlacement.find(filter, options.projection, options);
+  const lenderPlacement = await LenderPlacement.find(filter, options.projection, options).populate([
+    {
+      path: 'lendingInstitution',
+    },
+    {
+      path: 'lenderContact',
+    },
+  ]);
   return lenderPlacement;
 }
 
@@ -26,7 +33,7 @@ export async function getLenderPlacementListWithPagination(filter, options = {})
   return lenderPlacement;
 }
 
-export async function createLenderPlacement(body, options = {}) {
+export async function createLenderPlacement(body) {
   const lendingInstitution = await LendingInstitution.findOne({ _id: body.lendingInstitution });
   if (!lendingInstitution) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field lendingInstitution is not valid');
