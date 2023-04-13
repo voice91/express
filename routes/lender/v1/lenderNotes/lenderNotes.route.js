@@ -3,6 +3,7 @@ import { lenderNotesController } from 'controllers/lender';
 import { lenderNotesValidation } from 'validations/lender';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import checkAccessOfDeal from '../../../../middlewares/checkUserOfDeal';
 
 const router = express.Router();
 router
@@ -10,11 +11,13 @@ router
   /**
    * createLenderNotes
    * */
-  .post(auth('lender'), validate(lenderNotesValidation.createLenderNotes), lenderNotesController.create)
+  .post(auth('lender'), validate(lenderNotesValidation.createLenderNotes), checkAccessOfDeal, lenderNotesController.create);
+router
+  .route('/deal/:dealId')
   /**
    * getLenderNotes
    * */
-  .get(auth('lender'), validate(lenderNotesValidation.getLenderNotes), lenderNotesController.list);
+  .get(auth('lender'), validate(lenderNotesValidation.getLenderNotes), checkAccessOfDeal, lenderNotesController.list);
 router
   .route('/deal/:dealId/paginated')
   /**

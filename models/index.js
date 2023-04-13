@@ -9,6 +9,7 @@ module.exports.LenderProgram = require('./lenderProgram.model');
 module.exports.LendingInstitution = require('./lendingInstitution.model');
 module.exports.LenderPlacement = require('./lenderPlacement.model');
 module.exports.LenderContact = require('./lenderContact.model');
+module.exports.LenderNotes = require('./lenderNotes.model');
 module.exports.EmailTemplate = require('./emailTemplate.model');
 module.exports.ActivityLog = require('./activityLog.model');
 module.exports.Task = require('./task.model');
