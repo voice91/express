@@ -11,6 +11,8 @@ const { initSockets } = require('appEvents/handler');
 let server;
 mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   logger.info('Connected to MongoDB');
+  // eslint-disable-next-line global-require
+  require('./migrateMongo')();
   server = app.listen(config.port, () => {
     logger.info(`Listening to port ${config.port}`);
   });
@@ -18,13 +20,6 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   socketAPI.io.adapter(redisAdapter({ host: config.redis.host, port: config.redis.port }));
   socketAPI.io.attach(server);
   initSockets();
-});
-mongoose.Promise = global.Promise;
-const db = mongoose.connection;
-db.on('connected', function () {
-  // when database is connected then we are running the migration
-  // eslint-disable-next-line global-require
-  require('./migrateMongo')();
 });
 const exitHandler = () => {
   if (server) {
