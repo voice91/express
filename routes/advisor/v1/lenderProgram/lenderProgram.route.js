@@ -22,6 +22,16 @@ router
    * */
   .get(auth('advisor'), validate(lenderProgramValidation.paginatedLenderProgram), lenderProgramController.paginate);
 router
+  .route('/listProgram/:lenderInstitute')
+  /**
+   * getLenderProgramByLenderInstitute
+   * */
+  .get(
+    auth('advisor'),
+    validate(lenderProgramValidation.listLenderProgramByInstitute),
+    lenderProgramController.listLenderProgramByInstitute
+  );
+router
   .route('/:lenderProgramId')
   /**
    * getLenderProgramById
