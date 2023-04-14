@@ -1,4 +1,4 @@
-const Task = require('../models/task.model');
+const { Task } = require('../models');
 
 module.exports = {
   async up() {
