@@ -10,7 +10,6 @@ import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
 // eslint-disable-next-line no-unused-vars
-import config from 'config/config';
 import { pick } from '../../utils/pick';
 import { Task } from '../../models';
 import ApiError from '../../utils/ApiError';
@@ -138,11 +137,13 @@ export const update = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "You can't give response to your own question");
   }
 
-  body.$push = { taskDocuments };
-  // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
-  // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
-  delete body.taskDocuments;
-
+  // added this condition because it was adding null values in db when we were not uploading any task document as it is not required field.
+  if (taskDocuments) {
+    body.$push = { taskDocuments };
+    // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
+    // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
+    delete body.taskDocuments;
+  }
   const options = { new: true };
   const taskResult = await taskService.updateTask(filter, body, options);
   // tempS3

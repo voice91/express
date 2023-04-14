@@ -134,12 +134,13 @@ export const update = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "You can't give response to your own question");
   }
 
-  body.$push = { taskDocuments };
-  // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
-  // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
-  delete body.taskDocuments;
+  if (taskDocuments) {
+    body.$push = { taskDocuments };
+    // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
+    // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
+    delete body.taskDocuments;
+  }
   const options = { new: true };
-
   const taskResult = await taskService.updateTask(filter, body, options);
   // tempS3
   if (taskResult) {
