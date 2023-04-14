@@ -10,7 +10,9 @@ router
   /**
    * createLenderNotes
    * */
-  .post(auth('lender'), validate(lenderNotesValidation.createLenderNotes), lenderNotesController.create)
+  .post(auth('lender'), validate(lenderNotesValidation.createLenderNotes), lenderNotesController.create);
+router
+  .route('/lenderInstitute/:lenderInstituteId')
   /**
    * getLenderNotes
    * */
