@@ -8,7 +8,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 export const createLenderNotes = {
   body: Joi.object().keys({
-    deal: Joi.objectId().required(),
     pinnedByUsers: Joi.array().items(Joi.objectId()),
     flagedByUser: Joi.array().items(Joi.objectId()),
     content: Joi.string().required(),
@@ -18,7 +17,6 @@ export const createLenderNotes = {
 
 export const updateLenderNotes = {
   body: Joi.object().keys({
-    deal: Joi.objectId(),
     pinnedByUsers: Joi.array().items(Joi.objectId()),
     flagedByUser: Joi.array().items(Joi.objectId()),
     content: Joi.string().required(),
@@ -43,14 +41,11 @@ export const deleteLenderNotesById = {
 
 export const getLenderNotes = {
   body: Joi.object().keys({}).unknown(true),
-  query: Joi.object().keys({
-    page: Joi.string(),
-    limit: Joi.string(),
-    sort: Joi.string(),
-  }),
-  params: Joi.object()
+  query: Joi.object()
     .keys({
-      dealId: Joi.objectId().required(),
+      page: Joi.string(),
+      limit: Joi.string(),
+      sort: Joi.string(),
     })
     .unknown(true),
 };
