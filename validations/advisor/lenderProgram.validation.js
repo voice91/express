@@ -57,3 +57,9 @@ export const paginatedLenderProgram = {
     })
     .unknown(true),
 };
+
+export const listLenderProgramByInstitute = {
+  params: Joi.object().keys({
+    lenderInstitute: Joi.objectId().required(),
+  }),
+};

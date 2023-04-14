@@ -54,3 +54,13 @@ export async function removeManyLenderProgram(filter) {
   const lenderProgram = await LenderProgram.deleteMany(filter);
   return lenderProgram;
 }
+
+export async function getListLenderProgram(filter) {
+  const lenderProgram = await LenderProgram.find(filter).populate([
+    {
+      path: 'lenderInstitute',
+    },
+  ]);
+
+  return lenderProgram;
+}
