@@ -24,11 +24,6 @@ const LenderNotesSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    deal: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Deal',
-      required: true,
-    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
