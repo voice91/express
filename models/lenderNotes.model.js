@@ -43,6 +43,10 @@ const LenderNotesSchema = new mongoose.Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'User',
     },
+    lenderInstitute: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LendingInstitution',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
