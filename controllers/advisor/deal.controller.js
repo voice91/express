@@ -118,3 +118,19 @@ export const remove = catchAsync(async (req, res) => {
   const deal = await dealService.removeDeal(filter);
   return res.status(httpStatus.OK).send({ results: deal });
 });
+
+export const dealInvitation = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.createdBy = req.user;
+  body.updatedBy = req.user;
+  body.user = req.user._id;
+  const { email } = req.body;
+
+  await dealService.InviteToDeal(body);
+  await Promise.allSettled(
+    email.map((user) => {
+      return emailService.sendInvitationEmail(user).then().catch();
+    })
+  );
+  return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
+});

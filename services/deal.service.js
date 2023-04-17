@@ -142,3 +142,56 @@ export async function removeManyDeal(filter) {
   const deal = await Deal.deleteMany(filter);
   return deal;
 }
+
+export async function InviteToDeal(body) {
+  const dealId = { _id: body.deal };
+  if (body.email && body.email.length) {
+    const existingUsers = await User.find({ email: { $in: body.email } });
+    if (existingUsers.length) {
+      if (existingUsers.some((user) => user.role !== enumModel.EnumRoleOfUser.ADVISOR)) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'You can only add advisors to the deal');
+      }
+      const advisorAlreadyIncluded = await Deal.findOne({
+        _id: dealId,
+        'involvedUsers.advisors': { $in: existingUsers.map((item) => item._id) },
+      });
+      if (advisorAlreadyIncluded) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'The advisor is already part of the deal');
+      }
+      await Deal.findOneAndUpdate(
+        { _id: dealId },
+        { $addToSet: { 'involvedUsers.advisors': existingUsers.map((item) => item._id) } }
+      );
+
+      const userEmailNotExists = _.differenceBy(
+        body.email,
+        existingUsers.map((item) => item.email)
+      );
+      if (userEmailNotExists.length) {
+        await Invitation.insertMany(
+          userEmailNotExists.map((nonExistingEmail) => ({
+            dealId,
+            invitedBy: body.user,
+            inviteeEmail: nonExistingEmail,
+          }))
+        );
+      }
+      await Invitation.insertMany(
+        existingUsers.map((emailExists) => ({
+          dealId,
+          status: 'accepted',
+          invitedBy: body.user,
+          invitee: emailExists._id,
+        }))
+      );
+    } else {
+      await Invitation.insertMany(
+        body.email.map((nonExistingEmail) => ({
+          dealId,
+          invitedBy: body.user,
+          inviteeEmail: nonExistingEmail,
+        }))
+      );
+    }
+  }
+}

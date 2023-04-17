@@ -6,10 +6,10 @@ import Joi from 'joi';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
-const locationSchema = Joi.object().keys({
-  type: Joi.string().equal('Point').required(),
-  coordinates: Joi.array().required(),
-});
+// const locationSchema = Joi.object().keys({
+//   type: Joi.string().equal('Point').required(),
+//   coordinates: Joi.array().required(),
+// });
 export const getDealById = {
   params: Joi.object().keys({
     dealId: Joi.objectId().required(),
@@ -42,4 +42,11 @@ export const paginatedDeal = {
       limit: Joi.number().default(10).max(100),
     })
     .unknown(true),
+};
+
+export const invitationToDeal = {
+  body: Joi.object().keys({
+    email: Joi.array().items(Joi.string().email().required()),
+    deal: Joi.objectId().required(),
+  }),
 };
