@@ -73,8 +73,7 @@ const EnumStageOfDeal = {
   NEW: 'new',
   PREPARING_MATERIALS: 'preparingMaterials',
   OUT_IN_MARKET: 'outInMarket',
-  SELECTING_QUOTES: 'selectingQuotes',
-  CLOSING: 'closing',
+  SELECTING_LENDER: 'selectingLender',
   CLOSED: 'closed',
 };
 const EnumAssetTypeOfDeal = {
@@ -123,6 +122,8 @@ const EnumStageOfLenderPlacement = {
   TERMS_SHEET_RECEIVED: 'termsSheetReceived',
   CLOSING: 'closing',
   CLOSED: 'closed',
+  NOT_CLOSING: 'notClosing',
+  NOT_COMPETITIVE: 'notCompetitive',
 };
 const EnumTermSheetOfLenderPlacement = {
   PDF: 'pdf',
