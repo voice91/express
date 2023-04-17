@@ -54,3 +54,8 @@ export async function removeManyLenderContact(filter) {
   const lenderContact = await LenderContact.deleteMany(filter);
   return lenderContact;
 }
+
+export async function listLenderContactByLenderInstitute(filter) {
+  const lenderContact = await LenderContact.find(filter);
+  return lenderContact;
+}

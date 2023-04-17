@@ -74,3 +74,9 @@ export const paginatedLenderContact = {
     })
     .unknown(true),
 };
+
+export const listLenderContactByLenderInstitute = {
+  params: Joi.object().keys({
+    lenderInstitute: Joi.objectId().required(),
+  }),
+};
