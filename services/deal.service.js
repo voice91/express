@@ -143,26 +143,31 @@ export async function removeManyDeal(filter) {
   return deal;
 }
 
-export async function InviteToDeal(body) {
+export async function InviteToDeal(body, role) {
   const dealId = { _id: body.deal };
   if (body.email && body.email.length) {
     const existingUsers = await User.find({ email: { $in: body.email } });
     if (existingUsers.length) {
-      if (existingUsers.some((user) => user.role !== enumModel.EnumRoleOfUser.ADVISOR)) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'You can only add advisors to the deal');
+      if (existingUsers.some((user) => user.role !== role)) {
+        throw new ApiError(httpStatus.BAD_REQUEST, `You can only add ${role} to the deal`);
       }
-      const advisorAlreadyIncluded = await Deal.findOne({
-        _id: dealId,
-        'involvedUsers.advisors': { $in: existingUsers.map((item) => item._id) },
-      });
-      if (advisorAlreadyIncluded) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'The advisor is already part of the deal');
-      }
-      await Deal.findOneAndUpdate(
-        { _id: dealId },
-        { $addToSet: { 'involvedUsers.advisors': existingUsers.map((item) => item._id) } }
-      );
 
+      const roleChanged = {
+        advisor: 'advisor',
+        user: 'borrower',
+      };
+
+      const filter = {
+        _id: dealId,
+        [`involvedUsers.${roleChanged[role]}s`]: { $in: existingUsers.map((item) => item._id) },
+      };
+      const userAlreadyIncluded = await Deal.findOne(filter);
+      if (userAlreadyIncluded) {
+        throw new ApiError(httpStatus.BAD_REQUEST, `The ${role} is already part of the deal`);
+      }
+      await Deal.findByIdAndUpdate(dealId, {
+        $addToSet: { [`involvedUsers.${roleChanged[role]}s`]: existingUsers.map((item) => item._id) },
+      });
       const userEmailNotExists = _.differenceBy(
         body.email,
         existingUsers.map((item) => item.email)
@@ -170,7 +175,7 @@ export async function InviteToDeal(body) {
       if (userEmailNotExists.length) {
         await Invitation.insertMany(
           userEmailNotExists.map((nonExistingEmail) => ({
-            dealId,
+            deal: dealId,
             invitedBy: body.user,
             inviteeEmail: nonExistingEmail,
           }))
@@ -178,7 +183,7 @@ export async function InviteToDeal(body) {
       }
       await Invitation.insertMany(
         existingUsers.map((emailExists) => ({
-          dealId,
+          deal: dealId,
           status: 'accepted',
           invitedBy: body.user,
           invitee: emailExists._id,
@@ -187,7 +192,7 @@ export async function InviteToDeal(body) {
     } else {
       await Invitation.insertMany(
         body.email.map((nonExistingEmail) => ({
-          dealId,
+          deal: dealId,
           invitedBy: body.user,
           inviteeEmail: nonExistingEmail,
         }))
