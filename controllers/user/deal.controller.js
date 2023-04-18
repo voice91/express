@@ -3,9 +3,10 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { dealService } from 'services';
+import { dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import enumModel from '../../models/enum.model';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -84,4 +85,20 @@ export const remove = catchAsync(async (req, res) => {
   };
   const deal = await dealService.removeDeal(filter);
   return res.status(httpStatus.OK).send({ results: deal });
+});
+
+export const dealInvitation = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
+  body.user = req.user._id;
+  const { email } = req.body;
+
+  await dealService.InviteToDeal(body, enumModel.EnumRoleOfUser.USER);
+  await Promise.allSettled(
+    email.map((user) => {
+      return emailService.sendInvitationEmail(user).then().catch();
+    })
+  );
+  return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
 });

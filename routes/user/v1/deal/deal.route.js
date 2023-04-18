@@ -3,6 +3,7 @@ import { dealController } from 'controllers/user';
 import { dealValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import checkAccessOfDeal from '../../../../middlewares/checkUserOfDeal';
 
 const router = express.Router();
 router
@@ -27,4 +28,7 @@ router
    * deleteDealById
    * */
   .delete(auth('user'), validate(dealValidation.deleteDealById), dealController.remove);
+router
+  .route('/invitation')
+  .post(auth('user'), validate(dealValidation.invitationToDeal), checkAccessOfDeal, dealController.dealInvitation);
 export default router;

@@ -107,3 +107,10 @@ export const paginatedDeal = {
     })
     .unknown(true),
 };
+
+export const invitationToDeal = {
+  body: Joi.object().keys({
+    email: Joi.array().items(Joi.string().email().required()),
+    deal: Joi.objectId().required(),
+  }),
+};
