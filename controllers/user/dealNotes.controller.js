@@ -61,6 +61,7 @@ export const list = catchAsync(async (req, res) => {
   const options = {
     sort: sortObj,
     ...pick(query, ['limit', 'page']),
+    populate: [{ path: 'user' }],
   };
   const dealNotes = await dealNotesService.getDealNotesList(filter, options);
   return res.status(httpStatus.OK).send({ results: dealNotes });
