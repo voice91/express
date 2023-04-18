@@ -75,6 +75,8 @@ const EnumStageOfDeal = {
   OUT_IN_MARKET: 'outInMarket',
   SELECTING_LENDER: 'selectingLender',
   CLOSED: 'closed',
+  ARCHIVE: 'archive',
+  ON_HOLD: 'onHold',
 };
 const EnumAssetTypeOfDeal = {
   MULTIFAMILY: 'multifamily',
@@ -88,6 +90,7 @@ const EnumAssetTypeOfDeal = {
   STUDENT_HOUSING: 'studentHousing',
   SPECIALTY: 'specialty',
   CONDOS: 'condos',
+  MIXED_USE: 'mixedUse',
 };
 const EnumLoanPurposeOfDeal = {
   PURCHASE: 'purchase',
