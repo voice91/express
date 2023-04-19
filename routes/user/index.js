@@ -11,6 +11,7 @@ import activityLogRoutes from './v1/activityLog/activityLog.route';
 import taskRoutes from './v1/task/task.route';
 import dealDocumentRoutes from './v1/dealDocument/dealDocument.route';
 import authRoutes from './v1/auth/auth.route';
+import lenderNotesRoutes from './v1/lenderNotes/lenderNotes.route';
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -25,4 +26,5 @@ router.use('/activityLog', activityLogRoutes);
 router.use('/task', taskRoutes);
 router.use('/dealDocument', dealDocumentRoutes);
 router.use('/auth', authRoutes);
+router.use('/lenderNotes', lenderNotesRoutes);
 module.exports = router;
