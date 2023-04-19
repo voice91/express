@@ -83,6 +83,9 @@ export const paginate = catchAsync(async (req, res) => {
       {
         path: 'lenderContact',
       },
+      {
+        path: 'notes',
+      },
     ],
   };
   const lenderPlacement = await lenderPlacementService.getLenderPlacementListWithPagination(filter, options);

@@ -94,12 +94,6 @@ const LenderPlacementSchema = new mongoose.Schema(
       required: true,
     },
     /**
-     * list of all users&#39; notes associated to this lender placement of this deal
-     * */
-    notes: {
-      type: [String],
-    },
-    /**
      * The stage of lender
      * */
     stage: {
@@ -123,6 +117,14 @@ const LenderPlacementSchema = new mongoose.Schema(
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
+
+LenderPlacementSchema.virtual('notes', {
+  ref: 'LenderNotes',
+  localField: 'lendingInstitution',
+  foreignField: 'lenderInstitute',
+  justOne: false,
+});
+
 LenderPlacementSchema.plugin(toJSON);
 LenderPlacementSchema.plugin(mongoosePaginateV2);
 LenderPlacementSchema.plugin(softDelete, {
