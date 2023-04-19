@@ -18,7 +18,7 @@ router
    * */
   .get(auth('advisor'), validate(lenderNotesValidation.getLenderNotes), lenderNotesController.list);
 router
-  .route('/deal/:dealId/paginated')
+  .route('/paginated')
   /**
    * getLenderNotesPaginated
    * */
