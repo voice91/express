@@ -21,15 +21,7 @@ router
    * getLenderContactPaginated
    * */
   .get(auth('lender'), validate(lenderContactValidation.paginatedLenderContact), lenderContactController.paginate);
-router
-  .route('/:lenderInstitute')
-  /**
-   * listLenderContactByLenderInstitute
-   * */
-  .get(
-    validate(lenderContactValidation.listLenderContactByLenderInstitute),
-    lenderContactController.listLenderContactByLenderInstitute
-  );
+
 router
   .route('/:lenderContactId')
   /**

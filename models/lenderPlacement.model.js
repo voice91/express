@@ -60,6 +60,50 @@ const TermsSchema = new mongoose.Schema({
   LTC: {
     type: String,
   },
+  extensionFeeTwo: {
+    type: String,
+  },
+  termNotes: {
+    type: String,
+  },
+  prePayment: [
+    {
+      type: Number,
+    },
+  ],
+  IO: {
+    type: String,
+  },
+  amortization: {
+    type: String,
+  },
+  originationFee: {
+    type: String,
+  },
+  exitFee: {
+    type: String,
+  },
+  recourse: {
+    type: String,
+  },
+  asIsLTV: {
+    type: String,
+  },
+  stabilizedLTV: {
+    type: String,
+  },
+  asIsDY: {
+    type: String,
+  },
+  stabilizedDY: {
+    type: String,
+  },
+  asIsDSCR: {
+    type: String,
+  },
+  generalNotes: {
+    type: String,
+  },
 });
 const LenderPlacementSchema = new mongoose.Schema(
   {
@@ -91,7 +135,16 @@ const LenderPlacementSchema = new mongoose.Schema(
     lenderContact: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LenderContact',
-      required: true,
+    },
+    /**
+     * list of all users&#39; notes associated to this lender placement of this deal
+     * */
+    notes: {
+      type: [String],
+    },
+    deal: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Deal',
     },
     /**
      * The stage of lender

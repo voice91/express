@@ -11,6 +11,7 @@ export const createLenderContact = {
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     nickname: Joi.string(),
+    lenderInstitute: Joi.objectId().required(),
     email: Joi.string().required().email(),
     phoneNumberDirect: Joi.string(),
     phoneNumberOffice: Joi.string(),
@@ -73,10 +74,4 @@ export const paginatedLenderContact = {
       limit: Joi.number().default(10).max(100),
     })
     .unknown(true),
-};
-
-export const listLenderContactByLenderInstitute = {
-  params: Joi.object().keys({
-    lenderInstitute: Joi.objectId().required(),
-  }),
 };

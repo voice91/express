@@ -24,11 +24,26 @@ const termsEmbed = Joi.object().keys({
   interestRateIndex: Joi.string(),
   extensionOptionTwo: Joi.string(),
   LTC: Joi.string(),
+  extensionFeeTwo: Joi.string(),
+  termNotes: Joi.string(),
+  prePayment: Joi.array().items(Joi.number()),
+  IO: Joi.string(),
+  amortization: Joi.string(),
+  originationFee: Joi.string(),
+  exitFee: Joi.string(),
+  recourse: Joi.string(),
+  asIsLTV: Joi.string(),
+  stabilizedLTV: Joi.string(),
+  asIsDY: Joi.string(),
+  stabilizedDY: Joi.string(),
+  asIsDSCR: Joi.string(),
+  generalNotes: Joi.string(),
 });
 export const createLenderPlacement = {
   body: Joi.object().keys({
     lendingInstitution: Joi.objectId().required(),
     lenderContact: Joi.objectId().required(),
+    deal: Joi.objectId().required(),
     notes: Joi.array().items(Joi.string()),
     stage: Joi.string()
       .valid(...Object.values(enumFields.EnumStageOfLenderPlacement))
@@ -39,6 +54,12 @@ export const createLenderPlacement = {
         `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|xls|xlsx|pptx)$)`
       )
     ),
+  }),
+};
+
+export const createLenderPlacementFromId = {
+  body: Joi.object().keys({
+    lenderInstitute: Joi.array().items(Joi.objectId()).required(),
   }),
 };
 
@@ -84,4 +105,11 @@ export const paginatedLenderPlacement = {
       limit: Joi.number().default(10).max(100),
     })
     .unknown(true),
+};
+
+export const sendDeal = {
+  body: Joi.object().keys({
+    lenderInstitute: Joi.array().items(Joi.objectId()).required(),
+    template: Joi.string().valid(...Object.values(enumFields.EnumTypeOfTemplate)),
+  }),
 };

@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 
 const getLenderContactFilterQuery = (query) => {
-  const filter = pick(query, []);
+  const filter = pick(query, ['lenderInstitute']);
   if (query.search) {
     filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { lastName: new RegExp(query.search, 'i') }];
   }
