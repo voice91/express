@@ -39,7 +39,7 @@ export const list = catchAsync(async (req, res) => {
   };
   const options = {
     sort: sortObj,
-    ...pick(query, ['sort', 'limit', 'page']),
+    ...pick(query, ['limit', 'page']),
     populate: { path: 'user' },
   };
   const lenderNotes = await lenderNotesService.getLenderNotesList(filter, options);
