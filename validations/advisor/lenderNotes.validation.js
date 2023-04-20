@@ -47,6 +47,7 @@ export const getLenderNotes = {
     page: Joi.string(),
     limit: Joi.string(),
     sort: Joi.string(),
+    order: Joi.string().valid('asc', 'desc').default('asc'),
   }),
   params: Joi.object()
     .keys({

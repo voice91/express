@@ -33,7 +33,12 @@ export const list = catchAsync(async (req, res) => {
     lenderInstitute: req.params.lenderInstituteId,
     ...queryParams,
   };
+  const sortingObj = pick(query, ['sort', 'order']);
+  const sortObj = {
+    [sortingObj.sort]: sortingObj.order,
+  };
   const options = {
+    sort: sortObj,
     ...pick(query, ['sort', 'limit', 'page']),
     populate: { path: 'user' },
   };
