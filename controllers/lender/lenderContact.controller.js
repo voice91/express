@@ -88,12 +88,3 @@ export const remove = catchAsync(async (req, res) => {
   const lenderContact = await lenderContactService.removeLenderContact(filter);
   return res.status(httpStatus.OK).send({ results: lenderContact });
 });
-
-export const listLenderContactByLenderInstitute = catchAsync(async (req, res) => {
-  const { lenderInstitute } = req.params;
-  const filter = {
-    lenderInstitute,
-  };
-  const lenderContact = await lenderContactService.listLenderContactByLenderInstitute(filter);
-  return res.status(httpStatus.OK).send({ results: lenderContact });
-});
