@@ -6,6 +6,7 @@ import httpStatus from 'http-status';
 import { lenderProgramService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import { LendingInstitution } from '../../models';
 
 export const get = catchAsync(async (req, res) => {
   const { lenderProgramId } = req.params;
@@ -31,6 +32,20 @@ export const paginate = catchAsync(async (req, res) => {
     [sortingObj.sort]: sortingObj.order,
   };
   const filter = {};
+  const fields = pick(query, ['loanType', 'propertyType', 'statesArray', 'lenderInstitute', 'loanSize', 'lenderType']);
+  let lenderInstitute;
+  if (fields.lenderType) {
+    lenderInstitute = await LendingInstitution.find({ lenderType: query.lenderType });
+  }
+  Object.keys(fields).forEach((field) => {
+    if (field === 'loanSize') {
+      filter.$and = [{ minLoanSize: { $lte: fields[field] } }, { maxLoanSize: { $gte: fields[field] } }];
+    } else if (field === 'lenderType') {
+      filter.lenderInstitute = { $in: lenderInstitute.map((item) => item._id) };
+    } else {
+      filter[field] = { $in: [fields[field]] };
+    }
+  });
   const options = {
     sort: sortObj,
     ...pick(query, ['limit', 'page']),
