@@ -43,8 +43,8 @@ export async function createLenderPlacement(body) {
 }
 
 export async function updateLenderPlacement(filter, body, options = {}) {
-  const lendingInstitution = await LendingInstitution.findOne({ _id: body._id });
-  if (!lendingInstitution) {
+  const lendingInstitution = await LendingInstitution.findOne({ _id: body.lendingInstitution });
+  if (body.lendingInstitution && !lendingInstitution) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field lendingInstitution is not valid');
   }
   const lenderPlacement = await LenderPlacement.findOneAndUpdate(filter, body, options);
