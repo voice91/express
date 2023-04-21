@@ -110,13 +110,20 @@ export const create = catchAsync(async (req, res) => {
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
-  const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(body, options);
-  if (lenderPlacementResult) {
-    const uploadedFileUrls = [];
-    uploadedFileUrls.push(lenderPlacementResult.termSheet);
-    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
-  }
-  return res.status(httpStatus.CREATED).send({ results: lenderPlacementResult });
+  await Promise.all(
+    body.lendingInstitution.map(async (lendingInstituteId) => {
+      const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(
+        { lendingInstitution: lendingInstituteId },
+        options
+      );
+      if (lenderPlacementResult) {
+        const uploadedFileUrls = [];
+        uploadedFileUrls.push(lenderPlacementResult.termSheet);
+        await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+      }
+    })
+  );
+  return res.status(httpStatus.CREATED).send({ results: 'Lender added to the deal' });
 });
 
 export const update = catchAsync(async (req, res) => {
