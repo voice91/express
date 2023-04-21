@@ -10,7 +10,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 export const createLendingInstitution = {
   body: Joi.object().keys({
     lenderNameVisible: Joi.string().required(),
-    lenderNameInternal: Joi.string().required(),
+    lenderNameInternal: Joi.string(),
     lenderType: Joi.string()
       .valid(...Object.values(enumFields.EnumLenderTypeOfLendingInstitution))
       .required(),

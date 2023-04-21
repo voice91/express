@@ -20,8 +20,9 @@ if (config.env !== 'test') {
  * @param emailParams
  */
 export const sendEmail = async (emailParams) => {
-  const { to, subject, text, isHtml } = emailParams;
-  const msg = { from: config.email.from, to, subject, text };
+  const { to, cc, bcc, subject, text, isHtml, from, attachments } = emailParams;
+
+  const msg = { from: from || config.email.from, to, cc, bcc, subject, text, attachments };
   if (isHtml) {
     delete msg.text;
     msg.html = text;
@@ -166,6 +167,132 @@ text-align: center
   </html>
 `;
   await sendEmail({ to, subject, text, isHtml: true });
+};
+
+export const sendDealTemplate1 = async (user) => {
+  const to = user.email;
+  const cc = user.email;
+  const bcc = user.email;
+  const subject = 'PFG Cold Storage Industrial - $9.1m Acquisition Financing';
+  const { from } = user;
+  const { file } = user;
+  const attachments = file.map((data) => {
+    const fileName = data.split('/').pop();
+    return {
+      filename: fileName,
+      path: data,
+    };
+  });
+  const text = `
+<html lang="en">
+<head>
+<style>
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  color: #ffffff !important;
+  background-color: #007bff;
+  border: 1px solid #007bff;
+  box-shadow: none;
+  text-decoration: none;
+}
+.text-center {
+text-align: center
+}
+</style>
+</head>
+<body>
+<div>
+<div> Hi ${user.firstName}</div>
+<br>
+  <div> This is a short message that would include details about the deal.</div><br>
+  <div> Please see below the summary of PFG deal:</div><br>
+  <div> The property is: example of text</div><br>
+  <div> The loan of $${user.totalLoanAmount}m is</div><br>
+  <div> Best Regards,</div>
+  <div>${user.advisor}</div><br><br>
+  </div>
+  </body>
+  </html>
+`;
+  await sendEmail({ to, cc, bcc, subject, from, text, isHtml: true, attachments });
+};
+
+export const sendDealTemplate2 = async (user) => {
+  const { to, cc, bcc } = user.email;
+  const subject = 'PFG Property - $10.0m Financing Request';
+  const { from } = user;
+  const text = `
+<html lang="en">
+<head>
+<style>
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  color: #ffffff !important;
+  background-color: #007bff;
+  border: 1px solid #007bff;
+  box-shadow: none;
+  text-decoration: none;
+}
+.text-center {
+text-align: center
+}
+.underline{
+   text-decoration:underline
+}
+.bold{
+text-style: bold
+}
+</style>
+</head>
+<body>
+<div>
+<div> Hi ${user.firstName} - hope all is well, please see below for the financing summary of PFG Cold Storage Industrial: </div>
+<br>
+  <div> The Sponsor is acquiring the Property for $13.0 million and is seeking $9.1m in acquisition financing (67% LTP).
+PFG Cold Storage is a 100% occupied, 299,177sf cold-storage industrial facility located at 4901 Asher Avenue in Little Rock, Arkansas.  
+</div><br>
+  <div> The Property is occupied by Performance Food Group (PFG) on an absolute net lease. PFG is a food distributor with a market capitalization of approximately $10 billion. The tenants has approximately three years of lease term remaining with five, five-year renewal options and has occupied the Property since 2004. The Property is comprised of three buildings with 13 drive-in doors and 50 dock doors and is 299,177sf on 41.82 acres.
+</div><br>
+  <div> The Sponsor owns over 4.0 million SF and is focused on a competitive rate and non-recourse financing.</div><br>
+  <div class="underline" > Financing Request:</div><br>
+  <div class="bold"> - $9.1m Request </div>
+  <div class="bold"> - Competitive Fixed Rate </div>
+  <div class="bold"> - Interest-Only </div>
+  <div class="bold"> - Non-recourse </div><br>
+  <div> Please see the OM and model attached and let me know if you have any questions / if this is a fit.</div><br>
+  <div> Thank you,</div>
+  <div>${user.advisor}</div>
+  </div>
+  </body>
+  </html>
+`;
+  await sendEmail({ to, cc, bcc, subject, from, text, isHtml: true });
 };
 
 /**
