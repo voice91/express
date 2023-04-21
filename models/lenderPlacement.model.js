@@ -136,12 +136,6 @@ const LenderPlacementSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LenderContact',
     },
-    /**
-     * list of all users&#39; notes associated to this lender placement of this deal
-     * */
-    notes: {
-      type: [String],
-    },
     deal: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Deal',
