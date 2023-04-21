@@ -191,6 +191,36 @@ export const sendDeal = catchAsync(async (req, res) => {
         }
         if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE1)
           return emailService.sendDealTemplate1({ email, firstName, totalLoanAmount, file, advisor, from }).then().catch();
+        if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE2) {
+          // todo : currently we are sending sendDealTemplate1 as we have to design sendDealTemplate2 after completion that we have to chenge it here
+          return emailService
+            .sendDealTemplate1({
+              email,
+              firstName,
+              totalLoanAmount,
+              file,
+              advisor,
+              from,
+            })
+            .then()
+            .catch();
+        }
+        if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE3) {
+          // todo : currently we are sending sendDealTemplate1 as we have to design sendDealTemplate2 after completion that we have to chenge it here
+          return emailService
+            .sendDealTemplate1({
+              email,
+              firstName,
+              totalLoanAmount,
+              file,
+              advisor,
+              from,
+            })
+            .then()
+            .catch();
+        }
+        // toddo : fix this after adding other templates
+        throw new ApiError(httpStatus.BAD_REQUEST, `please enter correct template type: ${lenderInstitute}`);
       });
     })
   );
