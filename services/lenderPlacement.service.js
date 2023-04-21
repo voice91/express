@@ -4,7 +4,7 @@
  */
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
-import { LenderPlacement, LendingInstitution } from 'models';
+import { DealDocument, LenderContact, LenderPlacement, LendingInstitution } from 'models';
 
 export async function getLenderPlacementById(id, options = {}) {
   const lenderPlacement = await LenderPlacement.findById(id, options.projection, options);
@@ -64,4 +64,23 @@ export async function removeLenderPlacement(filter) {
 export async function removeManyLenderPlacement(filter) {
   const lenderPlacement = await LenderPlacement.deleteMany(filter);
   return lenderPlacement;
+}
+
+export async function sendDeal(filterToFindContact, filterToFindPlacement, filterToFindDeal) {
+  const lenderContact = await LenderContact.find(filterToFindContact).populate([
+    {
+      path: 'lenderInstitute',
+    },
+  ]);
+  const lenderPlacement = await LenderPlacement.find(filterToFindPlacement).populate([
+    {
+      path: 'lendingInstitution',
+    },
+  ]);
+  const dealDoc = await DealDocument.find(filterToFindDeal).populate([
+    {
+      path: 'deal',
+    },
+  ]);
+  return { lenderContact, lenderPlacement, dealDoc };
 }

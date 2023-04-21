@@ -22,6 +22,12 @@ router
    * */
   .get(auth('advisor'), validate(lenderPlacementValidation.paginatedLenderPlacement), lenderPlacementController.paginate);
 router
+  .route('/sendDeal')
+  /**
+   * sendDeal
+   * */
+  .post(auth('advisor'), validate(lenderPlacementValidation.sendDeal), lenderPlacementController.sendDeal);
+router
   .route('/:lenderPlacementId')
   /**
    * getLenderPlacementById

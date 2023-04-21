@@ -3,13 +3,16 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService } from 'services';
+import { s3Service, lenderPlacementService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
+import _ from 'lodash';
 import { pick } from '../../utils/pick';
+import { EnumTypeOfTemplate } from '../../models/enum.model';
+import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -147,4 +150,50 @@ export const remove = catchAsync(async (req, res) => {
   };
   const lenderPlacement = await lenderPlacementService.removeLenderPlacement(filter);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
+});
+
+export const sendDeal = catchAsync(async (req, res) => {
+  const { lenderInstitute, template, deal } = req.body;
+  const advisor = req.user.name;
+  const from = req.user.email;
+  const filterToFindContact = {
+    lenderInstitute,
+  };
+  const filterToFindPlacement = {
+    lendingInstitution: lenderInstitute,
+  };
+  const filterToFindDeal = {
+    deal,
+  };
+  const lenderContact = await lenderPlacementService.sendDeal(filterToFindContact, filterToFindPlacement, filterToFindDeal);
+
+  if (_.isEmpty(lenderContact.lenderContact)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `can not find lenderContact with this id: ${lenderInstitute}`);
+  }
+
+  let totalLoanAmount;
+  let email;
+  let firstName;
+  const file = [];
+  await Promise.allSettled(
+    // eslint-disable-next-line array-callback-return
+    Object.values(lenderContact).map((data) => {
+      // eslint-disable-next-line array-callback-return
+      data.map((item) => {
+        if (item.email || item.firstName) {
+          email = item.email;
+          firstName = item.firstName;
+        } else if (item.terms) {
+          totalLoanAmount = item.terms.totalLoanAmount;
+          totalLoanAmount /= 1000000;
+        } else if (item.file) {
+          file.push(item.file);
+        }
+        if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE1)
+          return emailService.sendDealTemplate1({ email, firstName, totalLoanAmount, file, advisor, from }).then().catch();
+      });
+    })
+  );
+
+  return res.status(httpStatus.OK).send({ contacts: lenderContact });
 });
