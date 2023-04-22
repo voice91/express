@@ -104,3 +104,11 @@ export const paginatedLenderPlacement = {
     })
     .unknown(true),
 };
+
+export const sendDeal = {
+  body: Joi.object().keys({
+    lenderInstitute: Joi.array().items(Joi.ObjectId()).required(),
+    deal: Joi.ObjectId().required(),
+    template: Joi.string().valid(...Object.values(enumFields.EnumTypeOfTemplate)),
+  }),
+};
