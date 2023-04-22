@@ -176,7 +176,7 @@ LenderPlacementSchema.virtual('lenderContact', {
   ref: 'LenderContact',
   localField: 'lendingInstitution',
   foreignField: 'lenderInstitute',
-  justOne: false,
+  justOne: true,
 });
 
 LenderPlacementSchema.plugin(toJSON);
