@@ -27,6 +27,25 @@ router
    * sendDeal
    * */
   .post(auth('advisor'), validate(lenderPlacementValidation.sendDeal), lenderPlacementController.sendDeal);
+
+router
+  .route('/sendDeal/:getSendDealIdId')
+  /**
+   * sendDeal
+   * */
+  .get(auth('advisor'), validate(lenderPlacementValidation.getSendDealId), lenderPlacementController.getSendDealById);
+
+router
+  .route('/sendDeal/:getSendDealIdId')
+  /**
+   * sendDeal
+   * */
+  .post(
+    auth('advisor'),
+    validate(lenderPlacementValidation.updateAndSaveInitialEmailContent),
+    lenderPlacementController.updateAndSaveInitialEmailContent
+  );
+
 router
   .route('/:lenderPlacementId')
   /**

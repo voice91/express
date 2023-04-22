@@ -117,3 +117,28 @@ export const sendDeal = {
     template: Joi.string().valid(...Object.values(enumFields.EnumTypeOfTemplate)),
   }),
 };
+
+export const getSendDealId = {
+  params: Joi.object().keys({
+    getSendDealIdId: Joi.objectId().required(),
+  }),
+};
+
+export const updateAndSaveInitialEmailContent = {
+  params: Joi.object().keys({
+    getSendDealIdId: Joi.objectId().required(),
+  }),
+  body: Joi.object().keys({
+    from: Joi.string().email(),
+    sendTo: Joi.string().email(),
+    ccList: Joi.array().items(Joi.string()),
+    bccList: Joi.array().items(Joi.string()),
+    name: Joi.string(),
+    subject: Joi.string(),
+    dealDocument: Joi.array().items(Joi.objectId()),
+    emailContent: Joi.string(),
+    deal: Joi.objectId(),
+    emailAttachments: Joi.array().items(Joi.string()),
+    totalLoanAmount: Joi.number(),
+  }),
+};

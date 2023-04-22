@@ -24,6 +24,22 @@ const EmailTemplateSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    from: {
+      type: String,
+      match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+    },
+    sendTo: [
+      {
+        type: String,
+        match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      },
+    ],
+    name: {
+      type: String,
+    },
+    totalLoanAmount: {
+      type: Number,
+    },
     /**
      * Free text for the email subject line
      * */
@@ -36,20 +52,40 @@ const EmailTemplateSchema = new mongoose.Schema(
      * */
     ccList: {
       type: [String],
+      match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
     },
+    bccList: {
+      type: [String],
+      match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+    },
+    dealDocument: [
+      {
+        ref: 'DealDocument',
+        type: mongoose.Schema.Types.ObjectId,
+      },
+    ],
     /**
      * Body of the email (will need to include formatting as it is email body)
      * */
-    textBox: {
+    emailContent: {
       type: String,
       required: true,
+    },
+    deal: {
+      ref: 'Deal',
+      type: mongoose.Schema.Types.ObjectId,
+    },
+    isFirstTime: {
+      type: Boolean,
     },
     /**
      * List of documents that will be attached to the email
      * */
-    emailAttachments: {
-      type: String,
-    },
+    emailAttachments: [
+      {
+        type: String,
+      },
+    ],
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
