@@ -45,7 +45,7 @@ export async function createLenderPlacement(body) {
     }
   }
   const lendingInstitution = await LendingInstitution.findOne({ _id: body.lendingInstitution });
-  if (!lendingInstitution) {
+  if (body.lendingInstitution && !lendingInstitution) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field lendingInstitution is not valid');
   }
   const lenderPlacement = await LenderPlacement.create(body);
@@ -82,7 +82,7 @@ export async function sendDeal(filterToFindContact, filterToFindPlacement, filte
       path: 'lenderInstitute',
     },
   ]);
-  const lenderPlacement = await LenderPlacement.find(filterToFindPlacement).populate([
+  const lenderPlacement = await LenderPlacement.findOne(filterToFindPlacement).populate([
     {
       path: 'lendingInstitution',
     },
@@ -92,5 +92,7 @@ export async function sendDeal(filterToFindContact, filterToFindPlacement, filte
       path: 'deal',
     },
   ]);
-  return { lenderContact, lenderPlacement, dealDoc };
+  const docIds = await dealDoc.map((data) => data._id);
+
+  return { lenderContact, lenderPlacement, dealDoc, docIds };
 }

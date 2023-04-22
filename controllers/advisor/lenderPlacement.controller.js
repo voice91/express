@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService, emailService } from 'services';
+import { s3Service, lenderPlacementService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -11,8 +11,9 @@ import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
-import { EnumTypeOfTemplate } from '../../models/enum.model';
 import ApiError from '../../utils/ApiError';
+import { EmailTemplate } from '../../models';
+import { sendDealTemplate1Text } from '../../utils/emailContent';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -157,9 +158,14 @@ export const remove = catchAsync(async (req, res) => {
 });
 
 export const sendDeal = catchAsync(async (req, res) => {
-  const { lenderInstitute, template, deal } = req.body;
-  const advisor = req.user.name;
-  const from = req.user.email;
+  const {
+    lenderInstitute,
+    // template,
+    deal,
+  } = req.body;
+  // const advisorName = req.user.name;
+  const advisorEmail = req.user.email;
+  // const from = req.user.email;
   const filterToFindContact = {
     lenderInstitute,
   };
@@ -175,59 +181,160 @@ export const sendDeal = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, `can not find lenderContact with this id: ${lenderInstitute}`);
   }
 
-  let totalLoanAmount;
+  let totalLoanAmount = 0;
   let email;
   let firstName;
-  const file = [];
-  await Promise.allSettled(
-    // eslint-disable-next-line array-callback-return
-    Object.values(lenderContact).map((data) => {
-      // eslint-disable-next-line array-callback-return
-      data.map((item) => {
-        if (item.email || item.firstName) {
-          email = item.email;
-          firstName = item.firstName;
-        } else if (item.terms) {
-          totalLoanAmount = item.terms.totalLoanAmount;
-          totalLoanAmount /= 1000000;
-        } else if (item.file) {
-          file.push(item.file);
-        }
-        if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE1)
-          return emailService.sendDealTemplate1({ email, firstName, totalLoanAmount, file, advisor, from }).then().catch();
-        if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE2) {
-          // todo : currently we are sending sendDealTemplate1 as we have to design sendDealTemplate2 after completion that we have to chenge it here
-          return emailService
-            .sendDealTemplate1({
-              email,
-              firstName,
-              totalLoanAmount,
-              file,
-              advisor,
-              from,
-            })
-            .then()
-            .catch();
-        }
-        if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE3) {
-          // todo : currently we are sending sendDealTemplate1 as we have to design sendDealTemplate2 after completion that we have to chenge it here
-          return emailService
-            .sendDealTemplate1({
-              email,
-              firstName,
-              totalLoanAmount,
-              file,
-              advisor,
-              from,
-            })
-            .then()
-            .catch();
-        }
-        // toddo : fix this after adding other templates
-        throw new ApiError(httpStatus.BAD_REQUEST, `please enter correct template type: ${lenderInstitute}`);
-      });
-    })
-  );
+  const { docIds } = lenderContact;
+  const createTemplates = [];
 
-  return res.status(httpStatus.OK).send({ contacts: lenderContact });
+  if (lenderContact.lenderPlacement) {
+    totalLoanAmount = lenderContact.lenderPlacement.terms.totalLoanAmount;
+    totalLoanAmount /= 1000000;
+  }
+
+  const files = lenderContact.dealDoc.map((doc) => doc.file);
+
+  await asyncForEach(lenderContact.lenderContact, async (data) => {
+    email = data.email;
+    firstName = data.firstName;
+    const tempalatData = sendDealTemplate1Text();
+    const templateData = await EmailTemplate.create({
+      sendTo: email,
+      ccList: email,
+      bccList: email,
+      from: advisorEmail,
+      name: firstName,
+      subject: 'PFG Cold Storage Industrial - $9.1m Acquisition Financing',
+      dealDocument: docIds,
+      emailContent: tempalatData,
+      deal,
+      emailAttachments: files,
+      isFirstTime: true,
+      totalLoanAmount,
+    });
+
+    createTemplates.push(templateData);
+  });
+
+  // todo : need this code for send email to user for template that getting from user tabel
+  // await Promise.all(
+  //   // eslint-disable-next-line array-callback-return
+  //   Object.values(lenderContact).map(async (data) => {
+  //     // eslint-disable-next-line array-callback-return
+  //     await data.map(async (item) => {
+  //       if (item.email || item.firstName) {
+  //         email = item.email;
+  //         firstName = item.firstName;
+  //       } else if (item.terms) {
+  //         totalLoanAmount = item.terms.totalLoanAmount;
+  //         totalLoanAmount /= 1000000;
+  //       } else if (item.file) {
+  //         file.push(item.file);
+  //       }
+  //
+  //       const tempalatData = sendDealTemplate1Text({
+  //         email,
+  //         firstName,
+  //         totalLoanAmount,
+  //         file,
+  //         advisorName,
+  //         from,
+  //       });
+  //       const emailTemplateData = await EmailTemplate.create({
+  //         sendTo: email,
+  //         ccList: email,
+  //         bccList: email,
+  //         from: advisorEmail,
+  //         name: firstName,
+  //         subject: 'PFG Cold Storage Industrial - $9.1m Acquisition Financing',
+  //         dealDocument: docIds,
+  //         emailContent: tempalatData,
+  //         deal,
+  //         emailAttachments: file,
+  //         isFirstTime: true,
+  //       });
+  //
+  //       console.log(`====emailTemplateData>`, emailTemplateData);
+  //
+  //       createdEmailTemplates.push(emailTemplateData);
+  //
+  //       // todo : need to mmove this code, in other api from where we send email
+  //       // if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE1)
+  //       //   return emailService.sendDealTemplate1({ email, firstName, totalLoanAmount, file, advisorName, from }).then().catch();
+  //       // if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE2) {
+  //       //   // todo : currently we are sending sendDealTemplate1 as we have to design sendDealTemplate2 after completion that we have to chenge it here
+  //       //   return emailService
+  //       //     .sendDealTemplate1({
+  //       //       email,
+  //       //       firstName,
+  //       //       totalLoanAmount,
+  //       //       file,
+  //       //       advisorName,
+  //       //       from,
+  //       //     })
+  //       //     .then()
+  //       //     .catch();
+  //       // }
+  //       // if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE3) {
+  //       //   // todo : currently we are sending sendDealTemplate1 as we have to design sendDealTemplate2 after completion that we have to chenge it here
+  //       //   return emailService
+  //       //     .sendDealTemplate1({
+  //       //       email,
+  //       //       firstName,
+  //       //       totalLoanAmount,
+  //       //       file,
+  //       //       advisorName,
+  //       //       from,
+  //       //     })
+  //       //     .then()
+  //       //     .catch();
+  //       // }
+  //       // toddo : fix this after adding other templates
+  //       // throw new ApiError(httpStatus.BAD_REQUEST, `please enter correct template type: ${lenderInstitute}`);
+  //     });
+  //   })
+  // );
+
+  return res.status(httpStatus.OK).send({ createTemplates });
+});
+
+export const getSendDealById = catchAsync(async (req, res) => {
+  const { getSendDealIdId } = req.params;
+
+  const filter = {
+    _id: getSendDealIdId,
+  };
+  const getEmailTemplate = await EmailTemplate.findOne(filter);
+  if (!getEmailTemplate) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id!');
+  }
+  return res.status(httpStatus.OK).send({ getEmailTemplate });
+});
+
+export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
+  const { getSendDealIdId } = req.params;
+
+  const filter = {
+    _id: getSendDealIdId,
+    isFirstTime: true,
+  };
+  const getEmailTemplate = await EmailTemplate.findOne(filter).lean();
+  if (!getEmailTemplate) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id! or isFirstTime is not true');
+  }
+
+  const body = {
+    ...getEmailTemplate,
+  };
+  delete body._id;
+
+  const updatedBody = {
+    ...body,
+    ...req.body,
+    ...{ isFirstTime: false },
+  };
+
+  const templateData = await EmailTemplate.create(updatedBody);
+
+  return res.status(httpStatus.OK).send({ templateData });
 });
