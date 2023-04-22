@@ -330,6 +330,7 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
   const updatedBody = {
     ...body,
     ...req.body,
+    ...{ isFirstTime: false },
   };
 
   const templateData = await EmailTemplate.create(updatedBody);
