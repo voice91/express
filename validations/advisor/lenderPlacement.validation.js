@@ -41,9 +41,14 @@ const termsEmbed = Joi.object().keys({
 });
 export const createLenderPlacement = {
   body: Joi.object().keys({
-    lendingInstitution: Joi.array().items(Joi.objectId().required()),
+    lendingDetails: Joi.array().items(
+      Joi.object().keys({
+        lendingInstitution: Joi.objectId().required(),
+        lenderProgram: Joi.objectId().required(),
+        deal: Joi.objectId().required(),
+      })
+    ),
     lenderContact: Joi.objectId(),
-    deal: Joi.objectId(),
     notes: Joi.array().items(Joi.string()),
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
     terms: termsEmbed,

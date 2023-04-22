@@ -34,6 +34,16 @@ export async function getLenderPlacementListWithPagination(filter, options = {})
 }
 
 export async function createLenderPlacement(body) {
+  if (body.lendingInstitution && body.lenderProgram) {
+    const lenderPlacement = await LenderPlacement.findOne({
+      lendingInstitution: body.lendingInstitution,
+      lenderProgram: body.lenderProgram,
+      deal: body.deal,
+    });
+    if (lenderPlacement) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Some lending institute are part of deal');
+    }
+  }
   const lendingInstitution = await LendingInstitution.findOne({ _id: body.lendingInstitution });
   if (!lendingInstitution) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field lendingInstitution is not valid');

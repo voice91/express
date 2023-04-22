@@ -111,11 +111,8 @@ export const create = catchAsync(async (req, res) => {
   await moveFiles({ body, user, moveFileObj });
   const options = {};
   await Promise.all(
-    body.lendingInstitution.map(async (lendingInstituteId) => {
-      const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(
-        { lendingInstitution: lendingInstituteId },
-        options
-      );
+    body.lendingDetails.map(async (lendingInstitute) => {
+      const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(lendingInstitute, options);
       if (lenderPlacementResult) {
         const uploadedFileUrls = [];
         uploadedFileUrls.push(lenderPlacementResult.termSheet);
