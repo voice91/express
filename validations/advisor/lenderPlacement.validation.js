@@ -107,8 +107,8 @@ export const paginatedLenderPlacement = {
 
 export const sendDeal = {
   body: Joi.object().keys({
-    lenderInstitute: Joi.array().items(Joi.ObjectId()).required(),
-    deal: Joi.ObjectId().required(),
+    lenderInstitute: Joi.array().items(Joi.objectId()).required(),
+    deal: Joi.objectId().required(),
     template: Joi.string().valid(...Object.values(enumFields.EnumTypeOfTemplate)),
   }),
 };
