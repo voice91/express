@@ -72,7 +72,7 @@ export const paginate = catchAsync(async (req, res) => {
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
-  const filter = {};
+  const filter = { ...pick(query, ['deal']) };
   const options = {
     sort: sortObj,
     ...pick(query, ['limit', 'page']),
