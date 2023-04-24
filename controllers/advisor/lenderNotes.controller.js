@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 
 const getLenderNotesFilterQuery = (query) => {
-  const filter = pick(query, ['deal']);
+  const filter = pick(query, ['lenderPlacement']);
   if (query.search) {
     filter.$or = [];
   }

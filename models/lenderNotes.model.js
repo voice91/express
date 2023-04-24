@@ -47,6 +47,10 @@ const LenderNotesSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LendingInstitution',
     },
+    lenderPlacement: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LenderPlacement',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
