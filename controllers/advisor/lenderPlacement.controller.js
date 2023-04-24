@@ -88,6 +88,9 @@ export const paginate = catchAsync(async (req, res) => {
         path: 'lenderContact',
       },
       {
+        path: 'lenderAllContacts',
+      },
+      {
         path: 'notes',
       },
     ],

@@ -130,6 +130,13 @@ const LenderPlacementSchema = new mongoose.Schema(
       required: true,
     },
     /**
+     * ObjectId of Lending institution from lenderContact collection
+     * */
+    lenderContact: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LenderContact',
+    },
+    /**
      * ObjectId of the currently selected lender from the LenderProgram collection
      * */
     lenderProgram: {
@@ -167,16 +174,16 @@ const LenderPlacementSchema = new mongoose.Schema(
 
 LenderPlacementSchema.virtual('notes', {
   ref: 'LenderNotes',
-  localField: 'lendingInstitution',
-  foreignField: 'lenderInstitute',
+  localField: '_id',
+  foreignField: 'lenderPlacement',
   justOne: false,
 });
 
-LenderPlacementSchema.virtual('lenderContact', {
+LenderPlacementSchema.virtual('lenderAllContacts', {
   ref: 'LenderContact',
   localField: 'lendingInstitution',
   foreignField: 'lenderInstitute',
-  justOne: true,
+  justOne: false,
 });
 
 LenderPlacementSchema.plugin(toJSON);
