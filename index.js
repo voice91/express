@@ -5,6 +5,7 @@ import { logger } from 'config/logger';
 import socketAPI from 'appEvents/socketAPI';
 import redisAdapter from 'socket.io-redis';
 import app from './app';
+import { seedDatabase } from './seed';
 
 const { initSockets } = require('appEvents/handler');
 
@@ -16,6 +17,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   server = app.listen(config.port, () => {
     logger.info(`Listening to port ${config.port}`);
   });
+  seedDatabase().then().catch();
   // check whether Socket is enabled or not TODO: implement in the future
   socketAPI.io.adapter(redisAdapter({ host: config.redis.host, port: config.redis.port }));
   socketAPI.io.attach(server);
