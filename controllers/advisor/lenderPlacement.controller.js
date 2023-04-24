@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService } from 'services';
+import { s3Service, lenderPlacementService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -161,14 +161,9 @@ export const remove = catchAsync(async (req, res) => {
 });
 
 export const sendDeal = catchAsync(async (req, res) => {
-  const {
-    lenderInstitute,
-    // template,
-    deal,
-  } = req.body;
-  // const advisorName = req.user.name;
+  const { lenderInstitute, deal, lenderPlacement } = req.body;
+  const advisorName = req.user.name;
   const advisorEmail = req.user.email;
-  // const from = req.user.email;
   const filterToFindContact = {
     lenderInstitute,
   };
@@ -197,115 +192,39 @@ export const sendDeal = catchAsync(async (req, res) => {
 
   const files = lenderContact.dealDoc.map((doc) => doc.file);
 
-  await asyncForEach(lenderContact.lenderContact, async (data) => {
-    email = data.email;
-    firstName = data.firstName;
-    const tempalatData = sendDealTemplate1Text();
-    const templateData = await EmailTemplate.create({
-      sendTo: email,
-      ccList: email,
-      bccList: email,
-      from: advisorEmail,
-      name: firstName,
-      subject: 'PFG Cold Storage Industrial - $9.1m Acquisition Financing',
-      dealDocument: docIds,
-      emailContent: tempalatData,
-      deal,
-      emailAttachments: files,
-      isFirstTime: true,
-      totalLoanAmount,
+  if (lenderPlacement) {
+    await asyncForEach(lenderContact.lenderContact, async (data) => {
+      email = data.email;
+      firstName = data.firstName;
+      const tempalatData = sendDealTemplate1Text();
+      const templateData = await EmailTemplate.create({
+        sendTo: email,
+        ccList: email,
+        bccList: email,
+        from: advisorEmail,
+        name: firstName,
+        advisorName,
+        subject: '547 Valley Road - $1.5m Acquisition Financing',
+        dealDocument: docIds,
+        emailContent: tempalatData,
+        lenderPlacement,
+        deal,
+        emailAttachments: files,
+        isFirstTime: true,
+        totalLoanAmount,
+      });
+
+      createTemplates.push(templateData);
     });
-
-    createTemplates.push(templateData);
-  });
-
-  // todo : need this code for send email to user for template that getting from user tabel
-  // await Promise.all(
-  //   // eslint-disable-next-line array-callback-return
-  //   Object.values(lenderContact).map(async (data) => {
-  //     // eslint-disable-next-line array-callback-return
-  //     await data.map(async (item) => {
-  //       if (item.email || item.firstName) {
-  //         email = item.email;
-  //         firstName = item.firstName;
-  //       } else if (item.terms) {
-  //         totalLoanAmount = item.terms.totalLoanAmount;
-  //         totalLoanAmount /= 1000000;
-  //       } else if (item.file) {
-  //         file.push(item.file);
-  //       }
-  //
-  //       const tempalatData = sendDealTemplate1Text({
-  //         email,
-  //         firstName,
-  //         totalLoanAmount,
-  //         file,
-  //         advisorName,
-  //         from,
-  //       });
-  //       const emailTemplateData = await EmailTemplate.create({
-  //         sendTo: email,
-  //         ccList: email,
-  //         bccList: email,
-  //         from: advisorEmail,
-  //         name: firstName,
-  //         subject: 'PFG Cold Storage Industrial - $9.1m Acquisition Financing',
-  //         dealDocument: docIds,
-  //         emailContent: tempalatData,
-  //         deal,
-  //         emailAttachments: file,
-  //         isFirstTime: true,
-  //       });
-  //
-  //       console.log(`====emailTemplateData>`, emailTemplateData);
-  //
-  //       createdEmailTemplates.push(emailTemplateData);
-  //
-  //       // todo : need to mmove this code, in other api from where we send email
-  //       // if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE1)
-  //       //   return emailService.sendDealTemplate1({ email, firstName, totalLoanAmount, file, advisorName, from }).then().catch();
-  //       // if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE2) {
-  //       //   // todo : currently we are sending sendDealTemplate1 as we have to design sendDealTemplate2 after completion that we have to chenge it here
-  //       //   return emailService
-  //       //     .sendDealTemplate1({
-  //       //       email,
-  //       //       firstName,
-  //       //       totalLoanAmount,
-  //       //       file,
-  //       //       advisorName,
-  //       //       from,
-  //       //     })
-  //       //     .then()
-  //       //     .catch();
-  //       // }
-  //       // if (template === EnumTypeOfTemplate.SENDDEALTEMPLATE3) {
-  //       //   // todo : currently we are sending sendDealTemplate1 as we have to design sendDealTemplate2 after completion that we have to chenge it here
-  //       //   return emailService
-  //       //     .sendDealTemplate1({
-  //       //       email,
-  //       //       firstName,
-  //       //       totalLoanAmount,
-  //       //       file,
-  //       //       advisorName,
-  //       //       from,
-  //       //     })
-  //       //     .then()
-  //       //     .catch();
-  //       // }
-  //       // toddo : fix this after adding other templates
-  //       // throw new ApiError(httpStatus.BAD_REQUEST, `please enter correct template type: ${lenderInstitute}`);
-  //     });
-  //   })
-  // );
-
+  }
   return res.status(httpStatus.OK).send({ createTemplates });
 });
 
-export const getSendDealById = catchAsync(async (req, res) => {
-  const { getSendDealIdId } = req.params;
+export const getTemplateByTemplateId = catchAsync(async (req, res) => {
+  const { emailTemplateId } = req.params;
 
   const filter = {
-    _id: getSendDealIdId,
+    _id: emailTemplateId,
   };
   const getEmailTemplate = await EmailTemplate.findOne(filter);
   if (!getEmailTemplate) {
@@ -314,11 +233,22 @@ export const getSendDealById = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ getEmailTemplate });
 });
 
-export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
-  const { getSendDealIdId } = req.params;
+export const listTemplateByLenderPlacement = catchAsync(async (req, res) => {
+  const { lenderPlacement } = req.params;
 
   const filter = {
-    _id: getSendDealIdId,
+    lenderPlacement,
+  };
+  const listTemplate = await EmailTemplate.find(filter);
+
+  return res.status(httpStatus.OK).send({ listTemplate });
+});
+
+export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
+  const { emailTemplateId } = req.params;
+
+  const filter = {
+    _id: emailTemplateId,
     isFirstTime: true,
   };
   const getEmailTemplate = await EmailTemplate.findOne(filter).lean();
@@ -340,4 +270,65 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
   const templateData = await EmailTemplate.create(updatedBody);
 
   return res.status(httpStatus.OK).send({ templateData });
+});
+
+export const sendEmail = catchAsync(async (req, res) => {
+  const { emailTemplateId } = req.params;
+  const { sendToAdvisor } = req.body;
+  const filter = {
+    _id: emailTemplateId,
+  };
+  const getEmailTemplate = await EmailTemplate.findOne(filter);
+
+  const ccList = getEmailTemplate.ccList.map((item) => item);
+
+  const bccList = getEmailTemplate.bccList.map((item) => item);
+
+  const attachment = getEmailTemplate.emailAttachments.map((item) => {
+    const fileName = item.split('/').pop();
+    return {
+      filename: fileName,
+      path: item,
+    };
+  });
+
+  if (sendToAdvisor) {
+    const isAdvisor = _.template(getEmailTemplate.emailContent)({
+      userFirstName: getEmailTemplate.advisorName,
+      totalLoanAmount: getEmailTemplate.totalLoanAmount,
+      advisorName: getEmailTemplate.advisorName,
+      advisorEmail: getEmailTemplate.from,
+    });
+    await emailService.sendEmail({
+      sendTo: getEmailTemplate.from,
+      cc: ccList,
+      bcc: bccList,
+      subject: 'TEST - PFG Property...',
+      from: getEmailTemplate.from,
+      text: isAdvisor,
+      attachments: attachment,
+      isHtml: true,
+    });
+  } else {
+    const data = _.template(getEmailTemplate.emailContent)({
+      userFirstName: getEmailTemplate.name,
+      totalLoanAmount: getEmailTemplate.totalLoanAmount,
+      advisorName: getEmailTemplate.advisorName,
+      advisorEmail: getEmailTemplate.from,
+    });
+
+    await getEmailTemplate.sendTo.map(async (item) => {
+      await emailService.sendEmail({
+        sendTo: item,
+        cc: ccList,
+        bcc: bccList,
+        subject: getEmailTemplate.subject,
+        from: getEmailTemplate.from,
+        text: data,
+        attachments: attachment,
+        isHtml: true,
+      });
+    });
+  }
+  return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });

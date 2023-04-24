@@ -273,6 +273,9 @@ text-style: bold
 .text-color{
 color: gray;
 }
+.text-blue{
+color:blue;
+}
 </style>
 </head>
 <body>
@@ -296,6 +299,7 @@ PFG Cold Storage is a 100% occupied, 299,177sf cold-storage industrial facility 
   <div class="text-color"> --</div><br>
   <div class="text-color"> ${user.advisorName}</div><br>
   <div class="text-color"> Parallel CRE</div><br>
+  <div class="underline", class="text-blue"> ${user.advisorEmail}</div>
   </div>
   </body>
   </html>
@@ -346,6 +350,9 @@ text-style: bold
 .text-color{
 color: gray;
 }
+.text-blue{
+color: blue;
+}
 </style>
 </head>
 <body>
@@ -364,6 +371,7 @@ color: gray;
   <div class="text-color"> --</div><br>
   <div class="text-color"> ${user.advisorName}</div><br>
   <div class="text-color"> Parallel CRE</div><br>
+  <div class="underline", class="text-blue"> ${user.advisorEmail}</div>
   </div>
   </body>
   </html>

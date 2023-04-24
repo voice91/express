@@ -216,16 +216,10 @@ const EnumTypeOfStatus = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
 };
-const EnumTypeOfTemplate = {
-  SENDDEALTEMPLATE1: 'sendDealTemplate1',
-  SENDDEALTEMPLATE2: 'sendDealTemplate2',
-  SENDDEALTEMPLATE3: 'sendDealTemplate3',
-};
 
 module.exports = {
   EnumContentType,
   EnumCodeTypeOfCode,
-  EnumTypeOfTemplate,
   EnumRoleOfUser,
   EnumPlatformOfDeviceToken,
   EnumStageOfDeal,
