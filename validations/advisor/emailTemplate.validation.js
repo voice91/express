@@ -9,14 +9,24 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 export const createEmailTemplate = {
   body: Joi.object().keys({
+    from: Joi.string().email(),
+    sendTo: Joi.array().items(Joi.string().email()),
+    ccList: Joi.array().items(Joi.string().email()),
+    bccList: Joi.array().items(Joi.string().email()),
+    name: Joi.string(),
+    advisorName: Joi.string(),
+    totalLoanAmount: Joi.number(),
+    dealDocument: Joi.array().items(Joi.objectId),
+    deal: Joi.objectId,
+    lenderPlacement: Joi.objectId,
     subject: Joi.string().required(),
-    ccList: Joi.array().items(Joi.string()),
-    textBox: Joi.string().required(),
+    emailContent: Joi.string().required(),
     emailAttachments: Joi.string().regex(
       new RegExp(
         `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|pptx|xls|xlsx)$)`
       )
     ),
+    isFirstTime: Joi.boolean(),
   }),
 };
 

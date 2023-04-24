@@ -37,6 +37,9 @@ const EmailTemplateSchema = new mongoose.Schema(
     name: {
       type: String,
     },
+    advisorName: {
+      type: String,
+    },
     totalLoanAmount: {
       type: Number,
     },
@@ -70,6 +73,10 @@ const EmailTemplateSchema = new mongoose.Schema(
     emailContent: {
       type: String,
       required: true,
+    },
+    lenderPlacement: {
+      ref: 'LenderPlacement',
+      type: mongoose.Schema.Types.ObjectId,
     },
     deal: {
       ref: 'Deal',

@@ -21,30 +21,6 @@ router
    * getLenderPlacementPaginated
    * */
   .get(auth('advisor'), validate(lenderPlacementValidation.paginatedLenderPlacement), lenderPlacementController.paginate);
-router
-  .route('/sendDeal')
-  /**
-   * sendDeal
-   * */
-  .post(auth('advisor'), validate(lenderPlacementValidation.sendDeal), lenderPlacementController.sendDeal);
-
-router
-  .route('/sendDeal/:getSendDealIdId')
-  /**
-   * sendDeal
-   * */
-  .get(auth('advisor'), validate(lenderPlacementValidation.getSendDealId), lenderPlacementController.getSendDealById);
-
-router
-  .route('/sendDeal/:getSendDealIdId')
-  /**
-   * sendDeal
-   * */
-  .post(
-    auth('advisor'),
-    validate(lenderPlacementValidation.updateAndSaveInitialEmailContent),
-    lenderPlacementController.updateAndSaveInitialEmailContent
-  );
 
 router
   .route('/:lenderPlacementId')
@@ -60,4 +36,45 @@ router
    * deleteLenderPlacementById
    * */
   .delete(auth('advisor'), validate(lenderPlacementValidation.deleteLenderPlacementById), lenderPlacementController.remove);
+
+router
+  .route('/sendDeal')
+  /**
+   * Create Template or sendDeal
+   * */
+  .post(auth('advisor'), validate(lenderPlacementValidation.sendDeal), lenderPlacementController.sendDeal);
+router
+  .route('/sendDeal/:emailTemplateId')
+  /**
+   * getTemplateByTemplateId
+   * */
+  .get(
+    auth('advisor'),
+    validate(lenderPlacementValidation.getEmailTemplateId),
+    lenderPlacementController.getTemplateByTemplateId
+  )
+  /**
+   * sendTestMail or sendEmail
+   * */
+  .post(auth('advisor'), validate(lenderPlacementValidation.getEmailTemplateId), lenderPlacementController.sendEmail);
+router
+  .route('/update-sendDeal/:emailTemplateId')
+  /**
+   * Update and Save Template
+   * */
+  .post(
+    auth('advisor'),
+    validate(lenderPlacementValidation.updateAndSaveInitialEmailContent),
+    lenderPlacementController.updateAndSaveInitialEmailContent
+  );
+router
+  .route('/sendDeal-findByPlatement/:lenderPlacement')
+  /**
+   * ListTemplateByLenderPlacement
+   * */
+  .get(
+    auth('advisor'),
+    validate(lenderPlacementValidation.listTemplateByLenderPlacement),
+    lenderPlacementController.listTemplateByLenderPlacement
+  );
 export default router;
