@@ -7,6 +7,7 @@ import { dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 import enumModel from '../../models/enum.model';
+import { Invitation } from '../../models';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -22,8 +23,35 @@ export const get = catchAsync(async (req, res) => {
     _id: dealId,
     user,
   };
-  const options = {};
+  const options = {
+    populate: [
+      { path: 'involvedUsers.advisors' },
+      { path: 'involvedUsers.borrowers' }, // added this as we need details of all the involved users in the deal for the info/setting tab.
+    ],
+  };
+
   const deal = await dealService.getOne(filter, options);
+  const dealMembers = deal.involvedUsers.borrowers.concat(deal.involvedUsers.advisors);
+  const InvitationFilter = {
+    deal: deal._id,
+    invitee: { $in: dealMembers.map((item) => item._id) },
+  };
+  const userInInvitation = await Invitation.find(InvitationFilter);
+  deal.involvedUsers.borrowers = deal.involvedUsers.borrowers.map((item) => {
+    const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
+    return {
+      ...item,
+      updatedAt: invitation ? invitation.updatedAt : null,
+    };
+  });
+  deal.involvedUsers.advisors = deal.involvedUsers.advisors.map((item) => {
+    const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
+    return {
+      ...item,
+      updatedAt: invitation ? invitation.updatedAt : null,
+    };
+  });
+
   return res.status(httpStatus.OK).send({ results: deal });
 });
 

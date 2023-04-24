@@ -15,7 +15,7 @@ export async function getDealById(id, options = {}) {
 }
 
 export async function getOne(query, options = {}) {
-  const deal = await Deal.findOne(query, options.projection, options);
+  const deal = await Deal.findOne(query, options.projection, options).lean();
   return deal;
 }
 
