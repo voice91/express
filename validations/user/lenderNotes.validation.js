@@ -12,7 +12,8 @@ export const createLenderNotes = {
     flagedByUser: Joi.array().items(Joi.objectId()),
     content: Joi.string().required(),
     lastReadBy: Joi.array().items(Joi.objectId()),
-    lenderInstitute: Joi.objectId().required(),
+    lenderPlacement: Joi.objectId().required(),
+    deal: Joi.objectId().required(),
   }),
 };
 
@@ -22,7 +23,7 @@ export const updateLenderNotes = {
     flagedByUser: Joi.array().items(Joi.objectId()),
     content: Joi.string().required(),
     lastReadBy: Joi.array().items(Joi.objectId()),
-    lenderInstitute: Joi.objectId().required(),
+    lenderPlacement: Joi.objectId().required(),
   }),
   params: Joi.object().keys({
     lenderNotesId: Joi.objectId().required(),
@@ -43,15 +44,13 @@ export const deleteLenderNotesById = {
 
 export const getLenderNotes = {
   body: Joi.object().keys({}).unknown(true),
-  query: Joi.object().keys({
-    page: Joi.string(),
-    limit: Joi.string(),
-    sort: Joi.string(),
-    order: Joi.string().valid('asc', 'desc').default('asc'),
-  }),
-  params: Joi.object()
+  query: Joi.object()
     .keys({
-      lenderInstituteId: Joi.objectId().required(),
+      page: Joi.string(),
+      limit: Joi.string(),
+      sort: Joi.string(),
+      order: Joi.string().valid('asc', 'desc').default('asc'),
+      lenderPlacement: Joi.objectId().required(),
     })
     .unknown(true),
 };
