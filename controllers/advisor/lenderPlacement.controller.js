@@ -129,23 +129,25 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
+  const { fileName } = body.termSheet;
   body.updatedBy = req.user;
   const { lenderPlacementId } = req.params;
   const { user } = req;
   const moveFileObj = {
-    ...(body.termSheet && { termSheet: body.termSheet }),
+    ...(body.termSheet && { termSheet: body.termSheet.url }),
   };
   body._id = lenderPlacementId;
   await moveFiles({ body, user, moveFileObj });
   const filter = {
     _id: lenderPlacementId,
   };
+  body.termSheet = { url: body.termSheet, fileName };
   const options = { new: true };
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
   // tempS3
   if (lenderPlacementResult) {
     const uploadedFileUrls = [];
-    uploadedFileUrls.push(lenderPlacementResult.termSheet);
+    uploadedFileUrls.push(lenderPlacementResult.termSheet.url);
     await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
   }
   return res.status(httpStatus.OK).send({ results: lenderPlacementResult });
