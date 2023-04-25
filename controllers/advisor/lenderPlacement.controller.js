@@ -249,11 +249,10 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
 
   const filter = {
     _id: emailTemplateId,
-    isFirstTime: true,
   };
   const getEmailTemplate = await EmailTemplate.findOne(filter).lean();
   if (!getEmailTemplate) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id! or isFirstTime is not true');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id..!!');
   }
 
   const body = {
