@@ -105,6 +105,16 @@ const TermsSchema = new mongoose.Schema({
     type: String,
   },
 });
+const TermSheetSchema = new mongoose.Schema({
+  url: {
+    type: String,
+    required: true,
+  },
+  fileName: {
+    type: String,
+    required: true,
+  },
+});
 const LenderPlacementSchema = new mongoose.Schema(
   {
     /**
@@ -166,7 +176,7 @@ const LenderPlacementSchema = new mongoose.Schema(
      * An official document that has the final terms; will be uploaded by advisor to lenderPlacement
      * */
     termSheet: {
-      type: String,
+      type: TermSheetSchema,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }

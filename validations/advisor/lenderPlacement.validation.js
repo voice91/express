@@ -3,7 +3,6 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
-import config from 'config/config';
 import enumFields from 'models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
@@ -39,6 +38,10 @@ const termsEmbed = Joi.object().keys({
   asIsDSCR: Joi.string(),
   generalNotes: Joi.string(),
 });
+const TermSheetSchema = Joi.object().keys({
+  url: Joi.string().required(),
+  fileName: Joi.string().required(),
+});
 export const createLenderPlacement = {
   body: Joi.object().keys({
     lendingDetails: Joi.array().items(
@@ -52,11 +55,7 @@ export const createLenderPlacement = {
     notes: Joi.array().items(Joi.string()),
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
     terms: termsEmbed,
-    termSheet: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|xls|xlsx|pptx)$)`
-      )
-    ),
+    termSheet: TermSheetSchema,
   }),
 };
 
@@ -67,11 +66,7 @@ export const updateLenderPlacement = {
     notes: Joi.array().items(Joi.string()),
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
     terms: termsEmbed,
-    termSheet: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|xls|xlsx|pptx)$)`
-      )
-    ),
+    termSheet: TermSheetSchema,
   }),
   params: Joi.object().keys({
     lenderPlacementId: Joi.objectId().required(),
