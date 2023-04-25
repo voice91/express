@@ -32,15 +32,31 @@ export const paginate = catchAsync(async (req, res) => {
     [sortingObj.sort]: sortingObj.order,
   };
   const filter = {};
-  const fields = pick(query, ['loanType', 'propertyType', 'statesArray', 'lenderInstitute', 'loanSize', 'lenderType']);
+  const fields = pick(query, [
+    'loanType',
+    'propertyType',
+    'statesArray',
+    'lenderInstitute',
+    'loanSize',
+    'lenderType',
+    'lenderNameVisible',
+  ]);
+
   let lenderInstitute;
-  if (fields.lenderType) {
-    lenderInstitute = await LendingInstitution.find({ lenderType: query.lenderType });
+  if (fields.lenderType || fields.lenderNameVisible) {
+    const filterLenderInstitute = {};
+    if (fields.lenderNameVisible) {
+      filterLenderInstitute.lenderNameVisible = new RegExp(fields.lenderNameVisible, 'i');
+    }
+    if (fields.lenderType) {
+      filterLenderInstitute.lenderType = query.lenderType;
+    }
+    lenderInstitute = await LendingInstitution.find(filterLenderInstitute);
   }
   Object.keys(fields).forEach((field) => {
     if (field === 'loanSize') {
       filter.$and = [{ minLoanSize: { $lte: fields[field] } }, { maxLoanSize: { $gte: fields[field] } }];
-    } else if (field === 'lenderType') {
+    } else if (field === 'lenderType' || field === 'lenderNameVisible') {
       filter.lenderInstitute = { $in: lenderInstitute.map((item) => item._id) };
     } else {
       filter[field] = { $in: [fields[field]] };
