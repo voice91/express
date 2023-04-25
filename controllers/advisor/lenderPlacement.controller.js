@@ -132,6 +132,7 @@ export const update = catchAsync(async (req, res) => {
   body.updatedBy = req.user;
   const { lenderPlacementId } = req.params;
   const { user } = req;
+  const termsheet = body.termSheet;
   const moveFileObj = {
     ...(body.termSheet && { termSheet: body.termSheet.url }),
   };
@@ -141,7 +142,7 @@ export const update = catchAsync(async (req, res) => {
     _id: lenderPlacementId,
   };
   if (body.termSheet) {
-    const { fileName } = body.termSheet;
+    const { fileName } = termsheet;
     body.termSheet = { url: body.termSheet, fileName };
   }
   const options = { new: true };
