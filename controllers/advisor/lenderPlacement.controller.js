@@ -185,13 +185,21 @@ export const sendDeal = catchAsync(async (req, res) => {
   const { docIds } = lenderContact;
   const createTemplates = [];
 
-  if (lenderContact.lenderPlacement) {
+  if (!lenderContact.lenderPlacement.terms) {
+    totalLoanAmount = 0;
+  } else {
     totalLoanAmount = lenderContact.lenderPlacement.terms.totalLoanAmount;
     totalLoanAmount /= 1000000;
   }
 
-  const files = lenderContact.dealDoc.map((doc) => doc.file);
-
+  const files = lenderContact.dealDoc.map((doc) => {
+    const data = doc.file;
+    const fileName = data.split('/').pop();
+    return {
+      fileName,
+      path: data,
+    };
+  });
   if (lenderPlacement) {
     await asyncForEach(lenderContact.lenderContact, async (data) => {
       email = data.email;
@@ -283,13 +291,7 @@ export const sendEmail = catchAsync(async (req, res) => {
 
   const bccList = getEmailTemplate.bccList.map((item) => item);
 
-  const attachment = getEmailTemplate.emailAttachments.map((item) => {
-    const fileName = item.split('/').pop();
-    return {
-      filename: fileName,
-      path: item,
-    };
-  });
+  const attachment = getEmailTemplate.emailAttachments.map((item) => item);
 
   if (sendToAdvisor) {
     const isAdvisor = _.template(getEmailTemplate.emailContent)({
