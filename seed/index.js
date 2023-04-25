@@ -3,73 +3,74 @@ import { User } from '../models';
 // eslint-disable-next-line import/prefer-default-export
 export async function seedDatabase() {
   const filter = {
-    email: 'admin@gmail.com',
+    email: 'adamdavidson@gmail.com',
   };
   const resutl = await User.findOne(filter);
   if (resutl) {
     await User.findOneAndUpdate(filter, {
-      password: 'admin@123',
-      name: 'admin Savani',
-      firstName: 'admin',
-      lastName: 'admin',
+      password: '_6XNUVhw@zJ4*`z',
+      name: 'Adam Davidson',
+      firstName: 'Adam',
+      lastName: 'Davidson',
       role: 'lender',
       emailVerified: true,
     });
   } else {
     await User.create({
-      email: 'admin@gmail.com',
-      password: 'admin@123',
-      name: 'admin Savani',
-      firstName: 'admin',
-      lastName: 'admin',
+      email: 'adamdavidson@gmail.com',
+      password: '_6XNUVhw@zJ4*`z',
+      name: 'Adam Davidson',
+      firstName: 'Adam',
+      lastName: 'Davidson',
       role: 'lender',
       emailVerified: true,
     });
   }
   const filterForTestUser = {
-    email: 'testing@gmail.com',
+    email: 'mariaverona@gmail.com',
   };
   const getTestUser = await User.findOne(filterForTestUser);
   if (getTestUser) {
     await User.findOneAndUpdate(filterForTestUser, {
-      password: 'test@123',
-      name: 'test Savani',
-      firstName: 'testing',
-      lastName: 'test',
+      password: 'IZqfQFXS9vjs3',
+      name: 'Maria Verona',
+      firstName: 'Maria',
+      lastName: 'Verona',
       role: 'advisor',
       emailVerified: true,
     });
   } else {
     await User.create({
-      email: 'testing@gmail.com',
-      password: 'test@123',
-      name: 'test Savani',
-      firstName: 'test',
-      lastName: 'test',
+      email: 'mariaverona@gmail.com',
+      password: 'IZqfQFXS9vjs3',
+      name: 'Maria Verona',
+      firstName: 'Maria',
+      lastName: 'Verona',
       role: 'advisor',
       emailVerified: true,
     });
   }
+
   const demoUserFilter = {
-    email: 'demo@gmail.com',
+    email: 'veratopors@gmail.com',
   };
   const demoUser = await User.findOne(demoUserFilter);
   if (demoUser) {
     await User.findOneAndUpdate(demoUserFilter, {
-      password: 'prisha@123',
-      name: 'demo Savani',
-      firstName: 'demo',
-      lastName: 'demo',
+      password: '_6XNUVhw@zJ4*`z',
+      name: 'Vera Topors',
+      firstName: 'Vera',
+      lastName: 'Topors',
       role: 'user',
       emailVerified: true,
     });
   } else {
     await User.create({
-      email: 'demo@gmail.com',
-      password: 'demo@123',
-      name: 'demo Savani',
-      firstName: 'demo',
-      lastName: 'Savani',
+      email: 'veratopors@gmail.com',
+      password: '_6XNUVhw@zJ4*`z',
+      name: 'Vera Topors',
+      firstName: 'Vera',
+      lastName: 'Topors',
       role: 'user',
       emailVerified: true,
     });
