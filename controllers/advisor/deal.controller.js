@@ -96,7 +96,14 @@ export const paginate = catchAsync(async (req, res) => {
   const options = {
     sort: sortObj,
     ...pick(query, ['limit', 'page']),
-    populate: [{ path: 'notes' }, { path: 'documents' }, { path: 'task' }],
+    populate: [
+      {
+        path: 'notes',
+        populate: { path: 'user' },
+      },
+      { path: 'documents' },
+      { path: 'task' },
+    ],
   };
   const deal = await dealService.getDealListWithPagination(filter, options);
   deal.results = deal.results.map((dealObject) => ({
