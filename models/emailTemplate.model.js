@@ -90,7 +90,8 @@ const EmailTemplateSchema = new mongoose.Schema(
      * */
     emailAttachments: [
       {
-        type: String,
+        fileName: String,
+        path: String,
       },
     ],
   },

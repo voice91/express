@@ -60,12 +60,6 @@ export const createLenderPlacement = {
   }),
 };
 
-export const createLenderPlacementFromId = {
-  body: Joi.object().keys({
-    lenderInstitute: Joi.array().items(Joi.objectId()).required(),
-  }),
-};
-
 export const updateLenderPlacement = {
   body: Joi.object().keys({
     lendingInstitution: Joi.objectId(),
