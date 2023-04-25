@@ -39,8 +39,8 @@ const termsEmbed = Joi.object().keys({
   generalNotes: Joi.string(),
 });
 const TermSheetSchema = Joi.object().keys({
-  url: Joi.string().required(),
-  fileName: Joi.string().required(),
+  url: Joi.string(),
+  fileName: Joi.string(),
 });
 export const createLenderPlacement = {
   body: Joi.object().keys({

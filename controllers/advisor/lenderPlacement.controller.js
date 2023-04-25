@@ -129,7 +129,6 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  const { fileName } = body.termSheet;
   body.updatedBy = req.user;
   const { lenderPlacementId } = req.params;
   const { user } = req;
@@ -141,11 +140,14 @@ export const update = catchAsync(async (req, res) => {
   const filter = {
     _id: lenderPlacementId,
   };
-  body.termSheet = { url: body.termSheet, fileName };
+  if (body.termSheet) {
+    const { fileName } = body.termSheet;
+    body.termSheet = { url: body.termSheet, fileName };
+  }
   const options = { new: true };
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
   // tempS3
-  if (lenderPlacementResult) {
+  if (lenderPlacementResult.termSheet) {
     const uploadedFileUrls = [];
     uploadedFileUrls.push(lenderPlacementResult.termSheet.url);
     await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });

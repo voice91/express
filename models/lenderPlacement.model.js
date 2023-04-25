@@ -108,11 +108,9 @@ const TermsSchema = new mongoose.Schema({
 const TermSheetSchema = new mongoose.Schema({
   url: {
     type: String,
-    required: true,
   },
   fileName: {
     type: String,
-    required: true,
   },
 });
 const LenderPlacementSchema = new mongoose.Schema(
