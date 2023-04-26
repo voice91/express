@@ -12,7 +12,7 @@ import { asyncForEach, encodeUrl } from 'utils/common';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
-import { EmailTemplate } from '../../models';
+import { EmailTemplate, LenderPlacement } from '../../models';
 import { sendDealTemplate1Text } from '../../utils/emailContent';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
@@ -300,6 +300,8 @@ export const sendEmail = catchAsync(async (req, res) => {
   };
   const getEmailTemplate = await EmailTemplate.findOne(filter);
 
+  const placementId = getEmailTemplate.lenderPlacement;
+
   const ccList = getEmailTemplate.ccList.map((item) => item);
 
   const bccList = getEmailTemplate.bccList.map((item) => item);
@@ -344,6 +346,6 @@ export const sendEmail = catchAsync(async (req, res) => {
       });
     });
   }
-  await EmailTemplate.findByIdAndUpdate(filter, { isEmailSent: true });
+  await LenderPlacement.findByIdAndUpdate(placementId, { isEmailSent: true });
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });

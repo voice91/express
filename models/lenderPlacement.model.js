@@ -176,6 +176,10 @@ const LenderPlacementSchema = new mongoose.Schema(
     termSheet: {
       type: TermSheetSchema,
     },
+    isEmailSent: {
+      type: String,
+      default: false,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
