@@ -7,6 +7,7 @@
 import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import { toJSON, softDelete } from './plugins';
+import enumModel from './enum.model';
 
 const LenderContactSchema = new mongoose.Schema(
   {
@@ -41,7 +42,7 @@ const LenderContactSchema = new mongoose.Schema(
     /**
      * The first name that will be used in the email send-outs
      * */
-    nickname: {
+    nickName: {
       type: String,
     },
     /**
@@ -51,6 +52,7 @@ const LenderContactSchema = new mongoose.Schema(
       type: String,
       // eslint-disable-next-line security/detect-unsafe-regex
       match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      unique: true,
       required: true,
     },
     /**
@@ -78,10 +80,34 @@ const LenderContactSchema = new mongoose.Schema(
       type: String,
     },
     /**
-     * city and state of the address of the contact
+     * officeStreetAddress of the contact
+     * */
+    officeStreetAddress: {
+      type: String,
+    },
+    /**
+     * city of the address of the contact
      * */
     city: {
       type: String,
+      required: true,
+      maxLength: 30,
+    },
+    /**
+     * State of the contact
+     * */
+    state: {
+      type: String,
+      enum: Object.values(enumModel.EnumStatesOfDeal),
+      required: true,
+    },
+    /**
+     * Zipcode of the address of the contact
+     */
+    zipcode: {
+      type: Number,
+      min: 100,
+      max: 999999,
     },
     /**
      * Free text
@@ -89,12 +115,7 @@ const LenderContactSchema = new mongoose.Schema(
     note: {
       type: String,
     },
-    /**
-     * State of the contact
-     * */
-    state: {
-      type: String,
-    },
+
     lenderInstitute: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LendingInstitution',
@@ -111,6 +132,12 @@ LenderContactSchema.plugin(softDelete, {
   deletedBy: 'deletedBy',
   deletedAt: 'deletedAt',
 });
+
+LenderContactSchema.statics.isEmailTaken = async function (email, excludeLenderContactId) {
+  const lenderContact = await this.findOne({ email, _id: { $ne: excludeLenderContactId } });
+  return !!lenderContact;
+};
+
 const LenderContactModel =
   mongoose.models.LenderContact || mongoose.model('LenderContact', LenderContactSchema, 'LenderContact');
 module.exports = LenderContactModel;

@@ -31,11 +31,21 @@ export async function createLenderContact(body) {
   if (!lenderInstitute) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field lenderInstitute is not valid');
   }
+  if (await LenderContact.isEmailTaken(body.email)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
   const lenderContact = await LenderContact.create(body);
   return lenderContact;
 }
 
 export async function updateLenderContact(filter, body, options = {}) {
+  const lenderContactData = await getOne(filter, {});
+  if (!lenderContactData) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Lender Contact not found');
+  }
+  if (body.email && (await LenderContact.isEmailTaken(body.email, lenderContactData.id))) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
   const lenderContact = await LenderContact.findOneAndUpdate(filter, body, options);
   return lenderContact;
 }

@@ -6,6 +6,7 @@ import httpStatus from 'http-status';
 import { lenderContactService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import ApiError from '../../utils/ApiError';
 
 const getLenderContactFilterQuery = (query) => {
   const filter = pick(query, ['lenderInstitute']);
@@ -63,7 +64,11 @@ export const create = catchAsync(async (req, res) => {
   const { body } = req;
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
+  const loginEmail = req.user.email;
   const options = {};
+  if (loginEmail === body.email) {
+    throw new ApiError(httpStatus.BAD_REQUEST, ' Can not Create Lender Contact with this Email Id ');
+  }
   const lenderContact = await lenderContactService.createLenderContact(body, options);
   return res.status(httpStatus.CREATED).send({ results: lenderContact });
 });
@@ -72,10 +77,14 @@ export const update = catchAsync(async (req, res) => {
   const { body } = req;
   body.updatedBy = req.user;
   const { lenderContactId } = req.params;
+  const loginEmail = req.user.email;
   const filter = {
     _id: lenderContactId,
   };
   const options = { new: true };
+  if (loginEmail === body.email) {
+    throw new ApiError(httpStatus.BAD_REQUEST, ' Can not Update Lender Contact with this Email Id ');
+  }
   const lenderContact = await lenderContactService.updateLenderContact(filter, body, options);
   return res.status(httpStatus.OK).send({ results: lenderContact });
 });
