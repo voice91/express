@@ -43,6 +43,18 @@ router
    * Create Template or sendDeal
    * */
   .post(auth('advisor'), validate(lenderPlacementValidation.sendDeal), lenderPlacementController.sendDeal);
+
+router
+  .route('/sendDeal/get-all-email-template-placement-id/:lenderPlacement')
+  /**
+   * Create Template or sendDeal
+   * */
+  .get(
+    auth('advisor'),
+    validate(lenderPlacementValidation.getEmailTemplatesByLanderPlacementId),
+    lenderPlacementController.getEmailTemplatesByLanderPlacementId
+  );
+
 router
   .route('/sendDeal/:emailTemplateId')
   /**
