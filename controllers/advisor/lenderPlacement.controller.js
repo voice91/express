@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach } from 'utils/common';
+import { asyncForEach, encodeUrl } from 'utils/common';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
@@ -141,6 +141,7 @@ export const update = catchAsync(async (req, res) => {
   const filter = {
     _id: lenderPlacementId,
   };
+  body.termSheet = encodeUrl(body.termSheet);
   if (body.termSheet) {
     const { fileName } = termsheet;
     body.termSheet = { url: body.termSheet, fileName };
