@@ -140,9 +140,3 @@ export const updateAndSaveInitialEmailContent = {
     advisorName: Joi.string(),
   }),
 };
-
-export const listTemplateByLenderPlacement = {
-  params: Joi.object().keys({
-    lenderPlacement: Joi.objectId().required(),
-  }),
-};

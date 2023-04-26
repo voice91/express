@@ -79,14 +79,4 @@ router
     validate(lenderPlacementValidation.updateAndSaveInitialEmailContent),
     lenderPlacementController.updateAndSaveInitialEmailContent
   );
-router
-  .route('/sendDeal-findByPlatement/:lenderPlacement')
-  /**
-   * ListTemplateByLenderPlacement
-   * */
-  .get(
-    auth('advisor'),
-    validate(lenderPlacementValidation.listTemplateByLenderPlacement),
-    lenderPlacementController.listTemplateByLenderPlacement
-  );
 export default router;
