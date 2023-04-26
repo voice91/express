@@ -264,17 +264,6 @@ export const getTemplateByTemplateId = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ getEmailTemplate });
 });
 
-export const listTemplateByLenderPlacement = catchAsync(async (req, res) => {
-  const { lenderPlacement } = req.params;
-
-  const filter = {
-    lenderPlacement,
-  };
-  const listTemplate = await EmailTemplate.find(filter);
-
-  return res.status(httpStatus.OK).send({ listTemplate });
-});
-
 export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
   const { emailTemplateId } = req.params;
 
