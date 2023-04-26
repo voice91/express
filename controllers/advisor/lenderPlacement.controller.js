@@ -141,9 +141,9 @@ export const update = catchAsync(async (req, res) => {
   const filter = {
     _id: lenderPlacementId,
   };
-  body.termSheet = encodeUrl(body.termSheet);
   if (body.termSheet) {
     const { fileName } = termsheet;
+    body.termSheet = encodeUrl(body.termSheet);
     body.termSheet = { url: body.termSheet, fileName };
   }
   const options = { new: true };
