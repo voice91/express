@@ -231,6 +231,7 @@ export const sendDeal = catchAsync(async (req, res) => {
           deal,
           emailAttachments: files,
           isFirstTime: true,
+          isEmailSent: false,
           totalLoanAmount,
           templateName: 'defaultTemplate',
         });
@@ -343,5 +344,6 @@ export const sendEmail = catchAsync(async (req, res) => {
       });
     });
   }
+  await EmailTemplate.findByIdAndUpdate(filter, { isEmailSent: true });
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });

@@ -89,6 +89,9 @@ const EmailTemplateSchema = new mongoose.Schema(
     isFirstTime: {
       type: Boolean,
     },
+    isEmailSent: {
+      type: Boolean,
+    },
     /**
      * List of documents that will be attached to the email
      * */
