@@ -113,6 +113,12 @@ export const getEmailTemplateId = {
   }),
 };
 
+export const getEmailTemplatesByLanderPlacementId = {
+  params: Joi.object().keys({
+    lenderPlacement: Joi.objectId().required(),
+  }),
+};
+
 export const updateAndSaveInitialEmailContent = {
   params: Joi.object().keys({
     emailTemplateId: Joi.objectId().required(),
@@ -128,8 +134,10 @@ export const updateAndSaveInitialEmailContent = {
     lenderPlacement: Joi.objectId,
     emailContent: Joi.string(),
     deal: Joi.objectId(),
-    emailAttachments: Joi.array().items(Joi.string()),
+    emailAttachments: Joi.array().items(Joi.object()),
     totalLoanAmount: Joi.number(),
+    templateName: Joi.string(),
+    advisorName: Joi.string(),
   }),
 };
 

@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService, emailService } from 'services';
+import { s3Service, lenderPlacementService, emailService, emailTemplateService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -211,27 +211,44 @@ export const sendDeal = catchAsync(async (req, res) => {
       email = data.email;
       firstName = data.firstName;
       const tempalatData = sendDealTemplate1Text();
-      const templateData = await EmailTemplate.create({
-        sendTo: email,
-        ccList: email,
-        bccList: email,
-        from: advisorEmail,
-        name: firstName,
-        advisorName,
-        subject: '547 Valley Road - $1.5m Acquisition Financing',
-        dealDocument: docIds,
-        emailContent: tempalatData,
-        lenderPlacement,
-        deal,
-        emailAttachments: files,
-        isFirstTime: true,
-        totalLoanAmount,
-      });
 
+      let templateData = await EmailTemplate.findOne({
+        lenderPlacement,
+        isFirstTime: true,
+      });
+      if (!templateData) {
+        templateData = await EmailTemplate.create({
+          sendTo: email,
+          ccList: email,
+          bccList: email,
+          from: advisorEmail,
+          name: firstName,
+          advisorName,
+          subject: '547 Valley Road - $1.5m Acquisition Financing',
+          dealDocument: docIds,
+          emailContent: tempalatData,
+          lenderPlacement,
+          deal,
+          emailAttachments: files,
+          isFirstTime: true,
+          totalLoanAmount,
+          templateName: 'defaultTemplate',
+        });
+      }
       createTemplates.push(templateData);
     });
   }
   return res.status(httpStatus.OK).send({ createTemplates });
+});
+
+export const getEmailTemplatesByLanderPlacementId = catchAsync(async (req, res) => {
+  const { lenderPlacement } = req.params;
+  const filter = {
+    lenderPlacement,
+  };
+
+  const emailTemplate = await emailTemplateService.getEmailTemplateList(filter);
+  return res.status(httpStatus.OK).send({ results: emailTemplate });
 });
 
 export const getTemplateByTemplateId = catchAsync(async (req, res) => {

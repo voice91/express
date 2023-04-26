@@ -10,6 +10,10 @@ import { toJSON, softDelete } from './plugins';
 
 const EmailTemplateSchema = new mongoose.Schema(
   {
+    templateName: {
+      type: String,
+    },
+
     /**
      * created By
      * */
