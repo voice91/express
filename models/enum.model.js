@@ -74,6 +74,7 @@ const EnumStageOfDeal = {
   PREPARING_MATERIALS: 'preparingMaterials',
   OUT_IN_MARKET: 'outInMarket',
   SELECTING_LENDER: 'selectingLender',
+  CLOSING: 'closing',
   CLOSED: 'closed',
   ARCHIVE: 'archive',
   ON_HOLD: 'onHold',
@@ -102,7 +103,7 @@ const EnumLoanTypeOfDeal = {
   LIGHT_TRANSITIONAL: 'lightTransitional',
   HEAVY_TRANSITIONAL: 'heavyTransitional',
   CONSTRUCTION: 'construction',
-  PRE_DEVELOPMENT: 'preDevelopment',
+  PRE_DEVELOPMENT_LAND: 'preDevelopment/land',
 };
 const EnumLenderTypeOfLendingInstitution = {
   CREDIT_UNION: 'creditUnion',
@@ -125,7 +126,7 @@ const EnumStageOfLenderPlacement = {
   TERMS_SHEET_RECEIVED: 'termsSheetReceived',
   CLOSING: 'closing',
   CLOSED: 'closed',
-  NOT_CLOSING: 'notClosing',
+  NOT_RESPONSIVE: 'notResponsive',
   NOT_COMPETITIVE: 'notCompetitive',
 };
 const EnumTermSheetOfLenderPlacement = {
