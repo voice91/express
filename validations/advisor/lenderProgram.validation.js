@@ -50,12 +50,17 @@ export const getLenderProgram = {
 
 export const paginatedLenderProgram = {
   body: Joi.object().keys({}).unknown(true),
-  query: Joi.object()
-    .keys({
-      page: Joi.number().default(1),
-      limit: Joi.number().default(10).max(100),
-    })
-    .unknown(true),
+  query: Joi.object().keys({
+    page: Joi.number().default(1),
+    limit: Joi.number().default(10).max(100),
+    loanType: Joi.string(),
+    propertyType: Joi.string(),
+    statesArray: Joi.string(),
+    lenderInstitute: Joi.string(),
+    loanSize: Joi.string(),
+    lenderType: Joi.string(),
+    lenderNameVisible: Joi.string(),
+  }),
 };
 
 export const listLenderProgramByInstitute = {
