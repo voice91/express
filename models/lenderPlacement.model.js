@@ -186,10 +186,14 @@ const LenderPlacementSchema = new mongoose.Schema(
     },
     isEmailSent: {
       type: String,
-      default: false,
+      enum: Object.values(enumModel.EnumOfEmailStatus),
+      default: enumModel.EnumOfEmailStatus.SEND_DEAL,
+    },
+    followOnDate: {
+      type: Date,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }
 );
 
 LenderPlacementSchema.virtual('notes', {
@@ -205,6 +209,24 @@ LenderPlacementSchema.virtual('lenderAllContacts', {
   foreignField: 'lenderInstitute',
   justOne: false,
 });
+
+// Define the toJSON transform method for the LenderPlacementSchema options object
+LenderPlacementSchema.options.toJSON.transform = function (doc, { followOnDate, ...ret }) {
+  // Check if followOnDate exists
+  if (followOnDate) {
+    // Get the timestamp of the followOnDate field
+    const followOnDateTimestamp = followOnDate.getTime();
+    // Check if the followOnDate timestamp is less than the current timestamp
+    if (followOnDateTimestamp < Date.now()) {
+      // Set the isEmailSent property of the ret object to 'follow up'
+      // and the followOnDate property to the followOnDateTimestamp
+      // eslint-disable-next-line no-param-reassign
+      ret = { ...ret, isEmailSent: enumModel.EnumOfEmailStatus.FOLLOW_UP, followOnDate: followOnDateTimestamp };
+    }
+  }
+  // Return the ret object
+  return ret;
+};
 
 LenderPlacementSchema.plugin(toJSON);
 LenderPlacementSchema.plugin(mongoosePaginateV2);

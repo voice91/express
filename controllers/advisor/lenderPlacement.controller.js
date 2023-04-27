@@ -14,6 +14,7 @@ import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { EmailTemplate, LenderPlacement } from '../../models';
 import { sendDealTemplate1Text } from '../../utils/emailContent';
+import enumModel from '../../models/enum.model';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -346,6 +347,9 @@ export const sendEmail = catchAsync(async (req, res) => {
       });
     });
   }
-  await LenderPlacement.findByIdAndUpdate(placementId, { isEmailSent: true });
+  await LenderPlacement.findByIdAndUpdate(placementId, {
+    followOnDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    isEmailSent: enumModel.EnumOfEmailStatus.EMAIL_SENT,
+  });
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });

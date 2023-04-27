@@ -225,6 +225,12 @@ const EnumPrePaymentTypeOfTerms = {
   STEPDOWN: 'stepdown',
 };
 
+const EnumOfEmailStatus = {
+  SEND_DEAL: 'sendDeal',
+  EMAIL_SENT: 'emailSent',
+  FOLLOW_UP: 'followUp',
+};
+
 module.exports = {
   EnumPrePaymentTypeOfTerms,
   EnumContentType,
@@ -235,6 +241,7 @@ module.exports = {
   EnumAssetTypeOfDeal,
   EnumLoanPurposeOfDeal,
   EnumLoanTypeOfDeal,
+  EnumOfEmailStatus,
   EnumLenderProgramTypeOfLenderProgram,
   EnumLenderTypeOfLendingInstitution,
   EnumStageOfLenderPlacement,
