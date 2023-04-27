@@ -42,7 +42,7 @@ export const paginate = catchAsync(async (req, res) => {
     'lenderNameVisible',
   ]);
 
-  let lenderInstitute;
+  let lenderInstitute = [];
   if (fields.lenderType || fields.lenderNameVisible) {
     const filterLenderInstitute = {};
     if (fields.lenderNameVisible) {
