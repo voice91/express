@@ -9,7 +9,6 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
-import config from 'config/config';
 import { pick } from '../../utils/pick';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
@@ -75,9 +74,11 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const filter = {};
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const lenderPlacement = await lenderPlacementService.getLenderPlacementListWithPagination(filter, options);
   lenderPlacement.results = lenderPlacement.results.map((lenderPlacementObject) => ({
     createdAt: lenderPlacementObject.createdAt,

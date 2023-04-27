@@ -54,9 +54,11 @@ export const paginate = catchAsync(async (req, res) => {
     ...queryParams,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const lenderNotes = await lenderNotesService.getLenderNotesListWithPagination(filter, options);
   lenderNotes.results = lenderNotes.results.map((lenderNotesObject) => ({
     createdAt: lenderNotesObject.createdAt,

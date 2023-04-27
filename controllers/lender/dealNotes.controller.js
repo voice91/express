@@ -14,6 +14,7 @@ const getDealNotesFilterQuery = (query) => {
   }
   return filter;
 };
+// eslint-disable-next-line import/prefer-default-export
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
   const user = req.user._id;
@@ -23,13 +24,15 @@ export const paginate = catchAsync(async (req, res) => {
     [sortingObj.sort]: sortingObj.order,
   };
   const filter = {
-    user: user,
+    user,
     ...queryParams,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const dealNotes = await dealNotesService.getDealNotesListWithPagination(filter, options);
   dealNotes.results = dealNotes.results.map((dealNotesObject) => ({
     createdAt: dealNotesObject.createdAt,

@@ -65,10 +65,12 @@ export const paginate = catchAsync(async (req, res) => {
     ...queryParams,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
     populate: [{ path: 'notes' }, { path: 'documents' }],
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const deal = await dealService.getDealListWithPagination(filter, options);
   deal.results = deal.results.map((dealObject) => ({
     createdAt: dealObject.createdAt,

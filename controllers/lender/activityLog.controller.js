@@ -32,9 +32,11 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const filter = {};
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const activityLog = await activityLogService.getActivityLogListWithPagination(filter, options);
   activityLog.results = activityLog.results.map((activityLogObject) => ({
     createdAt: activityLogObject.createdAt,

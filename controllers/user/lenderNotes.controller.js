@@ -38,10 +38,12 @@ export const list = catchAsync(async (req, res) => {
     [sortingObj.sort]: sortingObj.order,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
     populate: { path: 'user' },
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const lenderNotes = await lenderNotesService.getLenderNotesList(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderNotes });
 });
@@ -59,9 +61,11 @@ export const paginate = catchAsync(async (req, res) => {
     ...queryParams,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const lenderNotes = await lenderNotesService.getLenderNotesListWithPagination(filter, options);
   lenderNotes.results = lenderNotes.results.map((lenderNotesObject) => ({
     createdAt: lenderNotesObject.createdAt,

@@ -51,9 +51,11 @@ export const paginate = catchAsync(async (req, res) => {
     ...queryParams,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const lendingInstitution = await lendingInstitutionService.getLendingInstitutionListWithPagination(filter, options);
   lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => ({
     createdAt: lendingInstitutionObject.createdAt,

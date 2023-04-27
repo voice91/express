@@ -63,10 +63,12 @@ export const paginate = catchAsync(async (req, res) => {
     }
   });
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
     populate: [{ path: 'lenderInstitute' }],
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const lenderProgram = await lenderProgramService.getLenderProgramListWithPagination(filter, options);
   lenderProgram.results = lenderProgram.results.map((lenderProgramObject) => ({
     createdAt: lenderProgramObject.createdAt,

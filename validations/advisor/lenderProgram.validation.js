@@ -60,6 +60,15 @@ export const paginatedLenderProgram = {
     loanSize: Joi.string(),
     lenderType: Joi.string(),
     lenderNameVisible: Joi.string(),
+    sort: Joi.string().valid(
+      'loanType',
+      'propertyType',
+      'statesArray',
+      'lenderInstitute',
+      'loanSize',
+      'lenderType',
+      'lenderNameVisible'
+    ),
   }),
 };
 

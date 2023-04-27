@@ -38,10 +38,12 @@ export const list = catchAsync(async (req, res) => {
     [sortingObj.sort]: sortingObj.order,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
     populate: [{ path: 'user' }],
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const dealNotes = await dealNotesService.getDealNotesList(filter, options);
   return res.status(httpStatus.OK).send({ results: dealNotes });
 });
@@ -56,9 +58,11 @@ export const paginate = catchAsync(async (req, res) => {
     deal: req.params.dealId,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const dealNotes = await dealNotesService.getDealNotesListWithPagination(filter, options);
   dealNotes.results = dealNotes.results.map((dealNotesObject) => ({
     createdAt: dealNotesObject.createdAt,

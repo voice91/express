@@ -48,9 +48,11 @@ export const paginate = catchAsync(async (req, res) => {
     ...queryParams,
   };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const user = await userService.getUserListWithPagination(filter, options);
   user.results = user.results.map((userObject) => ({
     createdAt: userObject.createdAt,

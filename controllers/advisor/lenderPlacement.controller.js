@@ -79,7 +79,6 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const filter = { ...pick(query, ['deal']) };
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
     populate: [
       {
@@ -96,6 +95,9 @@ export const paginate = catchAsync(async (req, res) => {
       },
     ],
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const lenderPlacement = await lenderPlacementService.getLenderPlacementListWithPagination(filter, options);
   lenderPlacement.results = lenderPlacement.results.map((lenderPlacementObject) => ({
     createdAt: lenderPlacementObject.createdAt,

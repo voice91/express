@@ -78,9 +78,11 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const filter = {};
   const options = {
-    sort: sortObj,
     ...pick(query, ['limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const dealDocument = await dealDocumentService.getDealDocumentListWithPagination(filter, options);
   dealDocument.results = dealDocument.results.map((dealDocumentObject) => ({
     createdAt: dealDocumentObject.createdAt,
