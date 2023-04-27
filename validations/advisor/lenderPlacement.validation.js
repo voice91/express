@@ -59,6 +59,8 @@ export const createLenderPlacement = {
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
     terms: termsEmbed,
     termSheet: TermSheetSchema,
+    isEmailSent: Joi.string().valid(...Object.values(enumFields.EnumOfEmailStatus)),
+    followOnDate: Joi.date(),
   }),
 };
 
