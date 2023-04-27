@@ -25,7 +25,7 @@ const termsEmbed = Joi.object().keys({
   LTC: Joi.string(),
   extensionFeeTwo: Joi.string(),
   termNotes: Joi.string(),
-  prePayment: Joi.array().items(Joi.number()),
+  prePaymentPeriod: Joi.string(),
   IO: Joi.string(),
   amortization: Joi.string(),
   originationFee: Joi.string(),
@@ -37,6 +37,9 @@ const termsEmbed = Joi.object().keys({
   stabilizedDY: Joi.string(),
   asIsDSCR: Joi.string(),
   generalNotes: Joi.string(),
+  prePaymentType: Joi.string().valid(...Object.values(enumFields.EnumPrePaymentTypeOfTerms)),
+  stabilizedDSCR: Joi.string(),
+  penaltySchedule: Joi.string(),
 });
 const TermSheetSchema = Joi.object().keys({
   url: Joi.string(),

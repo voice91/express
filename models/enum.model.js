@@ -216,8 +216,16 @@ const EnumTypeOfStatus = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
 };
+const EnumPrePaymentTypeOfTerms = {
+  LOCKOUT: 'lockout',
+  YIELD_MAINTENANCE: 'yieldMaintenance',
+  MINIMUM_INTEREST: 'minimumInterest',
+  NO_PENALTY: 'noPenalty',
+  STEPDOWN: 'stepdown',
+};
 
 module.exports = {
+  EnumPrePaymentTypeOfTerms,
   EnumContentType,
   EnumCodeTypeOfCode,
   EnumRoleOfUser,

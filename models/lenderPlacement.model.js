@@ -66,11 +66,19 @@ const TermsSchema = new mongoose.Schema({
   termNotes: {
     type: String,
   },
-  prePayment: [
-    {
-      type: Number,
-    },
-  ],
+  prePaymentPeriod: {
+    type: String,
+  },
+  prePaymentType: {
+    type: String,
+    enum: Object.values(enumModel.EnumPrePaymentTypeOfTerms),
+  },
+  penaltySchedule: {
+    type: String,
+  },
+  stabilizedDSCR: {
+    type: String,
+  },
   IO: {
     type: String,
   },
