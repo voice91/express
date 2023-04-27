@@ -41,14 +41,14 @@ export const get = catchAsync(async (req, res) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
     return {
       ...item,
-      updatedAt: invitation ? invitation.updatedAt : null,
+      updatedAt: invitation.updatedAt,
     };
   });
   deal.involvedUsers.advisors = deal.involvedUsers.advisors.map((item) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
     return {
       ...item,
-      updatedAt: invitation ? invitation.updatedAt : null,
+      updatedAt: invitation ? invitation.updatedAt : deal.createdAt,
     };
   });
 
