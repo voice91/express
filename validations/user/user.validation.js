@@ -28,7 +28,13 @@ export const createUser = {
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     phoneNumber: Joi.string(),
-    company: Joi.string(),
+    companyName: Joi.string().required(),
+    companyAddress: Joi.string(),
+    city: Joi.string().required(),
+    state: Joi.string()
+      .valid(...Object.values(enumFields.EnumStatesOfDeal))
+      .required(),
+    zipcode: Joi.number().integer().min(100).max(999999).required(),
     lastSignIn: Joi.date(),
   }),
 };
@@ -44,7 +50,11 @@ export const updateUser = {
     firstName: Joi.string(),
     lastName: Joi.string(),
     phoneNumber: Joi.string(),
-    company: Joi.string(),
+    companyName: Joi.string(),
+    companyAddress: Joi.string(),
+    city: Joi.string(),
+    state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
+    zipcode: Joi.number().integer().min(100).max(999999),
     lastSignIn: Joi.date(),
   }),
   params: Joi.object().keys({
