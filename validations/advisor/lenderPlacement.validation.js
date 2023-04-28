@@ -7,6 +7,14 @@ import enumFields from 'models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
+const extensionsSchema = Joi.object().keys({
+  extensionOption: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
+  extensionFee: Joi.string(),
+});
+
 const termsEmbed = Joi.object().keys({
   initialFunding: Joi.number().integer().required(),
   futureFunding: Joi.number().integer(),
@@ -17,17 +25,26 @@ const termsEmbed = Joi.object().keys({
   spread: Joi.number().integer(),
   totalRate: Joi.string(),
   rateNotes: Joi.string(),
-  initialTerm: Joi.string(),
-  extensionOptionOne: Joi.string(),
-  extensionFee: Joi.string(),
+  initialTerm: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
   interestRateIndex: Joi.string(),
-  extensionOptionTwo: Joi.string(),
+  extensions: Joi.array().items(extensionsSchema),
   LTC: Joi.string(),
-  extensionFeeTwo: Joi.string(),
   termNotes: Joi.string(),
-  prePaymentPeriod: Joi.string(),
-  IO: Joi.string(),
-  amortization: Joi.string(),
+  prePaymentPeriod: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
+  IO: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
+  amortization: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
   originationFee: Joi.string(),
   exitFee: Joi.string(),
   recourse: Joi.string(),

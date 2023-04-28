@@ -231,10 +231,18 @@ const EnumOfEmailStatus = {
   FOLLOW_UP: 'followUp',
 };
 
+const EnumofExtension = {
+  MONTHS: 'months',
+  YEARS: 'years',
+  TBD: 'tbd',
+  NA: 'na',
+};
+
 module.exports = {
   EnumPrePaymentTypeOfTerms,
   EnumContentType,
   EnumCodeTypeOfCode,
+  EnumofExtension,
   EnumRoleOfUser,
   EnumPlatformOfDeviceToken,
   EnumStageOfDeal,
