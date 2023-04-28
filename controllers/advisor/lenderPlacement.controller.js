@@ -63,10 +63,22 @@ export const get = catchAsync(async (req, res) => {
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
-
+const getLenderPlacementFilterQuery = (query) => {
+  const filter = pick(query, ['deal']);
+  if (query.search) {
+    filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { lastName: new RegExp(query.search, 'i') }];
+  }
+  return filter;
+};
 export const list = catchAsync(async (req, res) => {
-  const filter = {};
-  const options = {};
+  const { query } = req;
+  const queryParams = getLenderPlacementFilterQuery(query);
+  const filter = {
+    ...queryParams,
+  };
+  const options = {
+    ...pick(query, ['sort', 'limit', 'page']),
+  };
   const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
