@@ -6,6 +6,8 @@ import docsRoutes from './common/docs/swagger.route';
 
 import searchRoutes from './common/search/search.route';
 
+import ratesRoutes from './common/rates/rates.route';
+
 const userRoutes = require('./user');
 const advisorRoutes = require('./advisor');
 const lenderRoutes = require('./lender');
@@ -17,4 +19,5 @@ router.use('/lender', lenderRoutes);
 router.use('/s3', s3Routes);
 router.use('/docs', docsRoutes);
 router.use('/search', searchRoutes);
+router.use('/rates', ratesRoutes);
 module.exports = router;
