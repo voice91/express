@@ -6,7 +6,6 @@ import httpStatus from 'http-status';
 import { dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
-import enumModel from '../../models/enum.model';
 import { Invitation } from '../../models';
 
 const getDealFilterQuery = (query) => {
@@ -130,8 +129,9 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.updatedBy = req.user._id;
   body.user = req.user._id;
   const { email } = req.body;
+  const { role } = body;
 
-  await dealService.InviteToDeal(body, enumModel.EnumRoleOfUser.USER);
+  await dealService.InviteToDeal(body, role);
   await Promise.allSettled(
     email.map((user) => {
       return emailService.sendInvitationEmail(user).then().catch();
