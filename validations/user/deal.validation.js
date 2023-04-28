@@ -3,6 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
+import enumFields from 'models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
@@ -44,5 +45,6 @@ export const invitationToDeal = {
   body: Joi.object().keys({
     email: Joi.array().items(Joi.string().email().required()),
     deal: Joi.objectId().required(),
+    role: Joi.string().required().valid(enumFields.EnumRoleOfUser.USER),
   }),
 };

@@ -112,5 +112,6 @@ export const invitationToDeal = {
   body: Joi.object().keys({
     email: Joi.array().items(Joi.string().email().required()),
     deal: Joi.objectId().required(),
+    role: Joi.string().required().valid(enumFields.EnumRoleOfUser.ADVISOR, enumFields.EnumRoleOfUser.USER),
   }),
 };

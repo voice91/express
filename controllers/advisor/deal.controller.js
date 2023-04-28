@@ -163,8 +163,15 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.updatedBy = req.user._id;
   body.user = req.user._id;
   const { email } = req.body;
+  let { role } = body;
 
-  await dealService.InviteToDeal(body, enumModel.EnumRoleOfUser.ADVISOR);
+  if (role === enumModel.EnumRoleOfUser.ADVISOR) {
+    role = enumModel.EnumRoleOfUser.ADVISOR;
+  } else {
+    role = enumModel.EnumRoleOfUser.USER;
+  }
+
+  await dealService.InviteToDeal(body, role);
   await Promise.allSettled(
     email.map((user) => {
       return emailService.sendInvitationEmail(user).then().catch();
