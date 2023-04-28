@@ -71,6 +71,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       // eslint-disable-next-line security/detect-unsafe-regex
       match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      required: true,
     },
     /**
      * For email verification
@@ -99,6 +100,7 @@ const UserSchema = new mongoose.Schema(
     password: {
       type: String,
       private: true,
+      required: true,
     },
     /**
      * Google based authentication
@@ -135,8 +137,40 @@ const UserSchema = new mongoose.Schema(
     /**
      * The name of the company of the user
      * */
-    company: {
+    companyName: {
       type: String,
+      required: true,
+    },
+    /**
+     * Address of Company of the User
+     * */
+    companyAddress: {
+      type: String,
+    },
+    /**
+     * City of the User
+     * */
+    city: {
+      type: String,
+      required: true,
+      maxLength: 30,
+    },
+    /**
+     * State of the User
+     * */
+    state: {
+      type: String,
+      enum: Object.values(enumModel.EnumStatesOfDeal),
+      required: true,
+    },
+    /**
+     * Zipcode of the address of the User
+     */
+    zipcode: {
+      type: Number,
+      min: 100,
+      max: 999999,
+      required: true,
     },
     /**
      * Updated whenever the user signs, by default null
