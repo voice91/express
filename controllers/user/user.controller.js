@@ -75,7 +75,7 @@ export const update = catchAsync(async (req, res) => {
     _id: userId,
   };
   const options = { new: true };
-  const user = await userService.updateUser(filter, body, options);
+  const user = await userService.updateUserProfile(filter, body, options);
   return res.status(httpStatus.OK).send({ results: user });
 });
 

@@ -28,7 +28,7 @@ export async function getUserListWithPagination(filter, options = {}) {
   return user;
 }
 
-export async function createUser(body, options = {}) {
+export async function createUser(body = {}) {
   if (await User.isEmailTaken(body.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
@@ -46,6 +46,19 @@ export async function updateUser(filter, body, options = {}) {
   }
   const user = await User.findOneAndUpdate(filter, body, options);
   return user;
+}
+
+export async function updateUserProfile(filter, body, options = {}) {
+  const userData = await getUserById(filter, {});
+  if (!userData) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'user not found');
+  }
+  if (body.email && (await User.isEmailTaken(body.email, userData.id))) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
+
+  await User.updateOne(filter, body, options);
+  return { success: true };
 }
 
 export async function updateManyUser(filter, body, options = {}) {

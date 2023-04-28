@@ -152,7 +152,6 @@ const UserSchema = new mongoose.Schema(
      * */
     city: {
       type: String,
-      required: true,
       maxLength: 30,
     },
     /**
@@ -161,7 +160,6 @@ const UserSchema = new mongoose.Schema(
     state: {
       type: String,
       enum: Object.values(enumModel.EnumStatesOfDeal),
-      required: true,
     },
     /**
      * Zipcode of the address of the User
@@ -170,7 +168,6 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       min: 100,
       max: 999999,
-      required: true,
     },
     /**
      * Updated whenever the user signs, by default null
@@ -178,6 +175,12 @@ const UserSchema = new mongoose.Schema(
     lastSignIn: {
       type: Date,
       default: new Date(),
+    },
+    /**
+     * profile Photo
+     * */
+    profilePhoto: {
+      type: String,
     },
   },
   {

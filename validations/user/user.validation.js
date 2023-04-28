@@ -30,12 +30,11 @@ export const createUser = {
     phoneNumber: Joi.string(),
     companyName: Joi.string().required(),
     companyAddress: Joi.string(),
-    city: Joi.string().required(),
-    state: Joi.string()
-      .valid(...Object.values(enumFields.EnumStatesOfDeal))
-      .required(),
-    zipcode: Joi.number().integer().min(100).max(999999).required(),
+    city: Joi.string(),
+    state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
+    zipcode: Joi.number().integer().min(100).max(999999),
     lastSignIn: Joi.date(),
+    profilePhoto: Joi.string(),
   }),
 };
 
@@ -56,6 +55,7 @@ export const updateUser = {
     state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
     zipcode: Joi.number().integer().min(100).max(999999),
     lastSignIn: Joi.date(),
+    profilePhoto: Joi.string(),
   }),
   params: Joi.object().keys({
     userId: Joi.objectId().required(),
