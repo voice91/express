@@ -60,7 +60,7 @@ const LenderProgramSchema = new mongoose.Schema(
     },
     loanType: {
       type: [String],
-      enum: Object.values(enumModel.EnumLoanTypeOfLenderProgram),
+      enum: Object.values(enumModel.EnumLoanTypeOfDeal),
     },
     lenderInstitute: {
       type: mongoose.Schema.Types.ObjectId,
