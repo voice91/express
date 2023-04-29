@@ -48,19 +48,6 @@ export async function updateUser(filter, body, options = {}) {
   return user;
 }
 
-export async function updateUserProfile(filter, body, options = {}) {
-  const userData = await getUserById(filter, {});
-  if (!userData) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'user not found');
-  }
-  if (body.email && (await User.isEmailTaken(body.email, userData.id))) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
-  }
-
-  await User.updateOne(filter, body, options);
-  return { success: true };
-}
-
 export async function updateManyUser(filter, body, options = {}) {
   const user = await User.updateMany(filter, body, options);
   return user;
