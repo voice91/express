@@ -22,3 +22,4 @@ module.exports.temps3CronService = require('./temps3Cron.service');
 module.exports.notificationService = require('./notification.service');
 module.exports.queueService = require('./queue.service');
 module.exports.lenderNotesService = require('./lenderNotes.service');
+module.exports.ratesService = require('./rates.service');
