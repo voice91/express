@@ -331,7 +331,7 @@ export const sendEmail = catchAsync(async (req, res) => {
       advisorEmail: getEmailTemplate.from,
     });
     await emailService.sendEmail({
-      sendTo: getEmailTemplate.from,
+      to: getEmailTemplate.from,
       cc: ccList,
       bcc: bccList,
       subject: 'TEST - PFG Property...',
@@ -350,7 +350,7 @@ export const sendEmail = catchAsync(async (req, res) => {
 
     await getEmailTemplate.sendTo.map(async (item) => {
       await emailService.sendEmail({
-        sendTo: item,
+        to: item,
         cc: ccList,
         bcc: bccList,
         subject: getEmailTemplate.subject,

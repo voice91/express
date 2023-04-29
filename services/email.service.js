@@ -20,9 +20,9 @@ if (config.env !== 'test') {
  * @param emailParams
  */
 export const sendEmail = async (emailParams) => {
-  const { sendTo, cc, bcc, subject, text, isHtml, from, attachments } = emailParams;
+  const { to, cc, bcc, subject, text, isHtml, from, attachments } = emailParams;
 
-  const msg = { from: from || config.email.from, sendTo, cc, bcc, subject, text, attachments };
+  const msg = { from: from || config.email.from, to, cc, bcc, subject, text, attachments };
   if (isHtml) {
     delete msg.text;
     msg.html = text;
@@ -170,7 +170,7 @@ text-align: center
 };
 
 export const sendDealTemplate1 = async (user) => {
-  const sendTo = user.email;
+  const to = user.email;
   const cc = user.email;
   const bcc = user.email;
   const subject = 'PFG Cold Storage Industrial - $9.1m Acquisition Financing';
@@ -227,11 +227,11 @@ text-align: center
   </body>
   </html>
 `;
-  await sendEmail({ sendTo, cc, bcc, subject, from, text, isHtml: true, attachments });
+  await sendEmail({ to, cc, bcc, subject, from, text, isHtml: true, attachments });
 };
 
 export const sendDealTemplate2 = async (user) => {
-  const sendTo = user.email;
+  const to = user.email;
   const cc = user.email;
   const bcc = user.email;
   const subject = 'PFG Cold Storage Industrial - $9.1m Acquisition Financing';
@@ -304,11 +304,11 @@ PFG Cold Storage is a 100% occupied, 299,177sf cold-storage industrial facility 
   </body>
   </html>
 `;
-  await sendEmail({ sendTo, cc, bcc, subject, from, text, isHtml: true });
+  await sendEmail({ to, cc, bcc, subject, from, text, isHtml: true });
 };
 
 export const sendDealTemplate3 = async (user) => {
-  const sendTo = user.email;
+  const to = user.email;
   const cc = user.email;
   const bcc = user.email;
   const subject = '547 Valley Road - $1.5m Acquisition Financing';
@@ -376,7 +376,7 @@ color: blue;
   </body>
   </html>
 `;
-  await sendEmail({ sendTo, cc, bcc, subject, from, text, isHtml: true });
+  await sendEmail({ to, cc, bcc, subject, from, text, isHtml: true });
 };
 
 /**
