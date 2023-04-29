@@ -43,3 +43,28 @@ export const getDealNotes = {
     })
     .unknown(true),
 };
+
+export const getDealNotesById = {
+  params: Joi.object().keys({
+    dealNotesId: Joi.objectId().required(),
+  }),
+};
+
+export const updateDealNotes = {
+  body: Joi.object().keys({
+    deal: Joi.objectId(),
+    pinnedByUsers: Joi.array().items(Joi.objectId()),
+    flagedByUser: Joi.array().items(Joi.objectId()),
+    content: Joi.string().required(),
+    lastReadBy: Joi.array().items(Joi.objectId()),
+  }),
+  params: Joi.object().keys({
+    dealNotesId: Joi.objectId().required(),
+  }),
+};
+
+export const deleteDealNotesById = {
+  params: Joi.object().keys({
+    dealNotesId: Joi.objectId().required(),
+  }),
+};

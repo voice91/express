@@ -24,4 +24,18 @@ router
    * getDealNotes
    * */
   .get(auth('user'), validate(dealNotesValidation.getDealNotes), checkAccessOfDeal, dealNotesController.list);
+router
+  .route('/:dealNotesId')
+  /**
+   * getDealNotesById
+   * */
+  .get(auth('user'), validate(dealNotesValidation.getDealNotesById), dealNotesController.get)
+  /**
+   * updateDealNotes
+   * */
+  .put(auth('user'), validate(dealNotesValidation.updateDealNotes), checkAccessOfDeal, dealNotesController.update)
+  /**
+   * deleteDealNotesById
+   * */
+  .delete(auth('user'), validate(dealNotesValidation.deleteDealNotesById), dealNotesController.remove);
 export default router;

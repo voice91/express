@@ -70,3 +70,41 @@ export const list = catchAsync(async (req, res) => {
   const dealNotes = await dealNotesService.getDealNotesList(filter, options);
   return res.status(httpStatus.OK).send({ results: dealNotes });
 });
+
+export const get = catchAsync(async (req, res) => {
+  const { dealNotesId } = req.params;
+  const user = req.user._id;
+  const filter = {
+    _id: dealNotesId,
+    user,
+  };
+  const options = {};
+  const dealNotes = await dealNotesService.getOne(filter, options);
+  return res.status(httpStatus.OK).send({ results: dealNotes });
+});
+
+export const update = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.updatedBy = req.user;
+  const { dealNotesId } = req.params;
+  body.user = req.user._id;
+  const user = req.user._id;
+  const filter = {
+    _id: dealNotesId,
+    user,
+  };
+  const options = { new: true };
+  const dealNotes = await dealNotesService.updateDealNotes(filter, body, options);
+  return res.status(httpStatus.OK).send({ results: dealNotes });
+});
+
+export const remove = catchAsync(async (req, res) => {
+  const { dealNotesId } = req.params;
+  const user = req.user._id;
+  const filter = {
+    _id: dealNotesId,
+    user,
+  };
+  const dealNotes = await dealNotesService.removeDealNotes(filter);
+  return res.status(httpStatus.OK).send({ results: dealNotes });
+});
