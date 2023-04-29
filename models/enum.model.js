@@ -160,14 +160,6 @@ const EnumTaskDocumentsOfTask = {
   XLS: 'xls',
   XLSX: 'xlsx',
 };
-const EnumLoanTypeOfLenderProgram = {
-  CONSTRUCTION: 'construction',
-  CONSTRUCTIONS: 'Construction',
-  LIGHT_BRIDGE: 'lightBridge',
-  HEAVY_BRIDGE: 'heavyBridge',
-  PERMANENT: 'permanent',
-  LAND: 'land',
-};
 const EnumLenderProgramTypeOfLenderProgram = {
   CONSTRUCTION: 'construction',
   TRANSITIONAL: 'transitional',
@@ -262,5 +254,4 @@ module.exports = {
   EnumTypeOfToken,
   EnumTypeOfStatus,
   EnumStatesOfDeal,
-  EnumLoanTypeOfLenderProgram,
 };
