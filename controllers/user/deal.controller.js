@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 import { dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
-import { Invitation } from '../../models';
+import { Deal, Invitation } from '../../models';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -132,11 +132,13 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.user = req.user._id;
   const { email } = req.body;
   const { role } = body;
+  const userName = req.user.name;
 
+  const deal = await Deal.findById({ _id: body.deal });
   await dealService.InviteToDeal(body, role);
   await Promise.allSettled(
-    email.map((user) => {
-      return emailService.sendInvitationEmail(user).then().catch();
+    email.map(async (user) => {
+      return emailService.sendInvitationEmail({ user, userName, dealName: deal.dealName }).then().catch();
     })
   );
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
