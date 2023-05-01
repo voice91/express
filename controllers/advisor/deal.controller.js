@@ -7,7 +7,7 @@ import { dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 import enumModel from '../../models/enum.model';
-import { Invitation } from '../../models';
+import { Deal, Invitation } from '../../models';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -119,15 +119,17 @@ export const paginate = catchAsync(async (req, res) => {
 
 export const create = catchAsync(async (req, res) => {
   const { body } = req;
-  body.createdBy = req.user;
-  body.updatedBy = req.user;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
   body.user = req.user._id;
   const options = {};
   const { dealMembers } = req.body;
+  const userName = req.user.name;
+  const { dealName } = body;
   const deal = await dealService.createDeal(body, options);
   await Promise.allSettled(
     dealMembers.map((user) => {
-      return emailService.sendInvitationEmail(user).then().catch();
+      return emailService.sendInvitationEmail({ user, userName, dealName }).then().catch();
     })
   );
   return res.status(httpStatus.CREATED).send({ results: deal });
@@ -166,17 +168,18 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.user = req.user._id;
   const { email } = req.body;
   let { role } = body;
+  const userName = req.user.name;
 
   if (role === enumModel.EnumRoleOfUser.ADVISOR) {
     role = enumModel.EnumRoleOfUser.ADVISOR;
   } else {
     role = enumModel.EnumRoleOfUser.USER;
   }
-
+  const deal = await Deal.findById({ _id: body.deal });
   await dealService.InviteToDeal(body, role);
   await Promise.allSettled(
-    email.map((user) => {
-      return emailService.sendInvitationEmail(user).then().catch();
+    email.map(async (user) => {
+      return emailService.sendInvitationEmail({ user, userName, dealName: deal.dealName }).then().catch();
     })
   );
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });

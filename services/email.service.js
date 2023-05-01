@@ -122,9 +122,10 @@ text-align: center
 `;
   await sendEmail({ to, subject, text, isHtml: true });
 };
-export const sendInvitationEmail = async (user) => {
+export const sendInvitationEmail = async ({ user, dealName, userName }) => {
+  const invitee = user.split('@')[0];
   const to = user;
-  const subject = 'Invitation to the deal';
+  const subject = `Parallel: New Deal Created - ${dealName}`;
   const text = `
 <html lang="en">
 <head>
@@ -157,11 +158,12 @@ text-align: center
 </head>
 <body>
 <div>
-<div>Dear Borrower,</div>
+<div>Hi ${invitee},</div>
 <br>
-  <div>We are so excited to invite you to the deal that is both intriguing and timely</div><br>
-   <a class="text-center" target="_blank" href="${config.front.url}/login" >Login to Lender web app</a><br><br>
-  <div class="text-center"></div>
+  <div>${userName} invited you to the deal, <b>${dealName} </b></div><br>
+  <div>Please <a class="text-center" target="_blank" href="${config.front.url}/login" >click here</a> to access the deal</div><br><br>
+  <div>Thank You,</div>
+  <div>The Parallel Team</div>
   </div>
   </body>
   </html>
