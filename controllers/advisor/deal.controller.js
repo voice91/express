@@ -27,6 +27,7 @@ export const get = catchAsync(async (req, res) => {
     populate: [
       { path: 'involvedUsers.advisors' },
       { path: 'involvedUsers.borrowers' }, // added this as we need details of all the involved users in the deal for the info/setting tab.
+      { path: 'notes' },
     ],
   };
 
