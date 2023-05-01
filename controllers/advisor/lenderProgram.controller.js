@@ -20,7 +20,9 @@ export const get = catchAsync(async (req, res) => {
 
 export const list = catchAsync(async (req, res) => {
   const filter = {};
-  const options = {};
+  const options = {
+    populate: { path: 'lenderInstitute' },
+  };
   const lenderProgram = await lenderProgramService.getLenderProgramList(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderProgram });
 });
