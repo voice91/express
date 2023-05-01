@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 import { dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
-import { Invitation, Task } from '../../models';
+import { Invitation } from '../../models';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -105,16 +105,10 @@ export const paginate = catchAsync(async (req, res) => {
     options.sort = sortObj;
   }
   const deal = await dealService.getDealListWithPagination(filter, options);
-  deal.results = await Promise.all(
-    deal.results.map(async (dealObject) => {
-      const outstandingTaskCount = await Task.find({ deal: dealObject._id, taskAnswer: { $exists: false } }).count();
-      return {
-        createdAt: dealObject.createdAt,
-        ...dealObject.toJSON(),
-        outstandingTask: outstandingTaskCount,
-      };
-    })
-  );
+  deal.results = deal.results.map((dealObject) => ({
+    createdAt: dealObject.createdAt,
+    ...dealObject.toJSON(),
+  }));
   return res.status(httpStatus.OK).send({ results: deal });
 });
 
