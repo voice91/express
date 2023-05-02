@@ -212,6 +212,9 @@ export const sendDeal = catchAsync(async (req, res) => {
   }
 
   const files = lenderContact.dealDoc.map((doc) => {
+    if (!doc.file) {
+      return null;
+    }
     const data = doc.file;
     const fileName = data.split('/').pop();
     return {
@@ -219,6 +222,8 @@ export const sendDeal = catchAsync(async (req, res) => {
       path: data,
     };
   });
+
+  const filterFiles = files.filter(Boolean);
   if (lenderPlacement) {
     const contact = lenderContact.lenderContact.map((lc) => {
       return {
@@ -244,7 +249,7 @@ export const sendDeal = catchAsync(async (req, res) => {
         emailContent: staticEmailTemplateData,
         lenderPlacement,
         deal,
-        emailAttachments: files,
+        emailAttachments: filterFiles,
         isFirstTime: true,
         isEmailSent: false,
         totalLoanAmount,
@@ -286,6 +291,7 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
     _id: emailTemplateId,
   };
   const getEmailTemplate = await EmailTemplate.findOne(filter).lean();
+  console.log('\n getEmailTemplate : ', getEmailTemplate);
   if (!getEmailTemplate) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id..!!');
   }
@@ -361,7 +367,7 @@ export const sendEmail = catchAsync(async (req, res) => {
       // todo : make function for this one, and make synchronize so we can handle error coming from that.
       getEmailTemplate.contact.map(async (item) => {
         await emailService.sendEmail({
-          to: item.sendTo,
+          to: 'urvishavaghasiya021@gmail.com',
           cc: ccList,
           bcc: bccList,
           subject: getEmailTemplate.subject,
