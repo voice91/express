@@ -201,8 +201,6 @@ export const sendDeal = catchAsync(async (req, res) => {
   }
 
   let totalLoanAmount = 0;
-  let email;
-  let firstName;
   const { docIds } = lenderContact;
   const createTemplates = [];
 
@@ -222,37 +220,38 @@ export const sendDeal = catchAsync(async (req, res) => {
     };
   });
   if (lenderPlacement) {
-    await asyncForEach(lenderContact.lenderContact, async (data) => {
-      email = data.email;
-      firstName = data.firstName;
-      const tempalatData = sendDealTemplate1Text();
-
-      let templateData = await EmailTemplate.findOne({
-        lenderPlacement,
-        isFirstTime: true,
-      });
-      if (!templateData) {
-        templateData = await EmailTemplate.create({
-          sendTo: email,
-          ccList: email,
-          bccList: email,
-          from: advisorEmail,
-          name: firstName,
-          advisorName,
-          subject: '547 Valley Road - $1.5m Acquisition Financing',
-          dealDocument: docIds,
-          emailContent: tempalatData,
-          lenderPlacement,
-          deal,
-          emailAttachments: files,
-          isFirstTime: true,
-          isEmailSent: false,
-          totalLoanAmount,
-          templateName: 'defaultTemplate',
-        });
-      }
-      createTemplates.push(templateData);
+    const contact = lenderContact.lenderContact.map((lc) => {
+      return {
+        sendTo: lc.email,
+        name: lc.firstName,
+      };
     });
+
+    const staticEmailTemplateData = sendDealTemplate1Text();
+    let templateData = await EmailTemplate.findOne({
+      lenderPlacement,
+      isFirstTime: true,
+    });
+    if (!templateData) {
+      templateData = await EmailTemplate.create({
+        ccList: contact.map((data) => data.sendTo),
+        bccList: contact.map((data) => data.sendTo),
+        from: advisorEmail,
+        advisorName,
+        contact,
+        subject: '547 Valley Road - $1.5m Acquisition Financing',
+        dealDocument: docIds,
+        emailContent: staticEmailTemplateData,
+        lenderPlacement,
+        deal,
+        emailAttachments: files,
+        isFirstTime: true,
+        isEmailSent: false,
+        totalLoanAmount,
+        templateName: 'defaultTemplate',
+      });
+    }
+    createTemplates.push(templateData);
   }
   return res.status(httpStatus.OK).send({ createTemplates });
 });
@@ -291,6 +290,10 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id..!!');
   }
 
+  if (req.body.templateName === getEmailTemplate.templateName) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'templateName is already present');
+  }
+
   const body = {
     ...getEmailTemplate,
   };
@@ -301,7 +304,6 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
     ...req.body,
     ...{ isFirstTime: false },
   };
-
   const templateData = await EmailTemplate.create(updatedBody);
 
   return res.status(httpStatus.OK).send({ templateData });
@@ -320,46 +322,62 @@ export const sendEmail = catchAsync(async (req, res) => {
   const ccList = getEmailTemplate.ccList.map((item) => item);
 
   const bccList = getEmailTemplate.bccList.map((item) => item);
+  const sendToIsEmpty = getEmailTemplate.contact.map((item) => item.sendTo);
 
-  const attachment = getEmailTemplate.emailAttachments.map((item) => item);
-
-  if (sendToAdvisor) {
-    const isAdvisor = _.template(getEmailTemplate.emailContent)({
-      userFirstName: getEmailTemplate.advisorName,
-      totalLoanAmount: getEmailTemplate.totalLoanAmount,
-      advisorName: getEmailTemplate.advisorName,
-      advisorEmail: getEmailTemplate.from,
-    });
-    await emailService.sendEmail({
-      to: getEmailTemplate.from,
-      cc: ccList,
-      bcc: bccList,
-      subject: 'TEST - PFG Property...',
-      from: getEmailTemplate.from,
-      text: isAdvisor,
-      attachments: attachment,
-      isHtml: true,
-    });
-  } else {
-    const data = _.template(getEmailTemplate.emailContent)({
-      userFirstName: getEmailTemplate.name,
-      totalLoanAmount: getEmailTemplate.totalLoanAmount,
-      advisorName: getEmailTemplate.advisorName,
-      advisorEmail: getEmailTemplate.from,
-    });
-
-    await getEmailTemplate.sendTo.map(async (item) => {
+  if (sendToIsEmpty.length !== 0) {
+    if (sendToAdvisor) {
+      const isAdvisor = _.template(getEmailTemplate.emailContent)({
+        userFirstName: getEmailTemplate.advisorName,
+        totalLoanAmount: getEmailTemplate.totalLoanAmount,
+        advisorName: getEmailTemplate.advisorName,
+        advisorEmail: getEmailTemplate.from,
+      });
       await emailService.sendEmail({
-        to: item,
+        to: getEmailTemplate.from,
         cc: ccList,
         bcc: bccList,
-        subject: getEmailTemplate.subject,
+        subject: 'TEST - PFG Property...',
         from: getEmailTemplate.from,
-        text: data,
-        attachments: attachment,
+        text: isAdvisor,
+        attachments: getEmailTemplate.emailAttachments.map((item) => {
+          return {
+            fileName: item.fileName,
+            path: item.path,
+          };
+        }),
         isHtml: true,
       });
-    });
+    } else {
+      const getText = (userFirstName, totalLoanAmount, advisorName, advisorEmail) => {
+        const data = _.template(getEmailTemplate.emailContent)({
+          userFirstName,
+          totalLoanAmount,
+          advisorName,
+          advisorEmail,
+        });
+        return data;
+      };
+
+      // todo : make function for this one, and make synchronize so we can handle error coming from that.
+      getEmailTemplate.contact.map(async (item) => {
+        await emailService.sendEmail({
+          to: item.sendTo,
+          cc: ccList,
+          bcc: bccList,
+          subject: getEmailTemplate.subject,
+          from: getEmailTemplate.from,
+          text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from),
+          // eslint-disable-next-line no-shadow
+          attachments: getEmailTemplate.emailAttachments.map((item) => {
+            return {
+              fileName: item.fileName,
+              path: item.path,
+            };
+          }),
+          isHtml: true,
+        });
+      });
+    }
   }
   await LenderPlacement.findByIdAndUpdate(placementId, {
     followOnDate: new Date(Date.now() + 24 * 60 * 60 * 1000),

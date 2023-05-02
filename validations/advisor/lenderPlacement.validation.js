@@ -147,10 +147,14 @@ export const updateAndSaveInitialEmailContent = {
   }),
   body: Joi.object().keys({
     from: Joi.string().email(),
-    sendTo: Joi.array().items(Joi.string().email()),
+    contact: Joi.array().items(
+      Joi.object().keys({
+        sendTo: Joi.string().email(),
+        name: Joi.string(),
+      })
+    ),
     ccList: Joi.array().items(Joi.string().email()),
     bccList: Joi.array().items(Joi.string().email()),
-    name: Joi.string(),
     subject: Joi.string(),
     dealDocument: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.objectId,
