@@ -9,10 +9,6 @@ const router = express.Router();
 router
   .route('/')
   /**
-   * createTask
-   * */
-  .post(auth('user'), validate(taskValidation.createTask), checkAccessOfDeal, taskController.create)
-  /**
    * getTask
    * */
   .get(auth('user'), validate(taskValidation.getTask), checkAccessOfDeal, taskController.list);
