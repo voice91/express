@@ -153,6 +153,8 @@ export const updateAndSaveInitialEmailContent = {
         name: Joi.string(),
       })
     ),
+    sendTo: Joi.array().items(Joi.string().email()),
+    name: Joi.string(),
     ccList: Joi.array().items(Joi.string().email()),
     bccList: Joi.array().items(Joi.string().email()),
     subject: Joi.string(),
