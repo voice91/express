@@ -302,8 +302,24 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
   const updatedBody = {
     ...body,
     ...req.body,
+    ...{ lenderPlacement: getEmailTemplate.lenderPlacement },
     ...{ isFirstTime: false },
   };
+
+  if (updatedBody.sendTo) {
+    const result = updatedBody.sendTo.map((item) => {
+      return {
+        sendTo: item,
+      };
+    });
+    if (updatedBody.contact) {
+      updatedBody.contact = updatedBody.contact.concat(result);
+    } else {
+      updatedBody.contact = result;
+    }
+    delete updatedBody.sendTo;
+  }
+
   const templateData = await EmailTemplate.create(updatedBody);
 
   return res.status(httpStatus.OK).send({ templateData });
