@@ -27,7 +27,7 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
       const newUrlsArray = [];
       moveFileObj[key].map(async (ele) => {
         const filePath = `${mongoose.Types.ObjectId()}_${ele.split('/').pop()}`;
-        newUrlsArray.push(await moveFileAndUpdateTempS3({ url: ele, newFilePath: basePath + filePath }));
+        newUrlsArray.push(moveFileAndUpdateTempS3({ url: ele, newFilePath: basePath + filePath }));
       });
       Object.assign(body, { ...body, [key]: await Promise.all(newUrlsArray) });
     } else {
@@ -93,11 +93,12 @@ export const paginate = catchAsync(async (req, res) => {
 
 export const create = catchAsync(async (req, res) => {
   const { body } = req;
-  body.createdBy = req.user;
-  body.updatedBy = req.user;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
+  const fileName = body.documents.map((item) => item.fileName);
   const { user } = req;
   const moveFileObj = {
-    ...(body.file && { file: body.file }),
+    ...(body.documents && { documents: body.documents.map((item) => item.url) }),
   };
   const dealId = body.deal;
   const dealObj = await Deal.findById(dealId);
@@ -107,7 +108,11 @@ export const create = catchAsync(async (req, res) => {
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
-  body.file = encodeUrl(body.file);
+  if (body.documents) {
+    body.documents = body.documents.map((item, index) => {
+      return { url: encodeUrl(item), fileName: fileName[index] };
+    });
+  }
   const dealDocumentResult = await dealDocumentService.createDealDocument(body, options);
   if (dealDocumentResult) {
     const uploadedFileUrls = [];
