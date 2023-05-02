@@ -91,7 +91,7 @@ export const paginate = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  const fileName = body.taskDocuments.map((item) => item.fileName);
+  const { taskDocuments } = body;
   body.updatedBy = req.user;
   const { taskId } = req.params;
   const { user } = req;
@@ -104,6 +104,7 @@ export const update = catchAsync(async (req, res) => {
     _id: taskId,
   };
   if (body.taskDocuments) {
+    const fileName = taskDocuments.map((item) => item.fileName);
     body.$push = body.taskDocuments.map((item, index) => {
       return { url: encodeUrl(item), fileName: fileName[index] };
     });

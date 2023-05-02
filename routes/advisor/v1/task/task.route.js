@@ -27,7 +27,7 @@ router
   /**
    * getTaskById
    * */
-  .get(auth('advisor'), validate(taskValidation.getTaskById), checkAccessOfDeal, taskController.get)
+  .get(auth('advisor'), validate(taskValidation.getTaskById), taskController.get)
   /**
    * updateTask
    * */

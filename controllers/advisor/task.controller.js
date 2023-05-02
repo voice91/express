@@ -93,7 +93,7 @@ export const paginate = catchAsync(async (req, res) => {
 
 export const create = catchAsync(async (req, res) => {
   const { body } = req;
-  const fileName = body.taskDocuments.map((item) => item.fileName);
+  const { taskDocuments } = body;
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
   body.user = req.user.id;
@@ -105,6 +105,7 @@ export const create = catchAsync(async (req, res) => {
   await moveFiles({ body, user, moveFileObj });
   const options = {};
   if (body.taskDocuments) {
+    const fileName = taskDocuments.map((item) => item.fileName);
     body.taskDocuments = body.taskDocuments.map((item, index) => {
       return { url: encodeUrl(item), fileName: fileName[index] };
     });
@@ -122,7 +123,7 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  const fileName = body.taskDocuments.map((item) => item.fileName);
+  const { taskDocuments } = body;
   body.updatedBy = req.user;
   const { taskId } = req.params;
   const { user } = req;
@@ -136,6 +137,7 @@ export const update = catchAsync(async (req, res) => {
   };
   // added this condition because it was adding null values in db when we were not uploading any task document as it is not required field.
   if (body.taskDocuments) {
+    const fileName = taskDocuments.map((item) => item.fileName);
     body.$push = body.taskDocuments.map((item, index) => {
       return { url: encodeUrl(item), fileName: fileName[index] };
     });
