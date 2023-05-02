@@ -32,15 +32,15 @@ const EmailTemplateSchema = new mongoose.Schema(
       type: String,
       match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
     },
-    sendTo: [
+    contact: [
       {
-        type: String,
-        match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        sendTo: {
+          type: String,
+          match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        },
+        name: String,
       },
     ],
-    name: {
-      type: String,
-    },
     advisorName: {
       type: String,
     },
@@ -104,6 +104,7 @@ const EmailTemplateSchema = new mongoose.Schema(
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
+EmailTemplateSchema.index({ lenderPlacement: 1, templateName: -1 }, { unique: true });
 EmailTemplateSchema.plugin(toJSON);
 EmailTemplateSchema.plugin(mongoosePaginateV2);
 EmailTemplateSchema.plugin(softDelete, {

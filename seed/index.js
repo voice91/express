@@ -13,6 +13,7 @@ export async function seedDatabase() {
       firstName: 'Adam',
       lastName: 'Davidson',
       role: 'lender',
+      companyName: 'matlabinfotech',
       emailVerified: true,
     });
   } else {
@@ -23,6 +24,7 @@ export async function seedDatabase() {
       firstName: 'Adam',
       lastName: 'Davidson',
       role: 'lender',
+      companyName: 'matlabinfotech',
       emailVerified: true,
     });
   }
@@ -37,6 +39,7 @@ export async function seedDatabase() {
       firstName: 'Maria',
       lastName: 'Verona',
       role: 'advisor',
+      companyName: 'matlabinfotech',
       emailVerified: true,
     });
   } else {
@@ -47,6 +50,7 @@ export async function seedDatabase() {
       firstName: 'Maria',
       lastName: 'Verona',
       role: 'advisor',
+      companyName: 'matlabinfotech',
       emailVerified: true,
     });
   }
@@ -62,6 +66,7 @@ export async function seedDatabase() {
       firstName: 'Vera',
       lastName: 'Topors',
       role: 'user',
+      companyName: 'matlabinfotech',
       emailVerified: true,
     });
   } else {
@@ -72,6 +77,7 @@ export async function seedDatabase() {
       firstName: 'Vera',
       lastName: 'Topors',
       role: 'user',
+      companyName: 'matlabinfotech',
       emailVerified: true,
     });
   }
