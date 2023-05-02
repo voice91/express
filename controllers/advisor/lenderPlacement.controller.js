@@ -291,7 +291,6 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
     _id: emailTemplateId,
   };
   const getEmailTemplate = await EmailTemplate.findOne(filter).lean();
-  console.log('\n getEmailTemplate : ', getEmailTemplate);
   if (!getEmailTemplate) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id..!!');
   }
