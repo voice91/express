@@ -8,11 +8,9 @@ import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach } from 'utils/common';
+import { asyncForEach, encodeUrl } from 'utils/common';
 // eslint-disable-next-line no-unused-vars
 import { pick } from '../../utils/pick';
-import { Task } from '../../models';
-import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -28,7 +26,7 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
       const newUrlsArray = [];
       moveFileObj[key].map(async (ele) => {
         const filePath = `${mongoose.Types.ObjectId()}_${ele.split('/').pop()}`;
-        newUrlsArray.push(await moveFileAndUpdateTempS3({ url: ele, newFilePath: basePath + filePath }));
+        newUrlsArray.push(moveFileAndUpdateTempS3({ url: ele, newFilePath: basePath + filePath }));
       });
       Object.assign(body, { ...body, [key]: await Promise.all(newUrlsArray) });
     } else {
@@ -95,28 +93,36 @@ export const paginate = catchAsync(async (req, res) => {
 
 export const create = catchAsync(async (req, res) => {
   const { body } = req;
+  const fileName = body.taskDocuments.map((item) => item.fileName);
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
   body.user = req.user.id;
   const { user } = req;
   const moveFileObj = {
-    ...(body.taskDocuments && { taskDocuments: body.taskDocuments }),
+    ...(body.taskDocuments && { taskDocuments: body.taskDocuments.map((item) => item.url) }),
   };
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
+  if (body.taskDocuments) {
+    body.taskDocuments = body.taskDocuments.map((item, index) => {
+      return { url: encodeUrl(item), fileName: fileName[index] };
+    });
+  }
+
   const taskResult = await taskService.createTask(body, options);
   if (taskResult) {
     const uploadedFileUrls = [];
     uploadedFileUrls.push(...taskResult.taskDocuments);
-    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+    const uploadedFileUrl = uploadedFileUrls.map((data) => data.url);
+    await TempS3.updateMany({ url: { $in: uploadedFileUrl } }, { active: true });
   }
   return res.status(httpStatus.CREATED).send({ results: taskResult });
 });
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  const { taskDocuments } = body;
+  const fileName = body.taskDocuments.map((item) => item.fileName);
   body.updatedBy = req.user;
   const { taskId } = req.params;
   const { user } = req;
@@ -128,20 +134,11 @@ export const update = catchAsync(async (req, res) => {
   const filter = {
     _id: taskId,
   };
-
-  const filterForQuestion = {
-    _id: taskId,
-    createdBy: { $in: [req.user._id] },
-  };
-  const questionAskedBy = await Task.findOne(filterForQuestion);
-
-  if (questionAskedBy) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "You can't give response to your own question");
-  }
-
   // added this condition because it was adding null values in db when we were not uploading any task document as it is not required field.
-  if (taskDocuments) {
-    body.$push = { taskDocuments };
+  if (body.taskDocuments) {
+    body.$push = body.taskDocuments.map((item, index) => {
+      return { url: encodeUrl(item), fileName: fileName[index] };
+    });
     // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
     // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
     delete body.taskDocuments;
