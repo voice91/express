@@ -7,13 +7,16 @@ import enumFields from 'models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
+const documentSchema = Joi.object().keys({
+  url: Joi.string().required(),
+  fileName: Joi.string().required(),
+});
 export const createDealDocument = {
   body: Joi.object().keys({
     documentType: Joi.string()
       .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
       .required(),
-    file: Joi.string().required(),
-    fileName: Joi.string(),
+    documents: Joi.array().items(documentSchema),
     deal: Joi.objectId().required(),
   }),
 };
@@ -21,8 +24,7 @@ export const createDealDocument = {
 export const updateDealDocument = {
   body: Joi.object().keys({
     documentType: Joi.string().valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument)),
-    file: Joi.string().required(),
-    fileName: Joi.string(),
+    documents: Joi.array().items(documentSchema),
     deal: Joi.objectId().required(),
   }),
   params: Joi.object().keys({

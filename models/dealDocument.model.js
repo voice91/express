@@ -9,6 +9,16 @@ import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import enumModel from 'models/enum.model';
 import { toJSON, softDelete } from './plugins';
 
+const documentSchema = new mongoose.Schema({
+  url: {
+    type: String,
+    required: true,
+  },
+  fileName: {
+    type: String,
+    required: true,
+  },
+});
 const DealDocumentSchema = new mongoose.Schema(
   {
     /**
@@ -31,13 +41,8 @@ const DealDocumentSchema = new mongoose.Schema(
       required: true,
       default: enumModel.EnumDocumentTypeOfDealDocument.OTHERS,
     },
-    file: {
-      type: String,
-      required: true,
-    },
-    fileName: {
-      type: String,
-      required: true,
+    documents: {
+      type: [documentSchema],
     },
     deal: {
       type: mongoose.Schema.Types.ObjectId,
