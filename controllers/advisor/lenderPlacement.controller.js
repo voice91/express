@@ -367,7 +367,7 @@ export const sendEmail = catchAsync(async (req, res) => {
       // todo : make function for this one, and make synchronize so we can handle error coming from that.
       getEmailTemplate.contact.map(async (item) => {
         await emailService.sendEmail({
-          to: 'urvishavaghasiya021@gmail.com',
+          to: item.sendTo,
           cc: ccList,
           bcc: bccList,
           subject: getEmailTemplate.subject,
