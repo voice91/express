@@ -51,9 +51,28 @@ const LenderNotesSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LenderPlacement',
     },
+    isEnabled: {
+      type: Boolean,
+      default: true,
+    },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, toJSON: { virtuals: true } }
 );
+
+// Define the toJSON transform method for the LenderNotesSchema options object
+LenderNotesSchema.options.toJSON.transform = function (doc, { createdAt, ...ret }) {
+  if (createdAt) {
+    const timeDiff = Date.now() - createdAt.getTime();
+    if (timeDiff >= 60 * 60 * 1000) {
+      // Set isEnabled property to false
+      // eslint-disable-next-line no-param-reassign
+      ret.isEnabled = false;
+    }
+  }
+  // Return the ret object
+  return ret;
+};
+
 LenderNotesSchema.plugin(toJSON);
 LenderNotesSchema.plugin(mongoosePaginateV2);
 LenderNotesSchema.plugin(softDelete, {
