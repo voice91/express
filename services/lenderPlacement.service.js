@@ -7,7 +7,7 @@ import httpStatus from 'http-status';
 import { DealDocument, LenderContact, LenderPlacement, LendingInstitution } from 'models';
 
 export async function getLenderPlacementById(id, options = {}) {
-  const lenderPlacement = await LenderPlacement.findById(id, options.projection, options);
+  const lenderPlacement = await LenderPlacement.findById(id, options.projection, options).populate('lendingInstitution');
   return lenderPlacement;
 }
 

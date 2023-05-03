@@ -3,7 +3,14 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService, emailService, emailTemplateService } from 'services';
+import {
+  s3Service,
+  lenderPlacementService,
+  emailService,
+  emailTemplateService,
+  activityLogService,
+  lenderContactService,
+} from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -14,7 +21,8 @@ import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { EmailTemplate, LenderPlacement } from '../../models';
 import { sendDealTemplate1Text } from '../../utils/emailContent';
-import enumModel from '../../models/enum.model';
+import enumModel, { EnumOfActivityType } from '../../models/enum.model';
+import config from '../../config/config';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -162,6 +170,7 @@ export const update = catchAsync(async (req, res) => {
     body.termSheet = { url: body.termSheet, fileName };
   }
   const options = { new: true };
+  const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
   // tempS3
   if (lenderPlacementResult.termSheet) {
@@ -169,6 +178,34 @@ export const update = catchAsync(async (req, res) => {
     uploadedFileUrls.push(lenderPlacementResult.termSheet.url);
     await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
   }
+
+  // if termSheet added for first time than only we add activity logs
+  if (!beforeLenderPlacementResult.termSheet && body.termSheet) {
+    const createActivityLogBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      update: `${beforeLenderPlacementResult.lendingInstitution.lenderNameVisible} posted a term sheet`,
+      deal: lenderPlacementResult.deal,
+      lender: lenderPlacementResult.lendingInstitution,
+      type: EnumOfActivityType.ACTIVITY,
+    };
+    await activityLogService.createActivityLog(createActivityLogBody);
+  }
+
+  // if terms added for first time than only we add activity logs
+  if (!beforeLenderPlacementResult.terms && body.terms) {
+    const createActivityLogBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      update: `${beforeLenderPlacementResult.lendingInstitution.lenderNameVisible} sent over terms`,
+      deal: lenderPlacementResult.deal,
+      lender: lenderPlacementResult.lendingInstitution,
+      type: EnumOfActivityType.ACTIVITY,
+      user: config.activitySystemUser || 'system',
+    };
+    await activityLogService.createActivityLog(createActivityLogBody);
+  }
+
   return res.status(httpStatus.OK).send({ results: lenderPlacementResult });
 });
 
@@ -310,7 +347,6 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
     ...{ lenderPlacement: getEmailTemplate.lenderPlacement },
     ...{ isFirstTime: false },
   };
-
   if (updatedBody.sendTo) {
     const result = updatedBody.sendTo.map((item) => {
       return {
@@ -318,7 +354,28 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
       };
     });
     if (updatedBody.contact) {
-      updatedBody.contact = updatedBody.contact.concat(result);
+      // eslint-disable-next-line array-callback-return
+      const data = await Promise.all(
+        result.map(async (item) => {
+          const getRecordFromContact = updatedBody.contact.find((value) => item.sendTo === value.sendTo);
+          if (getRecordFromContact) {
+            return getRecordFromContact;
+          }
+          // eslint-disable-next-line no-shadow
+          const filter = {
+            email: item.sendTo,
+          };
+          const lenderContact = await lenderContactService.getOne(filter);
+          if (!lenderContact) {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'This Email is not in Lender Contact');
+          }
+          // eslint-disable-next-line no-param-reassign
+          item.name = lenderContact.firstName;
+          return item;
+        })
+      );
+
+      updatedBody.contact = data;
     } else {
       updatedBody.contact = result;
     }
