@@ -65,10 +65,9 @@ export const sendResetPasswordEmail = async (to, token) => {
  * @returns {Promise}
  */
 export const sendEmailVerificationEmail = async (user, token) => {
-  const { email: to, name } = user;
-  const subject = 'Welcome to the Swaray Family!';
-  // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `${config.front.url}/v1/user/auth/verify-email?token=${token}`;
+  const { email: to, firstName } = user;
+  const subject = 'Welcome to the ParallelCre';
+  const verifyEmailUrl = `${config.front.url}/v1/user/auth/verify-email?token=${token}`;
   const text = `
 <html lang="en">
 <head>
@@ -101,21 +100,13 @@ text-align: center
 </head>
 <body>
 <div>
-<div>Dear ${name},</div>
+<div>Dear ${firstName},</div>
 <br>
-  <div>We’re super excited that you’ve decided to join Swaray for Video Chat That’s Built to Party!</div><br>
-  <div>You’re just one step away from getting access to fun, exciting, party and drinking games and Swaray’s legendary shared music experience.</div><br>
+  <div>We’re super excited that you’ve decided to join Parallel Cre!</div><br>
   <div>All you have to do is click the link below to confirm it’s you and you’re in!</div><br>
-  <div><a   target="_blank" href="${resetPasswordUrl}" id="verifyButton" class="btn btn-primary" >Click here to Verify</a></div><br>
-  <div>If for some reason you clicked the Sign-Up button in error or you didn’t Sign-Up with this email address</div>
-  <div>in the first place, no need to worry.  You can completely ignore this email and we’ll delete the account for you.</div><br>
-  <div>If you still have questions or concerns just shoot us a note at info@swarayallday.com and we’ll be sure to help you out.</div><br>
-  <div>Thanks!</div><br/><br>
-  <img src="${config.front.url}/images/logo.jpg"><br><br>
-  <div class="text-center">Swaray LLC</div>
-  <div class="text-center">627 Promontory Drive East</div>
-  <div class="text-center">Newport Beach, CA 92660</div><br>
-  <a class="text-center" target="_blank" href="https://www.google.com" >unsubscribe from this list</a><br><br>
+  <div><a   target="_blank" href="${verifyEmailUrl}" id="verifyButton" class="btn btn-primary" >Click here to Verify</a></div><br><br>
+  <div>Thanks You,</div>
+  <div>The Parallel Team</div>
   </div>
   </body>
   </html>
