@@ -152,7 +152,7 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  body.updatedBy = req.user;
+  body.updatedBy = req.user._id;
   const { lenderPlacementId } = req.params;
   const { user } = req;
   const termsheet = body.termSheet;
@@ -169,7 +169,10 @@ export const update = catchAsync(async (req, res) => {
     body.termSheet = encodeUrl(body.termSheet);
     body.termSheet = { url: body.termSheet, fileName };
   }
-  const options = { new: true };
+  const options = {
+    new: true,
+    populate: [{ path: 'lendingInstitution' }, { path: 'lenderContact' }, { path: 'notes' }, { path: 'lenderAllContacts' }],
+  };
   const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
   // tempS3
