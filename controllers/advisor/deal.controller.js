@@ -129,7 +129,7 @@ export const create = catchAsync(async (req, res) => {
   const deal = await dealService.createDeal(body, options);
   await Promise.allSettled(
     dealMembers.map((user) => {
-      return emailService.sendInvitationEmail({ user, userName, dealName }).then().catch();
+      return emailService.sendInvitationEmail({ user, userName, dealName, isDealCreated: true }).then().catch();
     })
   );
   return res.status(httpStatus.CREATED).send({ results: deal });
@@ -179,7 +179,10 @@ export const dealInvitation = catchAsync(async (req, res) => {
   await dealService.InviteToDeal(body, role);
   await Promise.allSettled(
     email.map(async (user) => {
-      return emailService.sendInvitationEmail({ user, userName, dealName: deal.dealName }).then().catch();
+      return emailService
+        .sendInvitationEmail({ user, userName, dealName: deal.dealName, isDealCreated: false })
+        .then()
+        .catch();
     })
   );
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
