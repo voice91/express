@@ -105,7 +105,8 @@ export const update = catchAsync(async (req, res) => {
   };
   if (body.taskDocuments) {
     const fileName = taskDocuments.map((item) => item.fileName);
-    body.$push = body.taskDocuments.map((item, index) => {
+    body.$push = {};
+    body.$push.taskDocuments = body.taskDocuments.map((item, index) => {
       return { url: encodeUrl(item), fileName: fileName[index] };
     });
     // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
