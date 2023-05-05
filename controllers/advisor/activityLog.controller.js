@@ -17,8 +17,20 @@ export const get = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: activityLog });
 });
 
+const getActivityLogFilterQuery = (query) => {
+  const filter = pick(query, ['type']);
+  if (query.search) {
+    filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { lastName: new RegExp(query.search, 'i') }];
+  }
+  return filter;
+};
+
 export const list = catchAsync(async (req, res) => {
-  const filter = {};
+  const { query } = req;
+  const queryParams = getActivityLogFilterQuery(query);
+  const filter = {
+    ...queryParams,
+  };
   const options = {};
   const activityLog = await activityLogService.getActivityLogList(filter, options);
   return res.status(httpStatus.OK).send({ results: activityLog });

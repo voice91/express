@@ -3,13 +3,17 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
+import enumFields from '../../models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
 export const createActivityLog = {
   body: Joi.object().keys({
     deal: Joi.objectId().required(),
+    lender: Joi.objectId(),
     update: Joi.string().required(),
+    type: Joi.string().valid(...Object.values(enumFields.EnumOfActivityType)),
+    user: Joi.objectId(),
   }),
 };
 

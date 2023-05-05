@@ -3,11 +3,15 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { dealService, emailService } from 'services';
+import { activityLogService, dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import _ from 'lodash';
 import { pick } from '../../utils/pick';
-import enumModel from '../../models/enum.model';
+import enumModel, { EnumOfActivityType, EnumStageOfDeal } from '../../models/enum.model';
 import { Deal, Invitation } from '../../models';
+// eslint-disable-next-line import/named
+import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
+import config from '../../config/config';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -132,6 +136,19 @@ export const create = catchAsync(async (req, res) => {
       return emailService.sendInvitationEmail({ user, userName, dealName, isDealCreated: true }).then().catch();
     })
   );
+
+  // here we create activity logs
+  // with deal id , and other data as user is this
+  const createActivityLogbody = {
+    createdBy: req.user._id,
+    updatedBy: req.user._id,
+    update: `${deal.dealName} was created`,
+    deal: deal.id,
+    type: EnumOfActivityType.ACTIVITY,
+    user: config.activitySystemUser || 'system',
+  };
+  await activityLogService.createActivityLog(createActivityLogbody);
+
   return res.status(httpStatus.CREATED).send({ results: deal });
 });
 
@@ -147,7 +164,29 @@ export const update = catchAsync(async (req, res) => {
   };
   const options = { new: true };
   const deal = await dealService.updateDeal(filter, body, options);
-  return res.status(httpStatus.OK).send({ results: deal });
+
+  if (body.stage) {
+    if ([EnumStageOfDeal.OUT_IN_MARKET, EnumStageOfDeal.CLOSING].includes(body.stage)) {
+      // todo: need to verify from client that if we have no lender data at time of stage state than need to throw error or what pass in lender
+    }
+    const option = {
+      dealName: deal.dealName,
+      // todo : we have array of lenderPlacement data that what value passed from here. ( array or specific lender)
+      // if specific lender that need to pass from postman body.
+      lender: _.isEmpty(deal.lenderPlacement) ? '' : deal.lenderPlacement,
+    };
+    const createActivityLogBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      update: getStageUpdateForActivityLogs(body.stage, option),
+      deal: deal.id,
+      type: EnumOfActivityType.ACTIVITY,
+      user: config.activitySystemUser || 'system',
+    };
+    await activityLogService.createActivityLog(createActivityLogBody);
+  }
+
+  return res.status(httpStatus.OK).send({ results: 'deal' });
 });
 
 export const remove = catchAsync(async (req, res) => {

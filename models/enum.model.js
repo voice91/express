@@ -229,6 +229,10 @@ const EnumofExtension = {
   TBD: 'tbd',
   NA: 'na',
 };
+const EnumOfActivityType = {
+  NOTE: 'note',
+  ACTIVITY: 'activity',
+};
 
 module.exports = {
   EnumPrePaymentTypeOfTerms,
@@ -237,6 +241,7 @@ module.exports = {
   EnumofExtension,
   EnumRoleOfUser,
   EnumPlatformOfDeviceToken,
+  EnumOfActivityType,
   EnumStageOfDeal,
   EnumAssetTypeOfDeal,
   EnumLoanPurposeOfDeal,
