@@ -124,7 +124,7 @@ export const create = catchAsync(async (req, res) => {
 
   // Add created Documents in Initial Email Template
   await EmailTemplate.updateMany(
-    { isFirstTime: true, deal: dealId },
+    { isFirstTime: true, ...filter },
     {
       $addToSet: {
         emailAttachments: dealDocumentResult.documents.map((item) => ({ path: item.url, fileName: item.fileName })),
