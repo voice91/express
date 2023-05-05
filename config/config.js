@@ -29,6 +29,9 @@ const envVarsSchema = Joi.object()
     GOOGLE_CLIENT_ID: Joi.string().required().description('Google Client is required'),
     GOOGLE_CLIENT_SECRET: Joi.string().required().description('Google Client Secret required'),
     CAPTCHA_SECRET_KEY: Joi.string().required().description('Google Captcha Secret Key required'),
+    JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: Joi.number()
+      .required()
+      .description('minutes after which email verification token expires'),
   })
   .unknown();
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -52,7 +55,7 @@ export default {
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
     refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
     resetPasswordExpirationMinutes: 10,
-    verifyEmailExpirationMinutes: 180,
+    verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
     resetPasswordCodeSize: envVars.RESET_PASSWORD_CODE_SIZE,
   },
   email: {
