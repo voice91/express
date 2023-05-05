@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach, encodeUrl } from 'utils/common';
 import { pick } from '../../utils/pick';
-import { Deal } from '../../models';
+import { Deal, EmailTemplate } from '../../models';
 import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
@@ -119,6 +119,17 @@ export const create = catchAsync(async (req, res) => {
     uploadedFileUrls.push(dealDocumentResult.file);
     await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
   }
+
+  // Add created Documents in Initial Email Template
+  await EmailTemplate.updateMany(
+    { isFirstTime: true, deal: dealId },
+    {
+      $addToSet: {
+        emailAttachments: dealDocumentResult.documents.map((item) => ({ path: item.url, fileName: item.fileName })),
+      },
+    }
+  );
+
   return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
 });
 
