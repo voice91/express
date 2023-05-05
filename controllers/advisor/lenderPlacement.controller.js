@@ -404,22 +404,55 @@ export const sendEmail = catchAsync(async (req, res) => {
 
   const bccList = getEmailTemplate.bccList.map((item) => item);
   const sendToIsEmpty = getEmailTemplate.contact.map((item) => item.sendTo);
+  if (sendToIsEmpty.length === 0) {
+    return res.status(httpStatus.OK).send({ results: 'No email addresses to send to.' });
+  }
 
-  if (sendToIsEmpty.length !== 0) {
-    if (sendToAdvisor) {
-      const isAdvisor = _.template(getEmailTemplate.emailContent)({
-        userFirstName: getEmailTemplate.advisorName,
-        totalLoanAmount: getEmailTemplate.totalLoanAmount,
-        advisorName: getEmailTemplate.advisorName,
-        advisorEmail: getEmailTemplate.from,
-      });
-      await emailService.sendEmail({
-        to: getEmailTemplate.from,
+  if (sendToAdvisor) {
+    const isAdvisor = _.template(getEmailTemplate.emailContent)({
+      userFirstName: getEmailTemplate.advisorName,
+      totalLoanAmount: getEmailTemplate.totalLoanAmount,
+      advisorName: getEmailTemplate.advisorName,
+      advisorEmail: getEmailTemplate.from,
+    });
+    const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
+      return {
+        fileName: item.fileName,
+        path: item.path,
+      };
+    });
+
+    await emailService.sendEmail({
+      to: getEmailTemplate.from,
+      subject: 'TEST - PFG Property...',
+      from: getEmailTemplate.from,
+      text: isAdvisor,
+      attachments: emailAttachments,
+      isHtml: true,
+    });
+    return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
+  }
+  const getText = (userFirstName, totalLoanAmount, advisorName, advisorEmail) => {
+    const data = _.template(getEmailTemplate.emailContent)({
+      userFirstName,
+      totalLoanAmount,
+      advisorName,
+      advisorEmail,
+    });
+    return data;
+  };
+
+  // todo : make function for this one, and make synchronize so we can handle error coming from that.
+  await Promise.allSettled(
+    getEmailTemplate.contact.map((item) => {
+      return emailService.sendEmail({
+        to: item.sendTo,
         cc: ccList,
         bcc: bccList,
-        subject: 'TEST - PFG Property...',
+        subject: getEmailTemplate.subject,
         from: getEmailTemplate.from,
-        text: isAdvisor,
+        text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from),
+        // eslint-disable-next-line no-shadow
         attachments: getEmailTemplate.emailAttachments.map((item) => {
           return {
             fileName: item.fileName,
@@ -428,38 +461,9 @@ export const sendEmail = catchAsync(async (req, res) => {
         }),
         isHtml: true,
       });
-    } else {
-      const getText = (userFirstName, totalLoanAmount, advisorName, advisorEmail) => {
-        const data = _.template(getEmailTemplate.emailContent)({
-          userFirstName,
-          totalLoanAmount,
-          advisorName,
-          advisorEmail,
-        });
-        return data;
-      };
+    })
+  );
 
-      // todo : make function for this one, and make synchronize so we can handle error coming from that.
-      getEmailTemplate.contact.map(async (item) => {
-        await emailService.sendEmail({
-          to: item.sendTo,
-          cc: ccList,
-          bcc: bccList,
-          subject: getEmailTemplate.subject,
-          from: getEmailTemplate.from,
-          text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from),
-          // eslint-disable-next-line no-shadow
-          attachments: getEmailTemplate.emailAttachments.map((item) => {
-            return {
-              fileName: item.fileName,
-              path: item.path,
-            };
-          }),
-          isHtml: true,
-        });
-      });
-    }
-  }
   await LenderPlacement.findByIdAndUpdate(placementId, {
     followOnDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
     isEmailSent: enumModel.EnumOfEmailStatus.EMAIL_SENT,
