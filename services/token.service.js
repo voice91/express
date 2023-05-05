@@ -53,7 +53,7 @@ export const saveToken = async (token, userId, expires, type, blacklisted = fals
  * @returns {Promise<Token>}
  */
 export const verifyToken = async (token, type) => {
-  const payload = jwt.verify(token, config.jwt.secret, { ignoreExpiration: true });
+  const payload = jwt.verify(token, config.jwt.secret);
   const tokenDoc = await Token.findOne({ token, type, user: payload.sub });
   if (!tokenDoc) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Invalid Token');
