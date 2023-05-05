@@ -17,7 +17,12 @@ router
   /**
    * getDealDocument
    * */
-  .get(auth('user'), validate(dealDocumentValidation.getDealDocument), checkAccessOfDeal, dealDocumentController.list);
+  .get(
+    auth('user'),
+    validate(dealDocumentValidation.getDealDocument),
+    checkAccessOfDeal,
+    dealDocumentController.getDealDocumentByDeal
+  );
 router
   .route('/paginated')
   /**
@@ -33,6 +38,8 @@ router
   /**
    * updateDealDocument
    * */
-  .put(auth('user'), validate(dealDocumentValidation.updateDealDocument), checkAccessOfDeal, dealDocumentController.update)
-  .delete(auth('advisor'), validate(dealDocumentValidation.deleteDealDocumentById), dealDocumentController.remove);
+  .put(auth('user'), validate(dealDocumentValidation.updateDealDocument), checkAccessOfDeal, dealDocumentController.update);
+router
+  .route('/documents/:documentId')
+  .delete(auth('advisor'), validate(dealDocumentValidation.deleteDocument), dealDocumentController.removeDocuments);
 export default router;

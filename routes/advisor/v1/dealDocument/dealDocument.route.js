@@ -22,7 +22,12 @@ router
   /**
    * getDealDocument
    * */
-  .get(auth('advisor'), validate(dealDocumentValidation.getDealDocument), checkAccessOfDeal, dealDocumentController.list);
+  .get(
+    auth('advisor'),
+    validate(dealDocumentValidation.getDealDocument),
+    checkAccessOfDeal,
+    dealDocumentController.getDealDocumentByDeal
+  );
 router
   .route('/paginated')
   /**
@@ -43,6 +48,8 @@ router
     validate(dealDocumentValidation.updateDealDocument),
     checkAccessOfDeal,
     dealDocumentController.update
-  )
-  .delete(auth('advisor'), validate(dealDocumentValidation.deleteDealDocumentById), dealDocumentController.remove);
+  );
+router
+  .route('/documents/:documentId')
+  .delete(auth('advisor'), validate(dealDocumentValidation.deleteDocument), dealDocumentController.removeDocument);
 export default router;

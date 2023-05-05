@@ -10,21 +10,20 @@ Joi.objectId = require('joi-objectid')(Joi);
 const documentSchema = Joi.object().keys({
   url: Joi.string().required(),
   fileName: Joi.string().required(),
+  documentType: Joi.string()
+    .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
+    .required(),
 });
 export const createDealDocument = {
   body: Joi.object().keys({
-    documentType: Joi.string()
-      .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
-      .required(),
-    documents: Joi.array().items(documentSchema),
+    documents: Joi.array().items(documentSchema).required(),
     deal: Joi.objectId().required(),
   }),
 };
 
 export const updateDealDocument = {
   body: Joi.object().keys({
-    documentType: Joi.string().valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument)),
-    documents: Joi.array().items(documentSchema),
+    documents: Joi.array().items(documentSchema).required(),
     deal: Joi.objectId().required(),
   }),
   params: Joi.object().keys({
@@ -39,7 +38,9 @@ export const getDealDocumentById = {
 };
 
 export const getDealDocument = {
-  body: Joi.object().keys({}).unknown(true),
+  params: Joi.object().keys({
+    dealId: Joi.objectId().required(),
+  }),
 };
 
 export const paginatedDealDocument = {
@@ -52,8 +53,8 @@ export const paginatedDealDocument = {
     .unknown(true),
 };
 
-export const deleteDealDocumentById = {
+export const deleteDocument = {
   params: Joi.object().keys({
-    dealDocumentId: Joi.objectId().required(),
+    documentId: Joi.objectId().required(),
   }),
 };
