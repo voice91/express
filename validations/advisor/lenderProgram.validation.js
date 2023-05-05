@@ -57,7 +57,7 @@ export const paginatedLenderProgram = {
     propertyType: Joi.string(),
     statesArray: Joi.string(),
     lenderInstitute: Joi.string(),
-    loanSize: Joi.string(),
+    loanSize: Joi.number(),
     lenderType: Joi.string(),
     lenderNameVisible: Joi.string(),
     sort: Joi.string().valid(

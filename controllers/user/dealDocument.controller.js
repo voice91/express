@@ -61,12 +61,12 @@ export const get = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
 
-export const list = catchAsync(async (req, res) => {
+export const getDealDocumentByDeal = catchAsync(async (req, res) => {
   const filter = {
     deal: req.params.dealId,
   };
   const options = {};
-  const dealDocument = await dealDocumentService.getDealDocumentList(filter, options);
+  const dealDocument = await dealDocumentService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
 
@@ -96,24 +96,25 @@ export const create = catchAsync(async (req, res) => {
   body.createdBy = req.user;
   body.updatedBy = req.user;
   const fileName = body.documents.map((item) => item.fileName);
+  const documentType = body.documents.map((item) => item.documentType);
   const { user } = req;
   const moveFileObj = {
     ...(body.documents && { documents: body.documents.map((item) => item.url) }),
   };
-  const dealId = body.deal;
-  const dealObj = await Deal.findById(dealId);
-  if (!dealObj) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
-  }
-  body._id = mongoose.Types.ObjectId();
+  const filter = {
+    deal: body.deal,
+  };
+  const update = {
+    $push: { documents: body.documents },
+  };
   await moveFiles({ body, user, moveFileObj });
-  const options = {};
+  const options = { new: true, upsert: true };
   if (body.documents) {
     body.documents = body.documents.map((item, index) => {
-      return { url: encodeUrl(item), fileName: fileName[index] };
+      return { url: encodeUrl(item), fileName: fileName[index], documentType: documentType[index] };
     });
   }
-  const dealDocumentResult = await dealDocumentService.createDealDocument(body, options);
+  const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, update, options);
   if (dealDocumentResult) {
     const uploadedFileUrls = [];
     uploadedFileUrls.push(dealDocumentResult.file);
@@ -151,11 +152,18 @@ export const update = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: dealDocumentResult });
 });
 
-export const remove = catchAsync(async (req, res) => {
-  const { dealDocumentId } = req.params;
+// removing single document from documents array
+export const removeDocuments = catchAsync(async (req, res) => {
+  const { documentId } = req.params;
   const filter = {
-    _id: dealDocumentId,
+    'documents._id': documentId,
   };
-  const dealDocument = await dealDocumentService.removeDealDocument(filter);
+  const updateDocument = {
+    $pull: { documents: { _id: documentId } },
+  };
+  const options = {
+    new: true,
+  };
+  const dealDocument = await dealDocumentService.updateDealDocument(filter, updateDocument, options);
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
