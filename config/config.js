@@ -29,6 +29,7 @@ const envVarsSchema = Joi.object()
     GOOGLE_CLIENT_ID: Joi.string().required().description('Google Client is required'),
     GOOGLE_CLIENT_SECRET: Joi.string().required().description('Google Client Secret required'),
     CAPTCHA_SECRET_KEY: Joi.string().required().description('Google Captcha Secret Key required'),
+    ACTIVITY_SYSTEM_USER: Joi.string(),
     JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: Joi.number()
       .required()
       .description('minutes after which email verification token expires'),
@@ -41,6 +42,7 @@ if (error) {
 export default {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
+  activitySystemUser: envVars.ACTIVITY_SYSTEM_USER,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {

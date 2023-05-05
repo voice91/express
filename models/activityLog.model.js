@@ -7,6 +7,7 @@
 import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import { toJSON, softDelete } from './plugins';
+import enumModel from './enum.model';
 
 const ActivityLogSchema = new mongoose.Schema(
   {
@@ -32,12 +33,23 @@ const ActivityLogSchema = new mongoose.Schema(
       ref: 'Deal',
       required: true,
     },
+    lender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LendingInstitution',
+    },
     /**
      * There will be certain messages that the system will generate at specific times
      * */
     update: {
       type: String,
       required: true,
+    },
+    type: {
+      type: String,
+      enum: Object.values(enumModel.EnumOfActivityType),
+    },
+    user: {
+      type: String,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }

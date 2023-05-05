@@ -191,6 +191,7 @@ export const update = catchAsync(async (req, res) => {
       deal: lenderPlacementResult.deal,
       lender: lenderPlacementResult.lendingInstitution,
       type: EnumOfActivityType.ACTIVITY,
+      user: config.activitySystemUser || 'system',
     };
     await activityLogService.createActivityLog(createActivityLogBody);
   }
