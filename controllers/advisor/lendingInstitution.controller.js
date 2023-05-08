@@ -52,15 +52,46 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['limit', 'page']),
+    populate: { path: 'lenderProgram' },
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
   }
   const lendingInstitution = await lendingInstitutionService.getLendingInstitutionListWithPagination(filter, options);
-  lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => ({
-    createdAt: lendingInstitutionObject.createdAt,
-    ...lendingInstitutionObject.toJSON(),
-  }));
+  lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => {
+    let minLoanSize = 0;
+    let maxLoanSize = 0;
+    const propertyTypes = [];
+    const loanTypes = [];
+    const statesArray = [];
+    const lenderProgramTypes = [];
+
+    lendingInstitutionObject.lenderProgram.forEach((program) => {
+      if (program.minLoanSize > minLoanSize) {
+        minLoanSize = program.minLoanSize;
+      }
+      if (program.maxLoanSize > maxLoanSize) {
+        maxLoanSize = program.maxLoanSize;
+      }
+      propertyTypes.push(...[...new Set(program.propertyType)]);
+      loanTypes.push(...[...new Set(program.loanType)]);
+      statesArray.push(...[...new Set(program.statesArray)]);
+      lenderProgramTypes.push(program.lenderProgramType);
+    });
+    return {
+      createdAt: lendingInstitutionObject.createdAt,
+      ...lendingInstitutionObject.toJSON(),
+      lenderProgram: {
+        minLoanSize,
+        maxLoanSize,
+        propertyTypes,
+        loanTypes,
+        statesArray,
+        lenderProgramTypes: [...new Set(lenderProgramTypes)],
+      },
+    };
+  });
+
   return res.status(httpStatus.OK).send({ results: lendingInstitution });
 });
 
