@@ -12,6 +12,7 @@ import taskRoutes from './v1/task/task.route';
 import dealDocumentRoutes from './v1/dealDocument/dealDocument.route';
 import feedbackRoutes from './v1/feedback/feedback.routes';
 import bugReportRoutes from './v1/bugReport/bugReport.routes';
+import FAQRoutes from './v1/FAQ/FAQ.routes';
 import authRoutes from './v1/auth/auth.route';
 import lenderNotesRoutes from './v1/lenderNotes/lenderNotes.route';
 
@@ -27,6 +28,7 @@ router.use('/emailTemplate', emailTemplateRoutes);
 router.use('/activityLog', activityLogRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/bugReport', bugReportRoutes);
+router.use('/FAQ', FAQRoutes);
 router.use('/task', taskRoutes);
 router.use('/dealDocument', dealDocumentRoutes);
 router.use('/auth', authRoutes);
