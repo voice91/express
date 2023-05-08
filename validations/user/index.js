@@ -48,3 +48,7 @@ module.exports.dealDocumentValidation = require('./dealDocument.validation');
 module.exports.authValidation = require('./auth.validation');
 
 module.exports.lenderNotesValidation = require('./lenderNotes.validation');
+
+module.exports.feedbackValidation = require('./feedback.validation');
+
+module.exports.bugReportValidation = require('./bugReport.validation');

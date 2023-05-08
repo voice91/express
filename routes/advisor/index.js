@@ -10,6 +10,8 @@ import emailTemplateRoutes from './v1/emailTemplate/emailTemplate.route';
 import activityLogRoutes from './v1/activityLog/activityLog.route';
 import taskRoutes from './v1/task/task.route';
 import dealDocumentRoutes from './v1/dealDocument/dealDocument.route';
+import feedbackRoutes from './v1/feedback/feedback.routes';
+import bugReportRoutes from './v1/bugReport/bugReport.routes';
 import authRoutes from './v1/auth/auth.route';
 import lenderNotesRoutes from './v1/lenderNotes/lenderNotes.route';
 
@@ -23,6 +25,8 @@ router.use('/lenderPlacement', lenderPlacementRoutes);
 router.use('/lenderContact', lenderContactRoutes);
 router.use('/emailTemplate', emailTemplateRoutes);
 router.use('/activityLog', activityLogRoutes);
+router.use('/feedback', feedbackRoutes);
+router.use('/bugReport', bugReportRoutes);
 router.use('/task', taskRoutes);
 router.use('/dealDocument', dealDocumentRoutes);
 router.use('/auth', authRoutes);
