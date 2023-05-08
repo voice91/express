@@ -49,6 +49,13 @@ const LendingInstitutionSchema = new mongoose.Schema(
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
+
+LendingInstitutionSchema.virtual('lenderProgram', {
+  ref: 'LenderProgram',
+  localField: '_id',
+  foreignField: 'lenderInstitute',
+});
+
 LendingInstitutionSchema.plugin(toJSON);
 LendingInstitutionSchema.plugin(mongoosePaginateV2);
 LendingInstitutionSchema.plugin(softDelete, {

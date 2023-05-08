@@ -52,15 +52,28 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['limit', 'page']),
+    populate: { path: 'lenderProgram' },
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
   }
   const lendingInstitution = await lendingInstitutionService.getLendingInstitutionListWithPagination(filter, options);
-  lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => ({
-    createdAt: lendingInstitutionObject.createdAt,
-    ...lendingInstitutionObject.toJSON(),
-  }));
+  lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => {
+    const programs = lendingInstitutionObject.lenderProgram;
+    return {
+      createdAt: lendingInstitutionObject.createdAt,
+      ...lendingInstitutionObject.toJSON(),
+      lenderProgram: {
+        minLoanSize: Math.min(...programs.map((program) => program.minLoanSize)),
+        maxLoanSize: Math.max(...programs.map((program) => program.maxLoanSize)),
+        propertyTypes: [...new Set(programs.flatMap((program) => program.propertyType))],
+        loanTypes: [...new Set(programs.flatMap((program) => program.loanType))],
+        statesArray: [...new Set(programs.flatMap((program) => program.statesArray))],
+        lenderProgramTypes: [...new Set(programs.flatMap((program) => program.lenderProgramType))],
+      },
+    };
+  });
+
   return res.status(httpStatus.OK).send({ results: lendingInstitution });
 });
 
