@@ -59,35 +59,17 @@ export const paginate = catchAsync(async (req, res) => {
   }
   const lendingInstitution = await lendingInstitutionService.getLendingInstitutionListWithPagination(filter, options);
   lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => {
-    let minLoanSize = 0;
-    let maxLoanSize = 0;
-    const propertyTypes = [];
-    const loanTypes = [];
-    const statesArray = [];
-    const lenderProgramTypes = [];
-
-    lendingInstitutionObject.lenderProgram.forEach((program) => {
-      if (program.minLoanSize > minLoanSize) {
-        minLoanSize = program.minLoanSize;
-      }
-      if (program.maxLoanSize > maxLoanSize) {
-        maxLoanSize = program.maxLoanSize;
-      }
-      propertyTypes.push(...[...new Set(program.propertyType)]);
-      loanTypes.push(...[...new Set(program.loanType)]);
-      statesArray.push(...[...new Set(program.statesArray)]);
-      lenderProgramTypes.push(program.lenderProgramType);
-    });
+    const programs = lendingInstitutionObject.lenderProgram;
     return {
       createdAt: lendingInstitutionObject.createdAt,
       ...lendingInstitutionObject.toJSON(),
       lenderProgram: {
-        minLoanSize,
-        maxLoanSize,
-        propertyTypes,
-        loanTypes,
-        statesArray,
-        lenderProgramTypes: [...new Set(lenderProgramTypes)],
+        minLoanSize: Math.min(...programs.map((program) => program.minLoanSize)),
+        maxLoanSize: Math.max(...programs.map((program) => program.maxLoanSize)),
+        propertyTypes: [...new Set(programs.flatMap((program) => program.propertyType))],
+        loanTypes: [...new Set(programs.flatMap((program) => program.loanType))],
+        statesArray: [...new Set(programs.flatMap((program) => program.statesArray))],
+        lenderProgramTypes: [...new Set(programs.flatMap((program) => program.lenderProgramType))],
       },
     };
   });
