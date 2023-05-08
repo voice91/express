@@ -8,7 +8,7 @@ const router = express.Router();
 router
   .route('/')
   /**
-   * createActivityLog
+   * createFeedback
    * */
   .post(auth('advisor'), validate(feedbackValidation.createFeedback), feedbackController.create);
 export default router;

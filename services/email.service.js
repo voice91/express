@@ -164,6 +164,54 @@ text-align: center
   await sendEmail({ to, subject, text, isHtml: true });
 };
 
+export const FAQTemplate = async (user) => {
+  const to = 'testrichard67@gmail.com';
+  const subject = 'Submit a Question';
+  const { from } = user;
+  const text = `
+<html lang="en">
+<head>
+<style>
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  color: #ffffff !important;
+  background-color: #007bff;
+  border: 1px solid #007bff;
+  box-shadow: none;
+  text-decoration: none;
+}
+.text-center {
+text-align: center
+}
+</style>
+</head>
+<body>
+<div>
+<div> Hii, Richard</div>
+<br>
+  <div> Question : ${user.question}</div><br>
+  <div> Asked By,</div>
+  <div>${user.name}</div><br><br>
+  </div>
+  </body>
+  </html>
+`;
+  await sendEmail({ to, subject, from, text, isHtml: true });
+};
+
 export const sendDealTemplate1 = async (user) => {
   const to = user.email;
   const cc = user.email;
