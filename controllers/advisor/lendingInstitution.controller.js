@@ -63,6 +63,7 @@ export const paginate = catchAsync(async (req, res) => {
 
   let lenderProgram = [];
   const filterLenderProgram = {};
+  // condition to check whether the field in the query are these four ('loanType', 'propertyType', 'statesArray', 'loanSize') only.
   const filterFields = ['loanType', 'propertyType', 'statesArray', 'loanSize'];
   Object.keys(fields).forEach((field) => {
     if (field.loanSize) {
@@ -71,6 +72,7 @@ export const paginate = catchAsync(async (req, res) => {
       filterLenderProgram[field] = query[field];
     }
   });
+  // This piece of code is for: if the query field is from the four field only then only mongoose query should run else not.
   const isFilterField = Object.keys(fields).some((property) => filterFields.includes(property));
   if (isFilterField) {
     lenderProgram = await LenderProgram.find(filterLenderProgram);
