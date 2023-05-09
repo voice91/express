@@ -29,6 +29,7 @@ export const list = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['limit', 'page']),
+    populate: { path: 'createdBy' },
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
@@ -45,4 +46,26 @@ export const create = catchAsync(async (req, res) => {
   const options = {};
   const lenderInstituteNotes = await lenderInstituteNotesService.createLenderInstituteNotes(body, options);
   return res.status(httpStatus.CREATED).send({ results: lenderInstituteNotes });
+});
+
+export const update = catchAsync(async (req, res) => {
+  const { body } = req;
+  const { lenderInstituteNotesId } = req.params;
+  body.updatedBy = req.user;
+  const filter = {
+    _id: lenderInstituteNotesId,
+  };
+  const options = { new: true };
+
+  const lenderInstituteNotes = await lenderInstituteNotesService.updateLenderInstituteNotes(filter, body, options);
+  return res.status(httpStatus.OK).send({ results: lenderInstituteNotes });
+});
+
+export const remove = catchAsync(async (req, res) => {
+  const { lenderInstituteNotesId } = req.params;
+  const filter = {
+    _id: lenderInstituteNotesId,
+  };
+  const lenderInstituteNotes = await lenderInstituteNotesService.removeLenderInstituteNotes(filter);
+  return res.status(httpStatus.OK).send({ results: lenderInstituteNotes });
 });

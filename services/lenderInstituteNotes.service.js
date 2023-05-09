@@ -25,3 +25,19 @@ export async function createLenderInstituteNotes(body) {
   const lenderInstituteNotes = await LenderInstituteNotes.create(body);
   return lenderInstituteNotes;
 }
+
+export async function updateLenderInstituteNotes(filter, body, options = {}) {
+  if (body.lenderInstitute) {
+    const lenderInstitute = await LendingInstitution.findOne({ _id: body.lenderInstitute });
+    if (!lenderInstitute) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Field lenderInstitute is not valid');
+    }
+  }
+  const lenderInstituteNotes = await LenderInstituteNotes.findOneAndUpdate(filter, body, options);
+  return lenderInstituteNotes;
+}
+
+export async function removeLenderInstituteNotes(filter) {
+  const lenderInstituteNotes = await LenderInstituteNotes.findOneAndRemove(filter);
+  return lenderInstituteNotes;
+}

@@ -28,3 +28,18 @@ export const getLenderInstituteNotes = {
     })
     .unknown(true),
 };
+
+export const updateLenderInstituteNotes = {
+  body: Joi.object().keys({
+    content: Joi.string().required(),
+    lenderInstitute: Joi.objectId().required(),
+  }),
+  params: Joi.object().keys({
+    lenderInstituteNotesId: Joi.objectId().required(),
+  }),
+};
+export const deleteLenderInstituteNotesById = {
+  params: Joi.object().keys({
+    lenderInstituteNotesId: Joi.objectId().required(),
+  }),
+};
