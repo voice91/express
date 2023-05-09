@@ -6,6 +6,7 @@
  */
 import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
+import config from 'config/config';
 import { toJSON, softDelete } from './plugins';
 
 const DealNotesSchema = new mongoose.Schema(
@@ -63,7 +64,7 @@ const DealNotesSchema = new mongoose.Schema(
 DealNotesSchema.options.toJSON.transform = function (doc, { createdAt, ...ret }) {
   if (createdAt) {
     const timeDiff = Date.now() - createdAt.getTime();
-    if (timeDiff >= 60 * 60 * 1000) {
+    if (timeDiff >= config.disabledTimeForNotes) {
       // Set isEnabled property to false
       // eslint-disable-next-line no-param-reassign
       ret.isEnabled = false;
