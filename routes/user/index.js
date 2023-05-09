@@ -13,6 +13,7 @@ import bugReportRoutes from './v1/bugReport/bugReport.routes';
 import FAQRoutes from './v1/FAQ/FAQ.routes';
 import taskRoutes from './v1/task/task.route';
 import dealDocumentRoutes from './v1/dealDocument/dealDocument.route';
+import lenderInstituteNotesRoutes from './v1/lenderInstituteNotes/lenderInstituteNotes.routes';
 import authRoutes from './v1/auth/auth.route';
 import lenderNotesRoutes from './v1/lenderNotes/lenderNotes.route';
 
@@ -31,6 +32,7 @@ router.use('/bugReport', bugReportRoutes);
 router.use('/FAQ', FAQRoutes);
 router.use('/task', taskRoutes);
 router.use('/dealDocument', dealDocumentRoutes);
+router.use('/lenderInstituteNotes', lenderInstituteNotesRoutes);
 router.use('/auth', authRoutes);
 router.use('/lenderNotes', lenderNotesRoutes);
 module.exports = router;

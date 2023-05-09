@@ -15,6 +15,7 @@ module.exports.ActivityLog = require('./activityLog.model');
 module.exports.Feedback = require('./feedback.model');
 module.exports.BugReport = require('./bugReport.model');
 module.exports.FAQ = require('./FAQ.model');
+module.exports.LenderInstituteNotes = require('./lenderInstituteNotes.model');
 module.exports.Task = require('./task.model');
 module.exports.DealDocument = require('./dealDocument.model');
 module.exports.Token = require('./token.model');

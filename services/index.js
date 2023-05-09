@@ -16,6 +16,7 @@ module.exports.dealDocumentService = require('./dealDocument.service');
 module.exports.authService = require('./auth.service');
 module.exports.feedbackService = require('./feedback.service');
 module.exports.bugReportService = require('./bugReport.service');
+module.exports.lenderInstituteNotesService = require('./lenderInstituteNotes.service');
 module.exports.emailService = require('./email.service');
 module.exports.tokenService = require('./token.service');
 module.exports.passportService = require('./passport.service');
