@@ -67,7 +67,6 @@ export const createLenderPlacement = {
     lendingDetails: Joi.array().items(
       Joi.object().keys({
         lendingInstitution: Joi.objectId().required(),
-        lenderProgram: Joi.objectId().required(),
         deal: Joi.objectId().required(),
       })
     ),

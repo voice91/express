@@ -34,10 +34,9 @@ export async function getLenderPlacementListWithPagination(filter, options = {})
 }
 
 export async function createLenderPlacement(body) {
-  if (body.lendingInstitution && body.lenderProgram) {
+  if (body.lendingInstitution) {
     const lenderPlacement = await LenderPlacement.findOne({
       lendingInstitution: body.lendingInstitution,
-      lenderProgram: body.lenderProgram,
       deal: body.deal,
     });
     if (lenderPlacement) {
