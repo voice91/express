@@ -55,7 +55,7 @@ export const get = catchAsync(async (req, res) => {
   const filter = {
     _id: taskId,
   };
-  const options = {};
+  const options = { populate: [{ path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }] };
   const task = await taskService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: task });
 });
@@ -78,7 +78,7 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['limit', 'page']),
-    populate: { path: 'user' },
+    populate: [{ path: 'user' }, { path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }],
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
@@ -147,6 +147,11 @@ export const update = catchAsync(async (req, res) => {
     delete body.taskDocuments;
   }
   const options = { new: true };
+  if (body.askingPartyInstitute) {
+    body.$unset = { askingPartyAdvisor: '' };
+  } else if (body.askingPartyAdvisor) {
+    body.$unset = { askingPartyInstitute: '' };
+  }
   const taskResult = await taskService.updateTask(filter, body, options);
   // tempS3
   if (taskResult) {

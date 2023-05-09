@@ -54,7 +54,7 @@ export const get = catchAsync(async (req, res) => {
   const filter = {
     _id: taskId,
   };
-  const options = {};
+  const options = { populate: [{ path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }] };
   const task = await taskService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: task });
 });
@@ -77,6 +77,7 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['limit', 'page']),
+    populate: [{ path: 'user' }, { path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }],
   };
   if (sortingObj.sort) {
     options.sort = sortObj;

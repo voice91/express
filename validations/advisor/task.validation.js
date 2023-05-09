@@ -14,7 +14,8 @@ export const createTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string().required(),
     taskAnswer: Joi.string(),
-    askingParty: Joi.string(),
+    askingPartyAdvisor: Joi.objectId(),
+    askingPartyInstitute: Joi.objectId(),
     deal: Joi.objectId().required(),
     taskDocuments: Joi.array().items(taskDocumentSchema),
   }),
@@ -24,7 +25,8 @@ export const updateTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string(),
     taskAnswer: Joi.string(),
-    askingParty: Joi.string(),
+    askingPartyAdvisor: Joi.objectId(),
+    askingPartyInstitute: Joi.objectId(),
     deal: Joi.objectId().required(),
     taskDocuments: Joi.array().items(taskDocumentSchema),
   }),

@@ -45,9 +45,13 @@ const TaskSchema = new mongoose.Schema(
     /**
      * Question from the advisor(user collection table)
      * */
-    askingParty: {
+    askingPartyAdvisor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+    },
+    askingPartyInstitute: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LendingInstitution',
     },
     /**
      * Free text response, from the borrower (the advisor can also answer on behalf of the borrower)
