@@ -51,9 +51,30 @@ const ActivityLogSchema = new mongoose.Schema(
     user: {
       type: String,
     },
+    // isEnabled: {
+    //   type: Boolean,
+    //   default: true,
+    // },
   },
-  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
+  { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }
 );
+
+// Define the toJSON transform method for the DealNotesSchema options object
+// ActivityLogSchema.options.toJSON.transform = function (doc, { createdAt, ...ret }) {
+//   if (createdAt) {
+//     const timeDiff = Date.now() - createdAt.getTime();
+//     if (timeDiff >= 60 * 1000) {
+//       if (doc.type === enumModel.EnumOfActivityType.NOTE) {
+//         // Set isEnabled property to false
+//         // eslint-disable-next-line no-param-reassign
+//         ret.isEnabled = false;
+//       }
+//     }
+//   }
+//   // Return the ret object
+//   return ret;
+// };
+
 ActivityLogSchema.plugin(toJSON);
 ActivityLogSchema.plugin(mongoosePaginateV2);
 ActivityLogSchema.plugin(softDelete, {

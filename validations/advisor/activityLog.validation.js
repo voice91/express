@@ -41,6 +41,14 @@ export const deleteActivityLogById = {
 
 export const getActivityLog = {
   body: Joi.object().keys({}).unknown(true),
+  query: Joi.object()
+    .keys({
+      page: Joi.string(),
+      limit: Joi.string(),
+      sort: Joi.string(),
+      order: Joi.string().valid('asc', 'desc').default('asc'),
+    })
+    .unknown(true),
 };
 
 export const paginatedActivityLog = {

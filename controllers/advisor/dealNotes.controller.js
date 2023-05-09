@@ -81,8 +81,8 @@ export const create = catchAsync(async (req, res) => {
   const dealNotes = await dealNotesService.createDealNotes(body, options);
 
   const createActivityLogBody = {
-    createdBy: req.user._id,
-    updatedBy: req.user._id,
+    createdBy: req.user,
+    updatedBy: req.user,
     update: dealNotes.content,
     deal: dealNotes.deal,
     type: EnumOfActivityType.NOTE,

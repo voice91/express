@@ -31,7 +31,17 @@ export const list = catchAsync(async (req, res) => {
   const filter = {
     ...queryParams,
   };
-  const options = {};
+  const sortingObj = pick(query, ['sort', 'order']);
+  const sortObj = {
+    [sortingObj.sort]: sortingObj.order,
+  };
+  const options = {
+    ...pick(query, ['limit', 'page']),
+    populate: { path: 'createdBy' },
+  };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const activityLog = await activityLogService.getActivityLogList(filter, options);
   return res.status(httpStatus.OK).send({ results: activityLog });
 });
