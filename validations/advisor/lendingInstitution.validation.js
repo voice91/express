@@ -60,6 +60,22 @@ export const paginatedLendingInstitution = {
     .keys({
       page: Joi.number().default(1),
       limit: Joi.number().default(10).max(100),
+      loanType: Joi.string(),
+      propertyType: Joi.string(),
+      statesArray: Joi.string(),
+      lenderInstitute: Joi.string(),
+      loanSize: Joi.number(),
+      lenderType: Joi.string(),
+      lenderNameVisible: Joi.string(),
+      sort: Joi.string().valid(
+        'loanType',
+        'propertyType',
+        'statesArray',
+        'lenderInstitute',
+        'loanSize',
+        'lenderType',
+        'lenderNameVisible'
+      ),
     })
     .unknown(true),
 };
