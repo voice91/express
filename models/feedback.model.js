@@ -41,8 +41,8 @@ const FeedbackSchema = new mongoose.Schema(
     /**
      * Image for Feedback
      * */
-    image: {
-      type: String,
+    images: {
+      type: [String],
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
