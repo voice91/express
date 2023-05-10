@@ -6,6 +6,8 @@ import httpStatus from 'http-status';
 import { activityLogService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import { ActivityLog } from '../../models';
+import ApiError from '../../utils/ApiError';
 
 export const get = catchAsync(async (req, res) => {
   const { activityLogId } = req.params;
@@ -84,6 +86,10 @@ export const update = catchAsync(async (req, res) => {
     _id: activityLogId,
   };
   const options = { new: true };
+  const data = await ActivityLog.findOne(filter);
+  if (data.type === 'activity') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'It has Activity Type which is not Accepted..!!');
+  }
   const activityLog = await activityLogService.updateActivityLog(filter, body, options);
   return res.status(httpStatus.OK).send({ results: activityLog });
 });
@@ -93,6 +99,10 @@ export const remove = catchAsync(async (req, res) => {
   const filter = {
     _id: activityLogId,
   };
+  const data = await ActivityLog.findOne(filter);
+  if (data.type === 'activity') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'It has Activity Type which is not Accepted..!!');
+  }
   const activityLog = await activityLogService.removeActivityLog(filter);
   return res.status(httpStatus.OK).send({ results: activityLog });
 });
