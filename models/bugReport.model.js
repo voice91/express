@@ -48,8 +48,8 @@ const BugReportSchema = new mongoose.Schema(
     /**
      * Image for Bug Report
      * */
-    image: {
-      type: String,
+    images: {
+      type: [String],
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }

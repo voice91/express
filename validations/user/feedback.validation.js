@@ -11,6 +11,6 @@ export const createFeedback = {
   body: Joi.object().keys({
     subject: Joi.string().required(),
     description: Joi.string().required(),
-    image: Joi.string(),
+    images: Joi.array().items(Joi.string()),
   }),
 };

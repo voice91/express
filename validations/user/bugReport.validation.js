@@ -12,6 +12,6 @@ export const createBugReport = {
     systemOperation: Joi.string().required(),
     browser: Joi.string().required(),
     description: Joi.string().required(),
-    image: Joi.string(),
+    images: Joi.array().items(Joi.string()),
   }),
 };
