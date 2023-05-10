@@ -34,18 +34,16 @@ export async function getLenderPlacementListWithPagination(filter, options = {})
 }
 
 export async function createLenderPlacement(body) {
-  if (body.lendingInstitution) {
-    const lenderPlacement = await LenderPlacement.findOne({
-      lendingInstitution: body.lendingInstitution,
-      deal: body.deal,
-    });
-    if (lenderPlacement) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Some lending institute are part of deal');
-    }
-  }
-  const lendingInstitution = await LendingInstitution.findOne({ _id: body.lendingInstitution });
-  if (body.lendingInstitution && !lendingInstitution) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'field lendingInstitution is not valid');
+  // find the lending placement that have lending institute and deal both, if exists then throwing error and deal is common for all the institute so taking value of index 0.
+  const lendingPlacement = await LenderPlacement.find({
+    lendingInstitution: { $in: body.map((item) => item.lendingInstitution) },
+    deal: body[0].deal,
+  }).populate({ path: 'lendingInstitution' }); // populating lender institute as we need lender names to display in the error.
+  if (lendingPlacement.length) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `${lendingPlacement.map((item) => item.lendingInstitution.lenderNameVisible)} is already a part of deal`
+    );
   }
   const lenderPlacement = await LenderPlacement.create(body);
   return lenderPlacement;

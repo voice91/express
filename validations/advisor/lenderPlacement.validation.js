@@ -64,12 +64,16 @@ const TermSheetSchema = Joi.object().keys({
 });
 export const createLenderPlacement = {
   body: Joi.object().keys({
-    lendingDetails: Joi.array().items(
-      Joi.object().keys({
-        lendingInstitution: Joi.objectId().required(),
-        deal: Joi.objectId().required(),
-      })
-    ),
+    lendingDetails: Joi.array()
+      .items(
+        Joi.object()
+          .keys({
+            lendingInstitution: Joi.objectId().required(),
+            deal: Joi.objectId().required(),
+          })
+          .required()
+      )
+      .required(),
     lenderContact: Joi.objectId(),
     notes: Joi.array().items(Joi.string()),
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
