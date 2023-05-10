@@ -7,14 +7,14 @@ import ApiError from './ApiError';
 export const getStageUpdateForActivityLogs = (stageName, option) => {
   switch (stageName) {
     case EnumStageOfDeal.PREPARING_MATERIALS:
-      return `${option.dealName} was sent out to lenders`;
+      return `${option.dealName} was Change to Preparing Materials`;
     case EnumStageOfDeal.OUT_IN_MARKET:
-      return `${option.dealName} moved into closing with ${option.lender}`;
+      return `${option.dealName} was sent out to ${option.lender}`;
     case EnumStageOfDeal.CLOSING:
+      return `${option.dealName} moved into closing with ${option.lender}`;
+    case EnumStageOfDeal.CLOSED:
       return `Congratulation, ${option.dealName} closed with ${option.lender}`;
     // todo: in all stageName below from here need to update after get client requirement
-    case EnumStageOfDeal.CLOSED:
-      return `${option.dealName} was closed`;
     case EnumStageOfDeal.NEW:
       return `${option.dealName} was created`;
     case EnumStageOfDeal.ARCHIVE:

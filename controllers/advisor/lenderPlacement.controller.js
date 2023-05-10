@@ -24,6 +24,9 @@ import { sendDealTemplate1Text } from '../../utils/emailContent';
 import enumModel, { EnumOfActivityType } from '../../models/enum.model';
 import config from '../../config/config';
 
+// eslint-disable-next-line import/no-extraneous-dependencies
+const he = require('he');
+
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
   await TempS3.findOneAndUpdate({ url }, { url: newUrl });
@@ -345,11 +348,16 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
   };
   delete body._id;
 
+  const emailContent = req.body.emailContent ? req.body.emailContent : body.emailContent;
+
   const updatedBody = {
     ...body,
     ...req.body,
     ...{ lenderPlacement: getEmailTemplate.lenderPlacement },
     ...{ isFirstTime: false },
+    ...{
+      emailContent: he.decode(emailContent),
+    },
   };
   if (updatedBody.sendTo) {
     const result = updatedBody.sendTo.map((item) => {
