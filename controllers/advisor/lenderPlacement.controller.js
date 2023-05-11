@@ -250,6 +250,7 @@ export const sendDeal = catchAsync(async (req, res) => {
   } else {
     totalLoanAmount = lenderContact.lenderPlacement.terms.totalLoanAmount;
     totalLoanAmount /= 1000000;
+    totalLoanAmount = totalLoanAmount.toFixed(2);
   }
 
   const files = lenderContact.dealDoc.map((doc) => {

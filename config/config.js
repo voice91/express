@@ -37,6 +37,7 @@ const envVarsSchema = Joi.object()
       .description('minutes after which email verification token expires'),
     // 24 hr = 86400000
     FOLLOW_UP_TIME_FOR_SEND_EMAIL: Joi.number().default(86400000),
+    ADMIN_EMAIL_ID: Joi.string().description('Admin Email Id'),
   })
   .unknown();
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -49,6 +50,7 @@ export default {
   activitySystemUser: envVars.ACTIVITY_SYSTEM_USER,
   disabledTimeForNotes: envVars.DISABLED_TIME_FOR_NOTES,
   followUpTimeForSendEmail: envVars.FOLLOW_UP_TIME_FOR_SEND_EMAIL,
+  adminEmailId: envVars.ADMIN_EMAIL_ID,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {
