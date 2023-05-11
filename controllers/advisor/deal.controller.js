@@ -62,6 +62,7 @@ export const get = catchAsync(async (req, res) => {
 });
 
 export const list = catchAsync(async (req, res) => {
+  logger.info('here ---  deal/dealid/ list');
   const { query } = req;
   const user = req.user._id;
   const queryParams = getDealFilterQuery(query);
