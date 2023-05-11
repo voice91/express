@@ -7,7 +7,7 @@ import { activityLogService, dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
-import enumModel, { EnumOfActivityType, EnumStageOfDeal } from '../../models/enum.model';
+import enumModel, { EnumOfActivityType } from '../../models/enum.model';
 import { Deal, Invitation } from '../../models';
 // eslint-disable-next-line import/named
 import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
@@ -166,9 +166,6 @@ export const update = catchAsync(async (req, res) => {
   const deal = await dealService.updateDeal(filter, body, options);
 
   if (body.stage) {
-    if ([EnumStageOfDeal.OUT_IN_MARKET, EnumStageOfDeal.CLOSING].includes(body.stage)) {
-      // todo: need to verify from client that if we have no lender data at time of stage state than need to throw error or what pass in lender
-    }
     const option = {
       dealName: deal.dealName,
       // todo : we have array of lenderPlacement data that what value passed from here. ( array or specific lender)
