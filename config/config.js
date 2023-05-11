@@ -30,10 +30,13 @@ const envVarsSchema = Joi.object()
     GOOGLE_CLIENT_SECRET: Joi.string().required().description('Google Client Secret required'),
     CAPTCHA_SECRET_KEY: Joi.string().required().description('Google Captcha Secret Key required'),
     ACTIVITY_SYSTEM_USER: Joi.string(),
+    // 1 hr = 3600000
     DISABLED_TIME_FOR_NOTES: Joi.number().default(3600000),
     JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: Joi.number()
       .required()
       .description('minutes after which email verification token expires'),
+    // 24 hr = 86400000
+    FOLLOW_UP_TIME_FOR_SEND_EMAIL: Joi.number().default(86400000),
   })
   .unknown();
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -45,6 +48,7 @@ export default {
   port: envVars.PORT,
   activitySystemUser: envVars.ACTIVITY_SYSTEM_USER,
   disabledTimeForNotes: envVars.DISABLED_TIME_FOR_NOTES,
+  followUpTimeForSendEmail: envVars.FOLLOW_UP_TIME_FOR_SEND_EMAIL,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {

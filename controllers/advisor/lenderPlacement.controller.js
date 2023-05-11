@@ -474,7 +474,7 @@ export const sendEmail = catchAsync(async (req, res) => {
   );
 
   await LenderPlacement.findByIdAndUpdate(placementId, {
-    followOnDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
     isEmailSent: enumModel.EnumOfEmailStatus.EMAIL_SENT,
   });
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
