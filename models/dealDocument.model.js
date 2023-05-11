@@ -25,6 +25,9 @@ const documentSchema = new mongoose.Schema(
       required: true,
       default: enumModel.EnumDocumentTypeOfDealDocument.OTHERS,
     },
+    fileDescription: {
+      type: String,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

@@ -13,6 +13,7 @@ const documentSchema = Joi.object().keys({
   documentType: Joi.string()
     .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
     .required(),
+  fileDescription: Joi.string(),
 });
 export const createDealDocument = {
   body: Joi.object().keys({
