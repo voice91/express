@@ -7,6 +7,7 @@
 import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import { toJSON, softDelete } from './plugins';
+import config from '../config/config';
 
 const LenderInstituteNotesSchema = new mongoose.Schema(
   {
@@ -32,9 +33,27 @@ const LenderInstituteNotesSchema = new mongoose.Schema(
       ref: 'LendingInstitution',
       required: true,
     },
+    isEnabled: {
+      type: Boolean,
+      default: true,
+    },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: { createdAt: true, updatedAt: true }, toJSON: { virtuals: true } }
 );
+
+// Define the toJSON transform method for the LenderInstituteNotesSchema options object
+LenderInstituteNotesSchema.options.toJSON.transform = function (doc, { createdAt, ...ret }) {
+  if (createdAt) {
+    const timeDiff = Date.now() - createdAt.getTime();
+    if (timeDiff >= config.disabledTimeForNotes) {
+      // Set isEnabled property to false
+      // eslint-disable-next-line no-param-reassign
+      ret.isEnabled = false;
+    }
+  }
+  // Return the ret object
+  return ret;
+};
 
 LenderInstituteNotesSchema.plugin(toJSON);
 LenderInstituteNotesSchema.plugin(mongoosePaginateV2);
