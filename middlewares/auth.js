@@ -2,10 +2,8 @@ import passport from 'passport';
 import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
 import { TokenExpiredError } from 'jsonwebtoken';
-import { logger } from '../config/logger';
 
 const verifyCallback = (req, resolve, reject, role) => async (err, user, info) => {
-  logger.info('here --- verifyCallback');
   if (err || info || !user) {
     if (info instanceof TokenExpiredError) {
       // This state that token is Invalid and we can send status code 498 so that user can call the refresh token if we have any
@@ -13,7 +11,6 @@ const verifyCallback = (req, resolve, reject, role) => async (err, user, info) =
     }
     return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
   }
-  logger.info(`user --- ${user}`);
   req.user = user;
   if (role && req.user.role !== role) {
     reject(new ApiError(httpStatus.UNAUTHORIZED, 'You does not have permission to access this route!'));

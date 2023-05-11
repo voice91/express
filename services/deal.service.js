@@ -8,7 +8,6 @@ import { Deal, Invitation, User } from 'models';
 import mongoose from 'mongoose';
 import _ from 'lodash';
 import enumModel from '../models/enum.model';
-import { logger } from '../config/logger';
 
 export async function getDealById(id, options = {}) {
   const deal = await Deal.findById(id, options.projection, options);
@@ -22,8 +21,6 @@ export async function getOne(query, options = {}) {
 
 export async function getDealList(filter, options = {}) {
   const deal = await Deal.find(filter, options.projection, options);
-  logger.info(`deal: ${JSON.stringify(deal)}`);
-
   return deal;
 }
 
