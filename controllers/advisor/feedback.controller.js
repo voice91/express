@@ -3,8 +3,9 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { feedbackService } from 'services';
+import { emailService, feedbackService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import config from '../../config/config';
 
 // eslint-disable-next-line import/prefer-default-export
 export const create = catchAsync(async (req, res) => {
@@ -12,6 +13,21 @@ export const create = catchAsync(async (req, res) => {
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
   const options = {};
+  const attachments = body.images.map((item) => {
+    return {
+      fileName: item.fileName,
+      path: item.path,
+    };
+  });
   const feedback = await feedbackService.createFeedback(body, options);
+
+  await emailService.sendFeedbackEmail({
+    to: config.adminEmailId,
+    from: req.user.email,
+    subject: body.subject,
+    description: body.description,
+    name: req.user.name,
+    attachments,
+  });
   return res.status(httpStatus.CREATED).send({ results: feedback });
 });

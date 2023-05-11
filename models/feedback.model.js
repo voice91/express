@@ -39,11 +39,14 @@ const FeedbackSchema = new mongoose.Schema(
       required: true,
     },
     /**
-     * Image for Feedback
+     * Images for Feedback
      * */
-    images: {
-      type: [String],
-    },
+    images: [
+      {
+        fileName: String,
+        path: String,
+      },
+    ],
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );

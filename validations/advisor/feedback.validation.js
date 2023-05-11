@@ -11,6 +11,11 @@ export const createFeedback = {
   body: Joi.object().keys({
     subject: Joi.string().required(),
     description: Joi.string().required(),
-    images: Joi.array().items(Joi.string()),
+    images: Joi.array().items(
+      Joi.object({
+        fileName: Joi.string(),
+        path: Joi.string(),
+      })
+    ),
   }),
 };
