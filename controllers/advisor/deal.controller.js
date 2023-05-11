@@ -43,8 +43,12 @@ export const get = catchAsync(async (req, res) => {
     invitee: { $in: dealMembers.map((item) => item._id) },
   };
   const userInInvitation = await Invitation.find(InvitationFilter);
+
+  logger.log(`===userInInvitation=>`, userInInvitation);
   deal.involvedUsers.borrowers = deal.involvedUsers.borrowers.map((item) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
+    logger.log(`value==invitation==>`, invitation);
+    logger.log(`value==item==>`, item);
     return {
       ...item,
       updatedAt: invitation.updatedAt,
@@ -62,7 +66,6 @@ export const get = catchAsync(async (req, res) => {
 });
 
 export const list = catchAsync(async (req, res) => {
-  logger.info('here ---  deal/dealid/ list');
   const { query } = req;
   const user = req.user._id;
   const queryParams = getDealFilterQuery(query);
@@ -80,7 +83,6 @@ export const list = catchAsync(async (req, res) => {
     populate: [{ path: 'notes' }, { path: 'documents' }, { path: 'task' }],
   };
 
-  logger.info(`list api calling with  ${filter} option: ${options}`);
   const deal = await dealService.getDealList(filter, options);
   return res.status(httpStatus.OK).send({ results: deal });
 });
