@@ -12,7 +12,7 @@ import { Deal, Invitation } from '../../models';
 // eslint-disable-next-line import/named
 import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
 import config from '../../config/config';
-import { logger } from '../../config/logger';
+import ApiError from '../../utils/ApiError';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -44,31 +44,25 @@ export const get = catchAsync(async (req, res) => {
   };
   const userInInvitation = await Invitation.find(InvitationFilter);
 
-  logger.info(`===userInInvitation=> ${JSON.stringify(userInInvitation)}`);
   deal.involvedUsers.borrowers = deal.involvedUsers.borrowers.map((item) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
-    logger.info(`value==invitation==>${JSON.stringify(invitation)}`);
-    logger.info(`value==item==> ${JSON.stringify(item)}`);
+    if (!invitation) {
+      throw new ApiError(`system error, user don/'t have invitation for this deal`);
+    }
     return {
       ...item,
       updatedAt: invitation.updatedAt,
     };
   });
 
-  logger.info(`value==item==>`);
-
   deal.involvedUsers.advisors = deal.involvedUsers.advisors.map((item) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
-    logger.info(`aa -- value==item==> ${JSON.stringify(item)}`);
-    logger.info(`aa -- value==invitation==> ${JSON.stringify(invitation)}`);
 
     return {
       ...item,
       updatedAt: invitation ? invitation.updatedAt : deal.createdAt,
     };
   });
-
-  logger.info(`value==item==>`);
 
   return res.status(httpStatus.OK).send({ results: deal });
 });
