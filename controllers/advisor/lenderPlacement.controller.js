@@ -140,16 +140,13 @@ export const create = catchAsync(async (req, res) => {
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
-  await Promise.all(
-    body.lendingDetails.map(async (lendingInstitute) => {
-      const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(lendingInstitute, options);
-      if (lenderPlacementResult) {
-        const uploadedFileUrls = [];
-        uploadedFileUrls.push(lenderPlacementResult.termSheet);
-        await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
-      }
-    })
-  );
+  // Before it was throwing for already added institute but allowing other institute to get added that we don't want now, so directly sending array instead of promise.all
+  const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(body.lendingDetails, options);
+  if (lenderPlacementResult) {
+    const uploadedFileUrls = [];
+    uploadedFileUrls.push(lenderPlacementResult.termSheet);
+    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+  }
   return res.status(httpStatus.CREATED).send({ results: 'Lender added to the deal' });
 });
 
