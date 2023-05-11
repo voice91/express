@@ -12,6 +12,7 @@ import { Deal, Invitation } from '../../models';
 // eslint-disable-next-line import/named
 import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
 import config from '../../config/config';
+import { logger } from '../../config/logger';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -77,6 +78,8 @@ export const list = catchAsync(async (req, res) => {
     ...pick(query, ['sort', 'limit', 'page']),
     populate: [{ path: 'notes' }, { path: 'documents' }, { path: 'task' }],
   };
+
+  logger.info(`list api calling with  ${filter} option: ${options}`);
   const deal = await dealService.getDealList(filter, options);
   return res.status(httpStatus.OK).send({ results: deal });
 });
