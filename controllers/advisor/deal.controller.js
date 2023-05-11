@@ -44,23 +44,31 @@ export const get = catchAsync(async (req, res) => {
   };
   const userInInvitation = await Invitation.find(InvitationFilter);
 
-  logger.log(`===userInInvitation=>`, userInInvitation);
+  logger.info(`===userInInvitation=> ${JSON.stringify(userInInvitation)}`);
   deal.involvedUsers.borrowers = deal.involvedUsers.borrowers.map((item) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
-    logger.log(`value==invitation==>`, invitation);
-    logger.log(`value==item==>`, item);
+    logger.info(`value==invitation==>${JSON.stringify(invitation)}`);
+    logger.info(`value==item==> ${JSON.stringify(item)}`);
     return {
       ...item,
       updatedAt: invitation.updatedAt,
     };
   });
+
+  logger.info(`value==item==>`);
+
   deal.involvedUsers.advisors = deal.involvedUsers.advisors.map((item) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
+    logger.info(`aa -- value==item==> ${JSON.stringify(item)}`);
+    logger.info(`aa -- value==invitation==> ${JSON.stringify(invitation)}`);
+
     return {
       ...item,
       updatedAt: invitation ? invitation.updatedAt : deal.createdAt,
     };
   });
+
+  logger.info(`value==item==>`);
 
   return res.status(httpStatus.OK).send({ results: deal });
 });
