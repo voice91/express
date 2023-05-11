@@ -356,6 +356,9 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
     ...{ lenderPlacement: getEmailTemplate.lenderPlacement },
     ...{ isFirstTime: false },
     ...{
+      /*
+       * he (for “HTML entities”) is a robust HTML entity encoder/decoder written in JavaScript
+       * */
       emailContent: he.decode(emailContent),
     },
   };
