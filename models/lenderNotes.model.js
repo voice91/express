@@ -58,6 +58,7 @@ const LenderNotesSchema = new mongoose.Schema(
   },
   { timestamps: { createdAt: true, updatedAt: true }, toJSON: { virtuals: true } }
 );
+// TODO: we can pass var from option in place of taking update doc
 // We don't want updatedAt to be changed when we pass the field isPinned and isFlagged as we are also sorting the notes by updatedAt field
 LenderNotesSchema.pre('findOneAndUpdate', function (next) {
   const update = this.getUpdate();
