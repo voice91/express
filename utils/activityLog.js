@@ -7,7 +7,7 @@ import ApiError from './ApiError';
 export const getStageUpdateForActivityLogs = (stageName, option) => {
   switch (stageName) {
     case EnumStageOfDeal.OUT_IN_MARKET:
-      return `${option.dealName} was sent out to ${option.lender}`;
+      return `${option.dealName} was sent out to lenders`;
     case EnumStageOfDeal.CLOSING:
       return `${option.dealName} moved into closing with ${option.lender}`;
     case EnumStageOfDeal.CLOSED:
