@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import enumModel, { EnumOfActivityType } from '../../models/enum.model';
-import { Deal, Invitation } from '../../models';
+import { Deal, Invitation, LenderPlacement } from '../../models';
 // eslint-disable-next-line import/named
 import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
 import config from '../../config/config';
@@ -173,12 +173,14 @@ export const update = catchAsync(async (req, res) => {
   const options = { new: true };
   const deal = await dealService.updateDeal(filter, body, options);
 
+  const lenderPlacement = await LenderPlacement.find({ deal: dealId }).populate([{ path: 'lendingInstitution' }]);
+
+  const lenderName = lenderPlacement.map((lp) => lp.lendingInstitution.lenderNameVisible);
+
   if (body.stage) {
     const option = {
       dealName: deal.dealName,
-      // todo : we have array of lenderPlacement data that what value passed from here. ( array or specific lender)
-      // if specific lender that need to pass from postman body.
-      lender: _.isEmpty(deal.lenderPlacement) ? '' : deal.lenderPlacement,
+      lender: _.isEmpty(lenderName) ? '' : lenderName,
     };
     const createActivityLogBody = {
       createdBy: req.user._id,
