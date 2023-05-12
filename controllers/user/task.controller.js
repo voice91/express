@@ -134,3 +134,19 @@ export const remove = catchAsync(async (req, res) => {
   const task = await taskService.removeTask(filter);
   return res.status(httpStatus.OK).send({ results: task });
 });
+
+// removing single document from task documents array
+export const removeTaskDocument = catchAsync(async (req, res) => {
+  const { taskDocumentId } = req.params;
+  const filter = {
+    'taskDocuments._id': taskDocumentId,
+  };
+  const updateDocument = {
+    $pull: { taskDocuments: { _id: taskDocumentId } },
+  };
+  const options = {
+    new: true,
+  };
+  const dealDocument = await taskService.updateTask(filter, updateDocument, options);
+  return res.status(httpStatus.OK).send({ results: dealDocument });
+});

@@ -36,4 +36,7 @@ router
    * deleteTaskById
    * */
   .delete(auth('advisor'), validate(taskValidation.deleteTaskById), taskController.remove);
+router
+  .route('/taskDocument/:taskDocumentId')
+  .delete(auth('advisor'), validate(taskValidation.deleteTaskDocument), taskController.removeTaskDocument);
 export default router;
