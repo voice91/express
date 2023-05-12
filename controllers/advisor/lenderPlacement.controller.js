@@ -169,6 +169,10 @@ export const update = catchAsync(async (req, res) => {
     body.termSheet = encodeUrl(body.termSheet);
     body.termSheet = { url: body.termSheet, fileName };
   }
+  if (body.terms) {
+    const futureFunding = body.terms.futureFunding ? body.terms.futureFunding : 0;
+    body.terms.totalLoanAmount = body.terms.initialFunding + futureFunding;
+  }
   const options = {
     new: true,
     populate: [{ path: 'lendingInstitution' }, { path: 'lenderContact' }, { path: 'notes' }, { path: 'lenderAllContacts' }],
