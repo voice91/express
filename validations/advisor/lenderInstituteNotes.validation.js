@@ -31,8 +31,10 @@ export const getLenderInstituteNotes = {
 
 export const updateLenderInstituteNotes = {
   body: Joi.object().keys({
-    content: Joi.string().required(),
+    content: Joi.string(),
     lenderInstitute: Joi.objectId().required(),
+    isPinned: Joi.boolean(),
+    isFlagged: Joi.boolean(),
   }),
   params: Joi.object().keys({
     lenderInstituteNotesId: Joi.objectId().required(),

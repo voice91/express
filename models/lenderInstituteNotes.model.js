@@ -28,6 +28,13 @@ const LenderInstituteNotesSchema = new mongoose.Schema(
     content: {
       type: String,
     },
+    isPinned: {
+      type: Boolean,
+      default: false,
+    },
+    isFlagged: {
+      type: Boolean,
+    },
     lenderInstitute: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LendingInstitution',
@@ -40,7 +47,16 @@ const LenderInstituteNotesSchema = new mongoose.Schema(
   },
   { timestamps: { createdAt: true, updatedAt: true }, toJSON: { virtuals: true } }
 );
-
+// TODO: we can pass var from option in place of taking update doc
+// We don't want updatedAt to be changed when we pass the field isPinned and isFlagged as we are also sorting the notes by updatedAt field
+LenderInstituteNotesSchema.pre('findOneAndUpdate', function (next) {
+  const update = this.getUpdate();
+  // in operator is used to check if the field 'isPinned' or 'isFlagged' exist in the update object
+  if ('isPinned' in update || 'isFlagged' in update) {
+    delete update.$set.updatedAt;
+  }
+  next();
+});
 // Define the toJSON transform method for the LenderInstituteNotesSchema options object
 LenderInstituteNotesSchema.options.toJSON.transform = function (doc, { createdAt, ...ret }) {
   if (createdAt) {
