@@ -154,7 +154,7 @@ text-align: center
   <div>${userName} invited you to the ${isDealCreated ? 'new' : ''} deal, <b>${dealName} </b></div><br>
   <div>Please <a class="text-center" target="_blank" href="${
     config.front.url
-  }/login" >click here</a> to access the deal</div><br><br>
+  }/register" >click here</a> to access the deal</div><br><br>
   <div>Thank You,</div>
   <div>The Parallel Team</div>
   </div>
