@@ -57,7 +57,9 @@ export const list = catchAsync(async (req, res) => {
     ...queryParams,
   };
   const sortingObj = pick(query, ['sort', 'order']);
+  // we have to sort the notes on the basis of pinned notes to be at the top and then the notes according to their updatedAt value
   const sortObj = {
+    isPinned: 'desc',
     [sortingObj.sort]: sortingObj.order,
   };
   const options = {
@@ -85,7 +87,7 @@ export const get = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  body.updatedBy = req.user;
+  body.updatedBy = req.user._id;
   const { dealNotesId } = req.params;
   body.user = req.user._id;
   const user = req.user._id;

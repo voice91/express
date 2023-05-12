@@ -8,8 +8,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 export const createLenderNotes = {
   body: Joi.object().keys({
-    pinnedByUsers: Joi.array().items(Joi.objectId()),
-    flagedByUser: Joi.array().items(Joi.objectId()),
     content: Joi.string().required(),
     lastReadBy: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.objectId().required(),
@@ -19,9 +17,9 @@ export const createLenderNotes = {
 
 export const updateLenderNotes = {
   body: Joi.object().keys({
-    pinnedByUsers: Joi.array().items(Joi.objectId()),
-    flagedByUser: Joi.array().items(Joi.objectId()),
-    content: Joi.string().required(),
+    isPinned: Joi.boolean(),
+    isFlagged: Joi.boolean(),
+    content: Joi.string(),
     lastReadBy: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.objectId().required(),
   }),
