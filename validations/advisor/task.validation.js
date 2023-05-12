@@ -66,3 +66,8 @@ export const paginatedTask = {
     })
     .unknown(true),
 };
+export const deleteTaskDocument = {
+  params: Joi.object().keys({
+    taskDocumentId: Joi.objectId().required(),
+  }),
+};
