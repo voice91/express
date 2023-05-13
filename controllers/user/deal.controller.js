@@ -89,6 +89,7 @@ export const paginate = catchAsync(async (req, res) => {
       { 'involvedUsers.borrowers': user },
       { 'involvedUsers.lenders': user },
     ],
+    stage: { $ne: 'archive' },
     ...queryParams,
   };
   const options = {
