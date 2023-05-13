@@ -12,6 +12,13 @@ router
    * createDealNotes
    * */
   .post(auth('advisor'), validate(dealNotesValidation.createDealNotes), checkAccessOfDeal, dealNotesController.create);
+
+router
+  .route('/deal/list-all-notes/:dealId')
+  /**
+   * getDealNotes
+   * */
+  .get(auth('advisor'), validate(dealNotesValidation.getAllDealNotes), dealNotesController.listAllDealNotes);
 router
   .route('/deal/:dealId')
   /**
