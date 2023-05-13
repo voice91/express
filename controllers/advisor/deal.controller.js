@@ -176,11 +176,13 @@ export const update = catchAsync(async (req, res) => {
   const lenderPlacement = await LenderPlacement.find({ deal: dealId }).populate([{ path: 'lendingInstitution' }]);
 
   const lenderName = lenderPlacement.map((lp) => lp.lendingInstitution.lenderNameVisible);
+  const lenders = _.isEmpty(lenderName) ? '' : lenderName;
+  const lender = lenders.join(', ');
 
   if (body.stage) {
     const option = {
       dealName: deal.dealName,
-      lender: _.isEmpty(lenderName) ? '' : lenderName,
+      lender,
     };
     const createActivityLogBody = {
       createdBy: req.user._id,

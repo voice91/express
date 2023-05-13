@@ -12,6 +12,8 @@ export const getStageUpdateForActivityLogs = (stageName, option) => {
       return `${option.dealName} moved into closing with ${option.lender}`;
     case EnumStageOfDeal.CLOSED:
       return `Congratulation, ${option.dealName} closed with ${option.lender}`;
+    case EnumStageOfDeal.ARCHIVE:
+      return `${option.dealName} was archived`;
     case EnumStageOfDeal.NEW:
       return `${option.dealName} was created`;
     default:
