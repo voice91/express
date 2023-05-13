@@ -136,15 +136,12 @@ export const update = catchAsync(async (req, res) => {
     _id: taskId,
   };
   // added this condition because it was adding null values in db when we were not uploading any task document as it is not required field.
+  // before we use to push all the data in the array but instead of integrating the delete api for deleting the documents, we are directly passing the documents in the body while updating the response
   if (body.taskDocuments) {
     const fileName = taskDocuments.map((item) => item.fileName);
-    body.$push = {};
-    body.$push.taskDocuments = body.taskDocuments.map((item, index) => {
+    body.taskDocuments = body.taskDocuments.map((item, index) => {
       return { url: encodeUrl(item), fileName: fileName[index] };
     });
-    // taskDocument is also in taskResult and $push so it gets confuse which task document to choose so using delete for it.
-    // Without delete we'll get the error: "Updating the path 'taskDocuments' would create a conflict at 'taskDocuments'"
-    delete body.taskDocuments;
   }
   const options = { new: true };
   if (body.askingPartyInstitute) {
