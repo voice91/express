@@ -5,8 +5,10 @@
 import httpStatus from 'http-status';
 import { activityLogService, dealNotesService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import { flatMap, uniq } from 'lodash';
 import { pick } from '../../utils/pick';
 import { EnumOfActivityType } from '../../models/enum.model';
+import { Deal } from '../../models';
 
 const getDealNotesFilterQuery = (query) => {
   const filter = pick(query, ['deal']);
@@ -48,6 +50,38 @@ export const list = catchAsync(async (req, res) => {
     options.sort = sortObj;
   }
   const dealNotes = await dealNotesService.getDealNotesList(filter, options);
+  return res.status(httpStatus.OK).send({ results: dealNotes });
+});
+
+export const listAllDealNotes = catchAsync(async (req, res) => {
+  const getDeal = await Deal.find({ _id: req.params.dealId }).select('involvedUsers _id');
+
+  const queryForBorrower = req.query.borrower;
+  const queryForAdvisor = req.query.advisor;
+
+  const getAllInvolvedUserIds = uniq(
+    flatMap(
+      getDeal
+        .map((item) => {
+          if (queryForBorrower && queryForAdvisor) {
+            return [item.involvedUsers.lenders, item.involvedUsers.borrowers, item.involvedUsers.advisors];
+          }
+          if (queryForAdvisor) {
+            return [item.involvedUsers.advisors];
+          }
+          if (queryForBorrower) {
+            return [item.involvedUsers.borrowers];
+          }
+          return [item.involvedUsers.lenders, item.involvedUsers.borrowers, item.involvedUsers.advisors];
+        })
+        .flat()
+    ).map((item) => item.toString())
+  );
+
+  const getDealId = getDeal.map((deal) => deal._id);
+  const dealNotes = await dealNotesService.getDealNotesList({
+    $and: [{ user: { $in: getAllInvolvedUserIds } }, { deal: { $in: getDealId } }],
+  });
   return res.status(httpStatus.OK).send({ results: dealNotes });
 });
 

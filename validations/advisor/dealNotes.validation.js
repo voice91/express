@@ -54,6 +54,18 @@ export const getDealNotes = {
     .unknown(true),
 };
 
+export const getAllDealNotes = {
+  params: Joi.object().keys({
+    dealId: Joi.objectId().required(),
+  }),
+  query: Joi.object()
+    .keys({
+      borrower: Joi.boolean(),
+      advisor: Joi.boolean(),
+    })
+    .unknown(true),
+};
+
 export const paginatedDealNotes = {
   body: Joi.object().keys({}).unknown(true),
   params: Joi.object().keys({
