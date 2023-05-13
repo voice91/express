@@ -1,7 +1,5 @@
 // eslint-disable-next-line import/prefer-default-export
-import httpStatus from 'http-status';
 import { EnumStageOfDeal } from '../models/enum.model';
-import ApiError from './ApiError';
 
 // eslint-disable-next-line import/prefer-default-export
 export const getStageUpdateForActivityLogs = (oldStage, newStage, option) => {
@@ -31,9 +29,6 @@ export const getStageUpdateForActivityLogs = (oldStage, newStage, option) => {
       return null;
     }
     default:
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'invalid enum stage of deal-type or we are not support it for activity logs'
-      );
+      return null;
   }
 };
