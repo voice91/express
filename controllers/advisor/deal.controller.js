@@ -172,6 +172,9 @@ export const update = catchAsync(async (req, res) => {
     user,
   };
   const options = { new: true };
+  const dealStage = await Deal.find(filter);
+
+  const oldStage = dealStage.map((item) => item.stage).toString();
   const deal = await dealService.updateDeal(filter, body, options);
 
   const lenderPlacement = await LenderPlacement.find({ deal: dealId }).populate([{ path: 'lendingInstitution' }]);
@@ -179,8 +182,8 @@ export const update = catchAsync(async (req, res) => {
   const lenderName = lenderPlacement.map((lp) => lp.lendingInstitution.lenderNameVisible);
   const lenders = _.isEmpty(lenderName) ? '' : lenderName;
   const lender = lenders.join(', ');
-
-  if (body.stage) {
+  const newStage = body.stage;
+  if (newStage) {
     const option = {
       dealName: deal.dealName,
       lender,
@@ -188,12 +191,14 @@ export const update = catchAsync(async (req, res) => {
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
-      update: getStageUpdateForActivityLogs(body.stage, option),
+      update: getStageUpdateForActivityLogs(oldStage, newStage, option),
       deal: deal.id,
       type: EnumOfActivityType.ACTIVITY,
       user: config.activitySystemUser || 'system',
     };
-    await activityLogService.createActivityLog(createActivityLogBody);
+    if (createActivityLogBody.update) {
+      await activityLogService.createActivityLog(createActivityLogBody);
+    }
   }
 
   return res.status(httpStatus.OK).send({ results: 'deal' });

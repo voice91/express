@@ -323,7 +323,7 @@ export const getTemplateByTemplateId = catchAsync(async (req, res) => {
   const filter = {
     _id: emailTemplateId,
   };
-  const getEmailTemplate = await EmailTemplate.findOne(filter);
+  const getEmailTemplate = await EmailTemplate.findOne(filter).populate('deal');
   if (!getEmailTemplate) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id!');
   }

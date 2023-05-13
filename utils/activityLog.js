@@ -4,18 +4,32 @@ import { EnumStageOfDeal } from '../models/enum.model';
 import ApiError from './ApiError';
 
 // eslint-disable-next-line import/prefer-default-export
-export const getStageUpdateForActivityLogs = (stageName, option) => {
-  switch (stageName) {
-    case EnumStageOfDeal.OUT_IN_MARKET:
-      return `${option.dealName} was sent out to lenders`;
-    case EnumStageOfDeal.CLOSING:
-      return `${option.dealName} moved into closing with ${option.lender}`;
-    case EnumStageOfDeal.CLOSED:
-      return `Congratulation, ${option.dealName} closed with ${option.lender}`;
-    case EnumStageOfDeal.ARCHIVE:
-      return `${option.dealName} was archived`;
-    case EnumStageOfDeal.NEW:
-      return `${option.dealName} was created`;
+export const getStageUpdateForActivityLogs = (oldStage, newStage, option) => {
+  switch (oldStage) {
+    case EnumStageOfDeal.PREPARING_MATERIALS: {
+      if (newStage === EnumStageOfDeal.OUT_IN_MARKET) {
+        return `${option.dealName} was sent out to lenders`;
+      }
+      return null;
+    }
+    case EnumStageOfDeal.OUT_IN_MARKET: {
+      if (newStage === EnumStageOfDeal.CLOSING) {
+        return `${option.dealName} moved into closing with ${option.lender}`;
+      }
+      return null;
+    }
+    case EnumStageOfDeal.CLOSING: {
+      if (newStage === EnumStageOfDeal.CLOSED) {
+        return `Congratulation, ${option.dealName} closed with ${option.lender}`;
+      }
+      return null;
+    }
+    case EnumStageOfDeal.CLOSED: {
+      if (newStage === EnumStageOfDeal.ARCHIVE) {
+        return `${option.dealName} was archived`;
+      }
+      return null;
+    }
     default:
       throw new ApiError(
         httpStatus.BAD_REQUEST,
