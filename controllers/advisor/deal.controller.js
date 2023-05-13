@@ -179,13 +179,17 @@ export const update = catchAsync(async (req, res) => {
 
   const lenderPlacement = await LenderPlacement.find({ deal: dealId }).populate([{ path: 'lendingInstitution' }]);
   let lenderName;
+  let lender;
   if (lenderPlacement.length > 0) {
     lenderName = lenderPlacement.map((lp) => {
       return lp.lendingInstitution.lenderNameVisible;
     });
   }
+
   const lenders = _.isEmpty(lenderName) ? '' : lenderName;
-  const lender = lenders.join(', ');
+  if (!_.isEmpty(lenders)) {
+    lender = lenders.join(', ');
+  }
   const newStage = body.stage;
   if (newStage) {
     const option = {
