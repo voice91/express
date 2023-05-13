@@ -178,8 +178,12 @@ export const update = catchAsync(async (req, res) => {
   const deal = await dealService.updateDeal(filter, body, options);
 
   const lenderPlacement = await LenderPlacement.find({ deal: dealId }).populate([{ path: 'lendingInstitution' }]);
-
-  const lenderName = lenderPlacement.map((lp) => lp.lendingInstitution.lenderNameVisible);
+  let lenderName;
+  if (lenderPlacement.length > 0) {
+    lenderName = lenderPlacement.map((lp) => {
+      return lp.lendingInstitution.lenderNameVisible;
+    });
+  }
   const lenders = _.isEmpty(lenderName) ? '' : lenderName;
   const lender = lenders.join(', ');
   const newStage = body.stage;
