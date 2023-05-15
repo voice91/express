@@ -3,9 +3,12 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { dealNotesService } from 'services';
+import { activityLogService, dealNotesService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import { flatMap, uniq } from 'lodash';
 import { pick } from '../../utils/pick';
+import { EnumOfActivityType } from '../../models/enum.model';
+import { Deal } from '../../models';
 
 const getDealNotesFilterQuery = (query) => {
   const filter = pick(query, ['deal']);
@@ -46,6 +49,15 @@ export const create = catchAsync(async (req, res) => {
   body.user = req.user._id;
   const options = {};
   const dealNotes = await dealNotesService.createDealNotes(body, options);
+  const createActivityLogBody = {
+    createdBy: req.user._id,
+    updatedBy: req.user._id,
+    update: dealNotes.content,
+    deal: dealNotes.deal,
+    type: EnumOfActivityType.NOTE,
+    user: req.user.name,
+  };
+  await activityLogService.createActivityLog(createActivityLogBody);
   return res.status(httpStatus.CREATED).send({ results: dealNotes });
 });
 
@@ -69,7 +81,39 @@ export const list = catchAsync(async (req, res) => {
   if (sortingObj.sort) {
     options.sort = sortObj;
   }
-  const dealNotes = await dealNotesService.getDealNotesList(filter, options);
+
+  const getDeal = await Deal.find({ _id: req.params.dealId }).select('involvedUsers _id');
+
+  const queryForBorrower = req.query.borrower;
+  const queryForAdvisor = req.query.advisor;
+
+  const getAllInvolvedUserIds = uniq(
+    flatMap(
+      getDeal
+        .map((item) => {
+          if (queryForBorrower && queryForAdvisor) {
+            return [item.involvedUsers.lenders, item.involvedUsers.borrowers, item.involvedUsers.advisors];
+          }
+          if (queryForAdvisor) {
+            return [item.involvedUsers.advisors];
+          }
+          if (queryForBorrower) {
+            return [item.involvedUsers.borrowers];
+          }
+          return [item.involvedUsers.lenders, item.involvedUsers.borrowers, item.involvedUsers.advisors];
+        })
+        .flat()
+    ).map((item) => item.toString())
+  );
+  const getDealId = getDeal.map((deal) => deal._id);
+  const dealNotes = await dealNotesService.getDealNotesList(
+    {
+      $and: [{ user: { $in: getAllInvolvedUserIds } }, { deal: { $in: getDealId } }],
+      ...filter,
+    },
+    options
+  );
+
   return res.status(httpStatus.OK).send({ results: dealNotes });
 });
 

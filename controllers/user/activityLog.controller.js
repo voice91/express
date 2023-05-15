@@ -6,7 +6,15 @@ import httpStatus from 'http-status';
 import { activityLogService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import { Deal } from '../../models';
 
+const getActivityLogFilterQuery = (query) => {
+  const filter = pick(query, []);
+  if (query.search) {
+    filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { lastName: new RegExp(query.search, 'i') }];
+  }
+  return filter;
+};
 export const get = catchAsync(async (req, res) => {
   const { activityLogId } = req.params;
   const filter = {
@@ -18,9 +26,28 @@ export const get = catchAsync(async (req, res) => {
 });
 
 export const list = catchAsync(async (req, res) => {
-  const filter = {};
-  const options = {};
-  const activityLog = await activityLogService.getActivityLogList(filter, options);
+  const { query } = req;
+  const queryParams = getActivityLogFilterQuery(query);
+  const user = req.user._id;
+  const filter = {
+    ...queryParams,
+  };
+
+  const sortingObj = pick(query, ['sort', 'order']);
+  const sortObj = {
+    [sortingObj.sort]: sortingObj.order,
+  };
+  const options = {
+    ...pick(query, ['limit', 'page']),
+    populate: { path: 'createdBy' },
+  };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
+  const allDeals = await Deal.find({ 'involvedUsers.borrowers': user }).select('_id');
+  const dealIds = allDeals.map((item) => item._id);
+
+  const activityLog = await activityLogService.getActivityLogList({ deal: { $in: dealIds }, ...filter }, options);
   return res.status(httpStatus.OK).send({ results: activityLog });
 });
 
