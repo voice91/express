@@ -106,8 +106,8 @@ const LenderContactSchema = new mongoose.Schema(
      */
     zipcode: {
       type: Number,
-      min: 100,
-      max: 999999,
+      min: 10000,
+      max: 99999,
     },
     /**
      * Free text

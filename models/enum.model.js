@@ -174,8 +174,8 @@ const EnumLenderProgramTypeOfLenderProgram = {
 };
 const EnumDocumentTypeOfDealDocument = {
   PROPERTY_INFORMATION: 'propertyInformation',
-  FINANCIAL_INFORMATION: 'financialInformation',
-  SPONSER_INFORMATION: 'sponserInformation',
+  PROPERTY_FINANCIALS: 'propertyFinancials',
+  SPONSOR_INFORMATION: 'sponsorInformation',
   OTHERS: 'others',
 };
 const EnumFileOfDealDocument = {
