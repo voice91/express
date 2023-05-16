@@ -85,12 +85,21 @@ const getLenderPlacementFilterQuery = (query) => {
 export const list = catchAsync(async (req, res) => {
   const { query } = req;
   const queryParams = getLenderPlacementFilterQuery(query);
+
+  const sortingObj = pick(query, ['sort', 'order']);
+  const sortObj = {
+    [sortingObj.sort]: sortingObj.order,
+  };
+
   const filter = {
     ...queryParams,
   };
   const options = {
     ...pick(query, ['sort', 'limit', 'page']),
   };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+  }
   const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
