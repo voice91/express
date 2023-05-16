@@ -23,6 +23,7 @@ import { EmailTemplate, LenderPlacement } from '../../models';
 import { sendDealTemplate1Text } from '../../utils/emailContent';
 import enumModel, { EnumOfActivityType } from '../../models/enum.model';
 import config from '../../config/config';
+import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -137,6 +138,10 @@ export const create = catchAsync(async (req, res) => {
   const moveFileObj = {
     ...(body.termSheet && { termSheet: body.termSheet }),
   };
+  if (body.stage) {
+    body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
+  }
+
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
@@ -173,6 +178,11 @@ export const update = catchAsync(async (req, res) => {
     const futureFunding = body.terms.futureFunding ? body.terms.futureFunding : 0;
     body.terms.totalLoanAmount = body.terms.initialFunding + futureFunding;
   }
+
+  if (body.stage) {
+    body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
+  }
+
   const options = {
     new: true,
     populate: [{ path: 'lendingInstitution' }, { path: 'lenderContact' }, { path: 'notes' }, { path: 'lenderAllContacts' }],

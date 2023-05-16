@@ -192,6 +192,12 @@ const LenderPlacementSchema = new mongoose.Schema(
       required: true,
       default: enumModel.EnumStageOfLenderPlacement.NEW,
     },
+    stageEnumWiseNumber: {
+      type: Number,
+      min: 0,
+      max: enumModel.EnumStageOfLenderPlacement.length,
+      default: 7,
+    },
     /**
      * The set of terms that the lender is offering on the deal
      * */
