@@ -182,6 +182,11 @@ const DealSchema = new mongoose.Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'LenderPlacement',
     },
+    orderOfStage: {
+      type: 'number',
+      minlength: 0,
+      maxLength: enumModel.EnumStageOfDeal.length,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
