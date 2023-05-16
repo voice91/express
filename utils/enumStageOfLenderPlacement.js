@@ -14,7 +14,7 @@ export const EnumStageOfLenderPlacementWithNumber = {
   PASS: { value: 10, name: 'pass' },
 };
 
-export const stageOfLenderPlacementWithNumber = (() => {
+export const stageOfLenderPlacementWithNumber = (stageName) => {
   const stageNumberMap = new Map([
     [EnumStageOfLenderPlacement.CLOSED, 1],
     [EnumStageOfLenderPlacement.CLOSING, 2],
@@ -28,5 +28,5 @@ export const stageOfLenderPlacementWithNumber = (() => {
     [EnumStageOfLenderPlacement.PASS, 10],
   ]);
 
-  return (stageName) => stageNumberMap.get(stageName) || null;
-})();
+  return stageNumberMap.get(stageName) || null;
+};
