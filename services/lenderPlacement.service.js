@@ -55,6 +55,15 @@ export async function createLenderPlacement(body) {
   return lenderPlacement;
 }
 
+export async function updateLenderPlacement(filter, body, options = {}) {
+  const lendingInstitution = await LendingInstitution.findOne({ _id: body.lendingInstitution });
+  if (body.lendingInstitution && !lendingInstitution) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'field lendingInstitution is not valid');
+  }
+  const lenderPlacement = await LenderPlacement.findOneAndUpdate(filter, body, options);
+  return lenderPlacement;
+}
+
 export async function updateManyLenderPlacement(filter, body, options = {}) {
   const lenderPlacement = await LenderPlacement.updateMany(filter, body, options);
   return lenderPlacement;
