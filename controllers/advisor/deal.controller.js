@@ -14,6 +14,7 @@ import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
 import config from '../../config/config';
 import ApiError from '../../utils/ApiError';
 import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
+import { detailsInDeal } from '../../utils/detailsInDeal';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -140,9 +141,6 @@ export const create = catchAsync(async (req, res) => {
   const { dealMembers } = req.body;
   const userName = req.user.name;
   const { dealName } = body;
-  if (body.stage) {
-    body.orderOfStage = stageOfDealWithNumber(body.stage);
-  }
   const deal = await dealService.createDeal(body, options);
   await Promise.allSettled(
     dealMembers.map((user) => {
@@ -177,6 +175,7 @@ export const update = catchAsync(async (req, res) => {
   };
   if (body.stage) {
     body.orderOfStage = stageOfDealWithNumber(body.stage);
+    body.details = await detailsInDeal(body.stage, dealId);
   }
   const options = { new: true };
   const dealStage = await Deal.find(filter);
