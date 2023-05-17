@@ -71,7 +71,9 @@ export const get = catchAsync(async (req, res) => {
   const filter = {
     _id: lenderPlacementId,
   };
-  const options = {};
+  const options = {
+    populate: { path: 'lendingInstitution' },
+  };
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
