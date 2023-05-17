@@ -41,5 +41,5 @@ router
   .put(auth('user'), validate(dealDocumentValidation.updateDealDocument), checkAccessOfDeal, dealDocumentController.update);
 router
   .route('/documents/:documentId')
-  .delete(auth('advisor'), validate(dealDocumentValidation.deleteDocument), dealDocumentController.removeDocuments);
+  .delete(auth('user'), validate(dealDocumentValidation.deleteDocument), dealDocumentController.removeDocuments);
 export default router;
