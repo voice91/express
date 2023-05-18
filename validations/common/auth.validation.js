@@ -19,7 +19,7 @@ export const register = {
     state: Joi.string()
       .valid(...Object.values(enumFields.EnumStatesOfDeal))
       .required(),
-    zipcode: Joi.number().integer().min(100).max(999999).required(),
+    zipcode: Joi.number().integer().min(10000).max(99999).required(),
   }),
 };
 

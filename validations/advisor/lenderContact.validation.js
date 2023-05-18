@@ -20,7 +20,7 @@ export const createLenderContact = {
     officeStreetAddress: Joi.string(),
     city: Joi.string(),
     state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
-    zipcode: Joi.number().integer().min(100).max(999999),
+    zipcode: Joi.number().integer().min(10000).max(99999),
     note: Joi.string(),
     lenderInstitute: Joi.objectId().required(),
   }),
@@ -39,7 +39,7 @@ export const updateLenderContact = {
     officeStreetAddress: Joi.string(),
     city: Joi.string(),
     state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
-    zipcode: Joi.number().integer().min(100).max(999999),
+    zipcode: Joi.number().integer().min(10000).max(99999),
     note: Joi.string(),
   }),
   params: Joi.object().keys({
