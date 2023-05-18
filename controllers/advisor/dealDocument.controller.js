@@ -121,32 +121,31 @@ export const create = catchAsync(async (req, res) => {
   const dealDocumentsAvailableInDb = documents.length;
   if (dealDocumentsAvailableInDb === 6 || dealDocumentsAvailableInDb > 6) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'You can Add only 6 Documents..!');
-  }
-  if (dealDocumentsAvailableInDb.length + body.documents.length > 6) {
+  } else if (dealDocumentsAvailableInDb + body.documents.length > 6) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      `${dealDocumentsAvailableInDb.length} document present in db,
-     ${6 - dealDocumentsAvailableInDb.length} document can be added`
+      `${dealDocumentsAvailableInDb} document present in db,
+     ${6 - dealDocumentsAvailableInDb} document can be added`
     );
-  }
-  const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, update, options);
-  if (dealDocumentResult) {
-    const uploadedFileUrls = [];
-    uploadedFileUrls.push(dealDocumentResult.file);
-    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
-  }
-
-  // Add created Documents in Initial Email Template
-  await EmailTemplate.updateMany(
-    { isFirstTime: true, ...filter },
-    {
-      $addToSet: {
-        emailAttachments: dealDocumentResult.documents.map((item) => ({ path: item.url, fileName: item.fileName })),
-      },
+  } else {
+    const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, update, options);
+    if (dealDocumentResult) {
+      const uploadedFileUrls = [];
+      uploadedFileUrls.push(dealDocumentResult.file);
+      await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
     }
-  );
 
-  return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
+    // Add created Documents in Initial Email Template
+    await EmailTemplate.updateMany(
+      { isFirstTime: true, ...filter },
+      {
+        $addToSet: {
+          emailAttachments: body.documents.map((item) => ({ path: item.url, fileName: item.fileName })),
+        },
+      }
+    );
+    return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
+  }
 });
 
 export const update = catchAsync(async (req, res) => {
@@ -192,6 +191,7 @@ export const removeDocument = catchAsync(async (req, res) => {
   };
   const dealDocument = await dealDocumentService.updateDealDocument(filter, updateDocument, options);
   // Add created Documents in Initial Email Template
+  // todo : need to fix this query.
   await EmailTemplate.updateMany(
     { isFirstTime: true, ...filter },
     {

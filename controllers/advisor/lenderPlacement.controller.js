@@ -16,7 +16,7 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach, encodeUrl } from 'utils/common';
-import _ from 'lodash';
+import _, { flatMap } from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { Deal, EmailTemplate, LenderPlacement } from '../../models';
@@ -310,19 +310,13 @@ export const sendDeal = catchAsync(async (req, res) => {
     totalLoanAmount = totalLoanAmount.toFixed(2);
   }
 
-  const files = lenderContact.dealDoc.map((doc) => {
-    if (!doc.file) {
-      return null;
-    }
-    const data = doc.file;
-    const fileName = data.split('/').pop();
+  const document = flatMap(lenderContact.dealDoc.map((item) => item.documents)).map((doc) => {
     return {
-      fileName,
-      path: data,
+      fileName: doc.fileName,
+      path: doc.url,
     };
   });
 
-  const filterFiles = files.filter(Boolean);
   if (lenderPlacement) {
     const contact = lenderContact.lenderContact.map((lc) => {
       return {
@@ -348,7 +342,7 @@ export const sendDeal = catchAsync(async (req, res) => {
         emailContent: staticEmailTemplateData,
         lenderPlacement,
         deal,
-        emailAttachments: filterFiles,
+        emailAttachments: document,
         isFirstTime: true,
         isEmailSent: false,
         totalLoanAmount,
@@ -476,13 +470,12 @@ export const sendEmail = catchAsync(async (req, res) => {
   if (sendToIsEmpty.length === 0) {
     return res.status(httpStatus.OK).send({ results: 'No email addresses to send to.' });
   }
-
   if (sendToAdvisor) {
     const isAdvisor = _.template(getEmailTemplate.emailContent)({
-      userFirstName: getEmailTemplate.advisorName,
+      userFirstName: req.user.firstName,
       totalLoanAmount: getEmailTemplate.totalLoanAmount,
       advisorName: getEmailTemplate.advisorName,
-      advisorEmail: getEmailTemplate.from,
+      advisorEmail: req.user.email,
     });
     const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
       return {
@@ -492,9 +485,9 @@ export const sendEmail = catchAsync(async (req, res) => {
     });
 
     await emailService.sendEmail({
-      to: getEmailTemplate.from,
+      to: req.user.email,
       subject: 'TEST - PFG Property...',
-      from: getEmailTemplate.from,
+      from: req.user.email,
       text: isAdvisor,
       attachments: emailAttachments,
       isHtml: true,
