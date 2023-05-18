@@ -139,7 +139,7 @@ export const create = catchAsync(async (req, res) => {
   body.user = req.user._id;
   const options = {};
   const { dealMembers } = req.body;
-  const userName = req.user.name;
+  const userName = req.user.firstName;
   const { dealName } = body;
   const deal = await dealService.createDeal(body, options);
   await Promise.allSettled(
@@ -236,7 +236,7 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.user = req.user._id;
   const { email } = req.body;
   let { role } = body;
-  const userName = req.user.name;
+  const userName = req.user.firstName;
 
   if (role === enumModel.EnumRoleOfUser.ADVISOR) {
     role = enumModel.EnumRoleOfUser.ADVISOR;
