@@ -133,7 +133,7 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.user = req.user._id;
   const { email } = req.body;
   const { role } = body;
-  const userName = req.user.name;
+  const userName = req.user.firstName;
 
   const deal = await Deal.findById({ _id: body.deal });
   await dealService.InviteToDeal(body, role);
