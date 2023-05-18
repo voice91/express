@@ -166,8 +166,8 @@ const UserSchema = new mongoose.Schema(
      */
     zipcode: {
       type: Number,
-      min: 100,
-      max: 999999,
+      min: 10000,
+      max: 99999,
     },
     /**
      * Updated whenever the user signs, by default null
