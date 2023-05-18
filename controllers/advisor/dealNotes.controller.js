@@ -49,30 +49,6 @@ export const list = catchAsync(async (req, res) => {
   if (sortingObj.sort) {
     options.sort = sortObj;
   }
-  const dealNotes = await dealNotesService.getDealNotesList(filter, options);
-  return res.status(httpStatus.OK).send({ results: dealNotes });
-});
-
-export const listAllDealNotes = catchAsync(async (req, res) => {
-  const { query } = req;
-  const queryParams = getDealNotesFilterQuery(query);
-  const filter = {
-    deal: req.params.dealId,
-    ...queryParams,
-  };
-  const sortingObj = pick(query, ['sort', 'order']);
-  // we have to sort the notes on the basis of pinned notes to be at the top and then the notes according to their updatedAt value
-  const sortObj = {
-    isPinned: 'desc',
-    [sortingObj.sort]: sortingObj.order,
-  };
-  const options = {
-    ...pick(query, ['limit', 'page']),
-    populate: [{ path: 'user' }],
-  };
-  if (sortingObj.sort) {
-    options.sort = sortObj;
-  }
   const getDeal = await Deal.find({ _id: req.params.dealId }).select('involvedUsers _id');
 
   const queryForBorrower = req.query.borrower;
