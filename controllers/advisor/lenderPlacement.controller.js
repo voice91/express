@@ -9,10 +9,10 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach, encodeUrl } from 'utils/common';
-import _ from 'lodash';
+import _, { flatMap } from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
-import { EmailTemplate, LenderPlacement } from '../../models';
+import { Deal, EmailTemplate, LenderPlacement } from '../../models';
 import { sendDealTemplate1Text } from '../../utils/emailContent';
 import enumModel, { EnumOfActivityType } from '../../models/enum.model';
 import config from '../../config/config';
@@ -207,10 +207,33 @@ export const update = catchAsync(async (req, res) => {
 
   const options = {
     new: true,
-    populate: [{ path: 'lendingInstitution' }, { path: 'lenderContact' }, { path: 'notes' }, { path: 'lenderAllContacts' }],
+    populate: [
+      { path: 'lendingInstitution' },
+      { path: 'lenderContact' },
+      { path: 'notes' },
+      { path: 'lenderAllContacts' },
+      { path: 'deal' },
+    ],
   };
   const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
+  const dealId = lenderPlacementResult.deal;
+  if (lenderPlacementResult.stage === enumModel.EnumStageOfLenderPlacement.CLOSING) {
+    await Deal.findByIdAndUpdate(dealId, {
+      stage: enumModel.EnumStageOfDeal.CLOSING,
+    });
+    const createActivityLogBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      update: `${lenderPlacementResult.deal.dealName} moved into closing with ${lenderPlacementResult.lendingInstitution.lenderNameVisible}`,
+      deal: dealId,
+      type: EnumOfActivityType.ACTIVITY,
+      user: config.activitySystemUser || 'system',
+    };
+    if (createActivityLogBody.update) {
+      await activityLogService.createActivityLog(createActivityLogBody);
+    }
+  }
   // tempS3
   if (lenderPlacementResult.termSheet) {
     const uploadedFileUrls = [];
@@ -273,6 +296,11 @@ export const sendDeal = catchAsync(async (req, res) => {
   };
   const lenderContact = await lenderPlacementService.sendDeal(filterToFindContact, filterToFindPlacement, filterToFindDeal);
 
+  let lenderName;
+  if (lenderContact.lenderPlacement.lendingInstitution) {
+    lenderName = lenderContact.lenderPlacement.lendingInstitution.lenderNameVisible;
+  }
+
   if (_.isEmpty(lenderContact.lenderContact)) {
     throw new ApiError(httpStatus.BAD_REQUEST, `can not find lenderContact with this id: ${lenderInstitute}`);
   }
@@ -289,19 +317,14 @@ export const sendDeal = catchAsync(async (req, res) => {
     totalLoanAmount = totalLoanAmount.toFixed(2);
   }
 
-  const files = lenderContact.dealDoc.map((doc) => {
-    if (!doc.file) {
-      return null;
-    }
-    const data = doc.file;
-    const fileName = data.split('/').pop();
+  const document = flatMap(lenderContact.dealDoc.map((item) => item.documents)).map((doc) => {
     return {
-      fileName,
-      path: data,
+      dealDocumentId: doc._id,
+      fileName: doc.fileName,
+      path: doc.url,
     };
   });
 
-  const filterFiles = files.filter(Boolean);
   if (lenderPlacement) {
     const contact = lenderContact.lenderContact.map((lc) => {
       return {
@@ -327,11 +350,11 @@ export const sendDeal = catchAsync(async (req, res) => {
         emailContent: staticEmailTemplateData,
         lenderPlacement,
         deal,
-        emailAttachments: filterFiles,
+        emailAttachments: document,
         isFirstTime: true,
         isEmailSent: false,
         totalLoanAmount,
-        templateName: 'defaultTemplate',
+        templateName: `defaultTemplate - ${lenderName}`,
       });
     }
     createTemplates.push(templateData);
@@ -448,6 +471,8 @@ export const sendEmail = catchAsync(async (req, res) => {
 
   const placementId = getEmailTemplate.lenderPlacement;
 
+  const dealId = getEmailTemplate.deal._id;
+
   const ccList = getEmailTemplate.ccList.map((item) => item);
 
   const bccList = getEmailTemplate.bccList.map((item) => item);
@@ -455,13 +480,12 @@ export const sendEmail = catchAsync(async (req, res) => {
   if (sendToIsEmpty.length === 0) {
     return res.status(httpStatus.OK).send({ results: 'No email addresses to send to.' });
   }
-
   if (sendToAdvisor) {
     const isAdvisor = _.template(getEmailTemplate.emailContent)({
-      userFirstName: getEmailTemplate.advisorName,
+      userFirstName: req.user.firstName,
       totalLoanAmount: getEmailTemplate.totalLoanAmount,
       advisorName: getEmailTemplate.advisorName,
-      advisorEmail: getEmailTemplate.from,
+      advisorEmail: req.user.email,
     });
     const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
       return {
@@ -471,9 +495,9 @@ export const sendEmail = catchAsync(async (req, res) => {
     });
 
     await emailService.sendEmail({
-      to: getEmailTemplate.from,
+      to: req.user.email,
       subject: 'TEST - PFG Property...',
-      from: getEmailTemplate.from,
+      from: req.user.email,
       text: isAdvisor,
       attachments: emailAttachments,
       isHtml: true,
@@ -516,5 +540,19 @@ export const sendEmail = catchAsync(async (req, res) => {
     followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
     isEmailSent: enumModel.EnumOfEmailStatus.EMAIL_SENT,
   });
+  await Deal.findByIdAndUpdate(dealId, {
+    stage: enumModel.EnumStageOfDeal.OUT_IN_MARKET,
+  });
+  const createActivityLogBody = {
+    createdBy: req.user._id,
+    updatedBy: req.user._id,
+    update: `${getEmailTemplate.deal.dealName} was sent out to lenders`,
+    deal: dealId,
+    type: EnumOfActivityType.ACTIVITY,
+    user: config.activitySystemUser || 'system',
+  };
+  if (createActivityLogBody.update) {
+    await activityLogService.createActivityLog(createActivityLogBody);
+  }
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });

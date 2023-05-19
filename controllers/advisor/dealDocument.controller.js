@@ -9,8 +9,9 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach, encodeUrl } from 'utils/common';
+import { flatMap } from 'lodash';
 import { pick } from '../../utils/pick';
-import { Deal, EmailTemplate } from '../../models';
+import { Deal, DealDocument, EmailTemplate } from '../../models';
 import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
@@ -122,24 +123,43 @@ export const create = catchAsync(async (req, res) => {
       return { url: encodeUrl(item), fileName: fileName[index], documentType: documentType[index] };
     });
   }
-  const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, update, options);
-  if (dealDocumentResult) {
-    const uploadedFileUrls = [];
-    uploadedFileUrls.push(dealDocumentResult.file);
-    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
-  }
+  const dealDocuments = await DealDocument.find(filter);
+  const documents = flatMap(dealDocuments.map((item) => item.documents));
+  const dealDocumentsAvailableInDb = documents.length;
+  if (dealDocumentsAvailableInDb === 6 || dealDocumentsAvailableInDb > 6) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You can Add only 6 Documents..!');
+  } else if (dealDocumentsAvailableInDb + body.documents.length > 6) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `${dealDocumentsAvailableInDb} document present in db,
+     ${6 - dealDocumentsAvailableInDb} document can be added`
+    );
+  } else {
+    const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, update, options);
 
-  // Add created Documents in Initial Email Template
-  await EmailTemplate.updateMany(
-    { isFirstTime: true, ...filter },
-    {
-      $addToSet: {
-        emailAttachments: dealDocumentResult.documents.map((item) => ({ path: item.url, fileName: item.fileName })),
-      },
+    const newEmailAttachments = dealDocumentResult.documents.filter(
+      (itemB) => !documents.find((itemA) => itemA._id.toString() === itemB._id.toString())
+    );
+
+    if (dealDocumentResult) {
+      const uploadedFileUrls = [];
+      uploadedFileUrls.push(dealDocumentResult.file);
+      await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
     }
-  );
 
-  return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
+    // Add created Documents in Initial Email Template
+    await EmailTemplate.updateMany(
+      { isFirstTime: true, ...filter },
+      {
+        $addToSet: {
+          emailAttachments: {
+            $each: newEmailAttachments,
+          },
+        },
+      }
+    );
+    return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
+  }
 });
 
 export const update = catchAsync(async (req, res) => {
@@ -184,5 +204,15 @@ export const removeDocument = catchAsync(async (req, res) => {
     new: true,
   };
   const dealDocument = await dealDocumentService.updateDealDocument(filter, updateDocument, options);
+
+  if (dealDocument) {
+    // Find documents that have isFirstTime: true and matching deal field
+    // Remove emailAttachments objects with dealDocumentId equal to documentId
+    await EmailTemplate.updateMany(
+      { isFirstTime: true, deal: dealDocument.deal },
+      { $pull: { emailAttachments: { dealDocumentId: documentId } } }
+    );
+  }
+
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });

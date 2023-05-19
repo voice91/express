@@ -67,7 +67,7 @@ export const sendResetPasswordEmail = async (to, token) => {
 export const sendEmailVerificationEmail = async (user, token) => {
   const { email: to, firstName } = user;
   const subject = 'Welcome to the ParallelCre';
-  const verifyEmailUrl = `${config.front.url}/v1/user/auth/verify-email?token=${token}`;
+  const verifyEmailUrl = `${config.front.url}/verify-email?token=${token}`;
   const text = `
 <html lang="en">
 <head>
