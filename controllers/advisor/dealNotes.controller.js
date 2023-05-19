@@ -32,6 +32,7 @@ export const get = catchAsync(async (req, res) => {
 export const list = catchAsync(async (req, res) => {
   const { query } = req;
   const queryParams = getDealNotesFilterQuery(query);
+  const userId = req.user._id;
   const filter = {
     deal: req.params.dealId,
     ...queryParams,
@@ -73,6 +74,7 @@ export const list = catchAsync(async (req, res) => {
     ).map((item) => item.toString())
   );
 
+  getAllInvolvedUserIds.push(userId);
   const getDealId = getDeal.map((deal) => deal._id);
   const dealNotes = await dealNotesService.getDealNotesList(
     {
