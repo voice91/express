@@ -17,14 +17,7 @@ export async function getOne(query, options = {}) {
 }
 
 export async function getLenderPlacementList(filter, options = {}) {
-  const lenderPlacement = await LenderPlacement.find(filter, options.projection, options).populate([
-    {
-      path: 'lendingInstitution',
-    },
-    {
-      path: 'lenderContact',
-    },
-  ]);
+  const lenderPlacement = await LenderPlacement.find(filter, options.projection, options);
   return lenderPlacement;
 }
 
