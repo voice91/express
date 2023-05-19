@@ -61,10 +61,6 @@ export const sendVerifyEmail = catchAsync(async (req, res) => {
  * @return (successMessage)
  */
 export const verifyEmail = catchAsync(async (req, res) => {
-  try {
-    await authService.verifyEmail(req.query);
-    res.status(httpStatus.OK).send({ message: 'Your Email is Verified Successfully' });
-  } catch (e) {
-    res.status(httpStatus.OK).send({ message: e.message });
-  }
+  await authService.verifyEmail(req.query);
+  res.status(httpStatus.OK).send({ message: 'Your Email is Verified Successfully' });
 });
