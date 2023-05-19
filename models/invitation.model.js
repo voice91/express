@@ -39,6 +39,7 @@ const InvitationSchema = new mongoose.Schema(
     },
     role: {
       type: String,
+      enum: Object.values(enumModel.EnumRoleOfUser),
     },
     inviteeEmail: {
       type: String,

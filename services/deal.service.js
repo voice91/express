@@ -76,6 +76,7 @@ export async function createDeal(body) {
             deal: deal._id,
             invitedBy: body.user,
             inviteeEmail: nonExistingEmail,
+            role: enumModel.EnumRoleOfUser.USER, // as while creating deal we can only add user/advisor to the deal
           }))
         );
       }
@@ -87,6 +88,7 @@ export async function createDeal(body) {
           status: 'accepted',
           invitedBy: body.user,
           invitee: emailExists._id,
+          role: enumModel.EnumRoleOfUser.USER,
         }))
       );
     } else {
@@ -95,6 +97,7 @@ export async function createDeal(body) {
           deal: deal._id,
           invitedBy: body.user,
           inviteeEmail: nonExistingEmail,
+          role: enumModel.EnumRoleOfUser.USER,
         }))
       );
     }
@@ -147,6 +150,13 @@ export async function InviteToDeal(body, role) {
   const dealId = { _id: body.deal };
   if (body.email && body.email.length) {
     const existingUsers = await User.find({ email: { $in: body.email } });
+    // Not allowing non-existing advisor to get added in the deal
+    if (role === enumModel.EnumRoleOfUser.ADVISOR) {
+      const nonExistingUsers = body.email.filter((email) => !existingUsers.some((user) => user.email === email));
+      if (nonExistingUsers.length > 0) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "This advisor doesn't exist in the system");
+      }
+    }
     if (existingUsers.length) {
       if (existingUsers.some((user) => user.role !== role)) {
         throw new ApiError(httpStatus.BAD_REQUEST, `You can only add ${role} to the deal`);
@@ -178,6 +188,7 @@ export async function InviteToDeal(body, role) {
             deal: dealId,
             invitedBy: body.user,
             inviteeEmail: nonExistingEmail,
+            role: body.role,
           }))
         );
       }
@@ -187,6 +198,7 @@ export async function InviteToDeal(body, role) {
           status: 'accepted',
           invitedBy: body.user,
           invitee: emailExists._id,
+          role: body.role,
         }))
       );
     } else {
@@ -195,6 +207,7 @@ export async function InviteToDeal(body, role) {
           deal: dealId,
           invitedBy: body.user,
           inviteeEmail: nonExistingEmail,
+          role: body.role,
         }))
       );
     }
