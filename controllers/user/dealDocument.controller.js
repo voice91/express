@@ -105,7 +105,14 @@ export const create = catchAsync(async (req, res) => {
     deal: body.deal,
   };
   const update = {
-    $push: { documents: body.documents },
+    deal: body.deal,
+    // when we use $push than it will not take createdAt field, so we have to add it manually
+    $push: {
+      documents: body.documents.map((document) => ({
+        ...document,
+        createdAt: new Date(),
+      })),
+    },
   };
   await moveFiles({ body, user, moveFileObj });
   const options = { new: true, upsert: true };
