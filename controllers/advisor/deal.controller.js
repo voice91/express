@@ -39,6 +39,10 @@ export const get = catchAsync(async (req, res) => {
   };
 
   const deal = await dealService.getOne(filter, options);
+
+  if (!deal) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no deal found this id and user');
+  }
   const dealMembers = deal.involvedUsers.borrowers.concat(deal.involvedUsers.advisors);
   const InvitationFilter = {
     deal: deal._id,
