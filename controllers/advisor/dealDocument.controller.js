@@ -107,7 +107,6 @@ export const create = catchAsync(async (req, res) => {
   };
   const update = {
     deal: body.deal,
-    // TODO: do changes for user
     // when we use $push than it will not take createdAt field, so we have to add it manually
     $push: {
       documents: body.documents.map((document) => ({
