@@ -97,6 +97,10 @@ const EmailTemplateSchema = new mongoose.Schema(
      * */
     emailAttachments: [
       {
+        dealDocumentId: {
+          ref: 'DealDocument',
+          type: mongoose.Schema.Types.ObjectId,
+        },
         fileName: String,
         path: String,
       },

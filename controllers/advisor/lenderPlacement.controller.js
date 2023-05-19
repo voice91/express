@@ -312,6 +312,7 @@ export const sendDeal = catchAsync(async (req, res) => {
 
   const document = flatMap(lenderContact.dealDoc.map((item) => item.documents)).map((doc) => {
     return {
+      dealDocumentId: doc._id,
       fileName: doc.fileName,
       path: doc.url,
     };

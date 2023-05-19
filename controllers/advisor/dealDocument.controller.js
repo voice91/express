@@ -136,6 +136,11 @@ export const create = catchAsync(async (req, res) => {
     );
   } else {
     const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, update, options);
+
+    const newEmailAttachments = dealDocumentResult.documents.filter(
+      (itemB) => !documents.find((itemA) => itemA._id.toString() === itemB._id.toString())
+    );
+
     if (dealDocumentResult) {
       const uploadedFileUrls = [];
       uploadedFileUrls.push(dealDocumentResult.file);
@@ -147,7 +152,9 @@ export const create = catchAsync(async (req, res) => {
       { isFirstTime: true, ...filter },
       {
         $addToSet: {
-          emailAttachments: body.documents.map((item) => ({ path: item.url, fileName: item.fileName })),
+          emailAttachments: {
+            $each: newEmailAttachments,
+          },
         },
       }
     );
@@ -197,15 +204,15 @@ export const removeDocument = catchAsync(async (req, res) => {
     new: true,
   };
   const dealDocument = await dealDocumentService.updateDealDocument(filter, updateDocument, options);
-  // Add created Documents in Initial Email Template
-  // todo : need to fix this query.
-  await EmailTemplate.updateMany(
-    { isFirstTime: true, ...filter },
-    {
-      $pull: {
-        emailAttachments: dealDocument.documents.map((item) => ({ path: item.url, fileName: item.fileName })),
-      },
-    }
-  );
+
+  if (dealDocument) {
+    // Find documents that have isFirstTime: true and matching deal field
+    // Remove emailAttachments objects with dealDocumentId equal to documentId
+    await EmailTemplate.updateMany(
+      { isFirstTime: true, deal: dealDocument.deal },
+      { $pull: { emailAttachments: { dealDocumentId: documentId } } }
+    );
+  }
+
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
