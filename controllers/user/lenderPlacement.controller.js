@@ -81,6 +81,20 @@ export const list = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['sort', 'limit', 'page']),
+    populate: [
+      {
+        path: 'lendingInstitution',
+      },
+      {
+        path: 'lenderContact',
+      },
+      {
+        path: 'lenderAllContacts',
+      },
+      {
+        path: 'notes',
+      },
+    ],
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
@@ -104,6 +118,9 @@ export const paginate = catchAsync(async (req, res) => {
       },
       {
         path: 'lenderContact',
+      },
+      {
+        path: 'lenderAllContacts',
       },
       {
         path: 'notes',
