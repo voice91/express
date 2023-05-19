@@ -490,7 +490,7 @@ export const sendEmail = catchAsync(async (req, res) => {
     const isAdvisor = _.template(getEmailTemplate.emailContent)({
       userFirstName: req.user.firstName,
       totalLoanAmount: getEmailTemplate.totalLoanAmount,
-      advisorName: getEmailTemplate.advisorName,
+      advisorName: req.user.name,
       advisorEmail: req.user.email,
     });
     const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
