@@ -3,7 +3,14 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService, emailService, emailTemplateService, activityLogService } from 'services';
+import {
+  s3Service,
+  lenderPlacementService,
+  emailService,
+  emailTemplateService,
+  activityLogService,
+  lenderContactService,
+} from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -433,18 +440,17 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
           if (getRecordFromContact) {
             return getRecordFromContact;
           }
-          // TODO: Need to change this
 
-          // // eslint-disable-next-line no-shadow
-          // const filter = {
-          //   email: item.sendTo,
-          // };
-          // const lenderContact = await lenderContactService.getOne(filter);
-          // if (!lenderContact) {
-          //   throw new ApiError(httpStatus.BAD_REQUEST, 'This Email is not in Lender Contact');
-          // }
+          // eslint-disable-next-line no-shadow
+          const filter = {
+            email: item.sendTo,
+          };
+          const lenderContact = await lenderContactService.getOne(filter);
+          if (!lenderContact) {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'First, Add this Email in Lender Contact');
+          }
           // eslint-disable-next-line no-param-reassign
-          // item.name = lenderContact.firstName;
+          item.name = lenderContact.firstName;
           return item;
         })
       );
