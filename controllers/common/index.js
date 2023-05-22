@@ -5,3 +5,4 @@ module.exports.s3Controller = require('./s3.controller');
 module.exports.searchController = require('./search.controller');
 module.exports.ratesController = require('./rates.controller');
 module.exports.authController = require('./auth.controller');
+module.exports.importFileController = require('./importFile.controller');

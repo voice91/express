@@ -10,6 +10,8 @@ import ratesRoutes from './common/rates/rates.route';
 
 import authRoutes from './common/auth/auth.route';
 
+import importFileRoutes from './common/importFile/importFile.route';
+
 const userRoutes = require('./user');
 const advisorRoutes = require('./advisor');
 const lenderRoutes = require('./lender');
@@ -22,5 +24,6 @@ router.use('/s3', s3Routes);
 router.use('/docs', docsRoutes);
 router.use('/search', searchRoutes);
 router.use('/rates', ratesRoutes);
+router.use('/importFile', importFileRoutes);
 router.use('/auth', authRoutes);
 module.exports = router;
