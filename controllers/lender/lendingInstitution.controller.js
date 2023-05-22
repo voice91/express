@@ -93,8 +93,3 @@ export const remove = catchAsync(async (req, res) => {
   const lendingInstitution = await lendingInstitutionService.removeLendingInstitution(filter);
   return res.status(httpStatus.OK).send({ results: lendingInstitution });
 });
-
-export const insertDataFromFile = catchAsync(async (req, res) => {
-  const lendingInstitution = await lendingInstitutionService.insertDataFromFile(req);
-  return res.status(httpStatus.OK).send({ results: lendingInstitution });
-});
