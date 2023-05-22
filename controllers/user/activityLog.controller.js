@@ -35,6 +35,7 @@ export const list = catchAsync(async (req, res) => {
 
   const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
+    isPinned: 'desc',
     [sortingObj.sort]: sortingObj.order,
   };
   const options = {
@@ -83,7 +84,7 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  body.updatedBy = req.user;
+  body.updatedBy = req.user._id;
   const { activityLogId } = req.params;
   const filter = {
     _id: activityLogId,
