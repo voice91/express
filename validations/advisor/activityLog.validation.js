@@ -21,6 +21,8 @@ export const updateActivityLog = {
   body: Joi.object().keys({
     deal: Joi.objectId(),
     update: Joi.string(),
+    isPinned: Joi.boolean(),
+    isFlagged: Joi.boolean(),
   }),
   params: Joi.object().keys({
     activityLogId: Joi.objectId().required(),
