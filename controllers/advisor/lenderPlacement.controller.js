@@ -550,10 +550,11 @@ export const sendEmail = catchAsync(async (req, res) => {
   await Deal.findByIdAndUpdate(dealId, {
     stage: enumModel.EnumStageOfDeal.OUT_IN_MARKET,
   });
+  const deal = await Deal.findById(dealId);
   const createActivityLogBody = {
     createdBy: req.user._id,
     updatedBy: req.user._id,
-    update: `${getEmailTemplate.deal.dealName} was sent out to lenders`,
+    update: `${deal.dealName} was sent out to lenders`,
     deal: dealId,
     type: EnumOfActivityType.ACTIVITY,
     user: config.activitySystemUser || 'system',
