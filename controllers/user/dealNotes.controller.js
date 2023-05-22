@@ -107,7 +107,9 @@ export const list = catchAsync(async (req, res) => {
     ).map((item) => item.toString())
   );
 
-  getAllInvolvedUserIds.push(userId);
+  if (!queryForBorrower && !queryForAdvisor) {
+    getAllInvolvedUserIds.push(userId);
+  }
 
   const getDealId = getDeal.map((deal) => deal._id);
   const dealNotes = await dealNotesService.getDealNotesList(
