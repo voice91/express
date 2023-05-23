@@ -34,14 +34,14 @@ text-align: center
 </head>
 <body>
 <div>
-<div> Hi ${`<%= userFirstName %>`}</div>
+<div> Hi ${`{{ userFirstName }}`}</div>
 <br>
   <div> This is a short message that would include details about the deal.</div><br>
   <div> Please see below the summary of PFG deal:</div><br>
   <div> The property is: example of text</div><br>
-  <div> The loan of $${`<%= totalLoanAmount %>`}m is</div><br>
+  <div> The loan of $${`{{ totalLoanAmount }}`}m is</div><br>
   <div> Best Regards,</div>
-  <div>${`<%= advisorName %>`}</div><br><br>
+  <div>${`{{ advisorName }}`}</div><br><br>
   </div>
   </body>
   </html>
@@ -91,7 +91,7 @@ color:blue;
 </head>
 <body>
 <div>
-<div> Hi ${`<%= userFirstName %>`} - hope all is well, please see below for the financing summary of PFG Cold Storage Industrial: </div>
+<div> Hi ${`{{ userFirstName }}`} - hope all is well, please see below for the financing summary of PFG Cold Storage Industrial: </div>
 <br>
   <div> The Sponsor is acquiring the Property for $13.0 million and is seeking $9.1m in acquisition financing (67% LTP).
 PFG Cold Storage is a 100% occupied, 299,177sf cold-storage industrial facility located at 4901 Asher Avenue in Little Rock, Arkansas.  
@@ -106,11 +106,11 @@ PFG Cold Storage is a 100% occupied, 299,177sf cold-storage industrial facility 
   <div class="bold"> - Non-recourse </div><br>
   <div> Please see the OM and model attached and let me know if you have any questions / if this is a fit.</div><br>
   <div> Thank you,</div>
-  <div> ${`<%= advisorName %>`}</div><br><br>
+  <div> ${`{{ advisorName }}`}</div><br><br>
   <div class="text-color"> --</div><br>
-  <div class="text-color"> ${`<%= advisorName %>`}</div><br>
+  <div class="text-color"> ${`{{ advisorName }}`}</div><br>
   <div class="text-color"> Parallel CRE</div><br>
-  <div class="underline", class="text-blue"> ${`<%= advisorEmail %>`}</div>
+  <div class="underline", class="text-blue"> ${`{{ advisorEmail }}`}</div>
   </div>
   </body>
   </html>
@@ -160,7 +160,7 @@ color: blue;
 </head>
 <body>
 <div>
-<div> Hi ${`<%= userFirstName %>`} - hope all is well, please see below for the 547 Valley Road financing request. </div>
+<div> Hi ${`{{ userFirstName }}`} - hope all is well, please see below for the 547 Valley Road financing request. </div>
 <br>
   <div> 547 Valley Road is a 5,650sf, mixed-use Property (apartments and retail) located in Monclair, NJ. The Property is located on a highly-trafficked corridor, well-known as a shopping and dining destination and features convenient transportation: two blocks to the Upper Montclair train station with direct line to NYC, and short walk to #28 bus station. The in-place NOI is $102k and will increase to $158k upon the remaining residential unit being leased. Once increased, the metrics of the loan are 10.5% debt yield, 1.55x DSCR and 52% LTV.  
 </div><br>
@@ -170,11 +170,11 @@ color: blue;
   <div> - Competitive Rate </div> <br>  
   <div> Please let me know when works to discuss further. </div><br>
   <div> Thank you,</div>
-  <div> ${`<%= advisorName %>`}</div><br><br>
+  <div> ${`{{ advisorName }}`}</div><br><br>
   <div class="text-color"> --</div><br>
-  <div class="text-color"> ${`<%= advisorName %>`}</div><br>
+  <div class="text-color"> ${`{{ advisorName }}`}</div><br>
   <div class="text-color"> Parallel CRE</div><br>
-  <div class="underline", class="text-blue"> ${`<%= advisorEmail %>`}</div>
+  <div class="underline", class="text-blue"> ${`{{ advisorEmail }}`}</div>
   </div>
   </body>
   </html>
