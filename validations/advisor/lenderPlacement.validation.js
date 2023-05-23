@@ -22,7 +22,7 @@ const termsEmbed = Joi.object().keys({
   interestRateType: Joi.string().valid(...Object.values(enumFields.EnumInterestRateTypeOfTerms)),
   interestRateIndexValue: Joi.string(),
   interestRateIndexDate: Joi.date(),
-  spread: Joi.number().integer(),
+  spread: Joi.string(),
   totalRate: Joi.string(),
   rateNotes: Joi.string(),
   initialTerm: Joi.object().keys({
@@ -47,7 +47,7 @@ const termsEmbed = Joi.object().keys({
   }),
   originationFee: Joi.string(),
   exitFee: Joi.string(),
-  recourse: Joi.string(),
+  recourse: Joi.string().valid(...Object.values(enumFields.EnumOfRecourse)),
   asIsLTV: Joi.string(),
   stabilizedLTV: Joi.string(),
   asIsDY: Joi.string(),

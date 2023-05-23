@@ -222,7 +222,11 @@ const EnumOfEmailStatus = {
   EMAIL_SENT: 'emailSent',
   FOLLOW_UP: 'followUp',
 };
-
+const EnumOfRecourse = {
+  NON_RECOURSE: 'nonRecourse',
+  PARTIAL_RECOURSE: 'partialRecourse',
+  FULL_RECOURSE: 'fullRecourse',
+};
 const EnumofExtension = {
   MONTHS: 'months',
   YEARS: 'years',
@@ -259,4 +263,5 @@ module.exports = {
   EnumTypeOfToken,
   EnumTypeOfStatus,
   EnumStatesOfDeal,
+  EnumOfRecourse,
 };

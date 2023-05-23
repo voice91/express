@@ -47,7 +47,7 @@ const TermsSchema = new mongoose.Schema({
     type: Date,
   },
   spread: {
-    type: Number,
+    type: String,
   },
   totalRate: {
     type: String,
@@ -113,6 +113,7 @@ const TermsSchema = new mongoose.Schema({
   },
   recourse: {
     type: String,
+    enum: Object.values(enumModel.EnumOfRecourse),
   },
   asIsLTV: {
     type: String,
