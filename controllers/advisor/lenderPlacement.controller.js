@@ -484,6 +484,7 @@ export const sendEmail = catchAsync(async (req, res) => {
 
   const bccList = getEmailTemplate.bccList.map((item) => item);
   const sendToIsEmpty = getEmailTemplate.contact.map((item) => item.sendTo);
+  _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
   if (sendToIsEmpty.length === 0) {
     return res.status(httpStatus.OK).send({ results: 'No email addresses to send to.' });
   }
