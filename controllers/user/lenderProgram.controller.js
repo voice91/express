@@ -74,3 +74,12 @@ export const remove = catchAsync(async (req, res) => {
   const lenderProgram = await lenderProgramService.removeLenderProgram(filter);
   return res.status(httpStatus.OK).send({ results: lenderProgram });
 });
+
+export const listLenderProgramByInstitute = catchAsync(async (req, res) => {
+  const lendingInstitution = req.params.lenderInstitute;
+  const filter = {
+    lenderInstitute: lendingInstitution,
+  };
+  const lenderPlacement = await lenderProgramService.getListLenderProgram(filter);
+  return res.status(httpStatus.OK).send({ results: lenderPlacement });
+});
