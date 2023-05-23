@@ -5,6 +5,7 @@
 import httpStatus from 'http-status';
 import { activityLogService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import { flatMap, uniq } from 'lodash';
 import { pick } from '../../utils/pick';
 import { Deal } from '../../models';
 
@@ -27,8 +28,8 @@ export const get = catchAsync(async (req, res) => {
 
 export const list = catchAsync(async (req, res) => {
   const { query } = req;
+  const userId = req.user._id;
   const queryParams = getActivityLogFilterQuery(query);
-  const user = req.user._id;
   const filter = {
     ...queryParams,
   };
@@ -45,10 +46,26 @@ export const list = catchAsync(async (req, res) => {
   if (sortingObj.sort) {
     options.sort = sortObj;
   }
-  const allDeals = await Deal.find({ 'involvedUsers.borrowers': user }).select('_id');
-  const dealIds = allDeals.map((item) => item._id);
 
-  const activityLog = await activityLogService.getActivityLogList({ deal: { $in: dealIds }, ...filter }, options);
+  const getallDeals = await Deal.find({ 'involvedUsers.borrowers': userId }).select('involvedUsers _id');
+
+  const getAllInvolvedUserIds = uniq(
+    flatMap(
+      getallDeals
+        .map((item) => {
+          return [item.involvedUsers.lenders, item.involvedUsers.borrowers, item.involvedUsers.advisors];
+        })
+        .flat()
+    ).map((item) => item.toString())
+  );
+  if (!getAllInvolvedUserIds) {
+    getAllInvolvedUserIds.push(userId);
+  }
+  const activityLog = await activityLogService.getActivityLogList(
+    { createdBy: { $in: getAllInvolvedUserIds }, ...filter },
+    options
+  );
+
   return res.status(httpStatus.OK).send({ results: activityLog });
 });
 
