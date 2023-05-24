@@ -21,7 +21,7 @@ import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { Deal, EmailTemplate, LenderPlacement } from '../../models';
 import { sendDealTemplate1Text } from '../../utils/emailContent';
-import enumModel, { EnumOfActivityType } from '../../models/enum.model';
+import enumModel, { EnumOfActivityType, EnumOfEmailStatus, EnumStageOfDeal } from '../../models/enum.model';
 import config from '../../config/config';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 
@@ -544,12 +544,23 @@ export const sendEmail = catchAsync(async (req, res) => {
     })
   );
 
-  await LenderPlacement.findByIdAndUpdate(placementId, {
-    followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
-    isEmailSent: enumModel.EnumOfEmailStatus.EMAIL_SENT,
-  });
+  const result = await LenderPlacement.findOne({ _id: placementId });
+
+  if (result.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
+    await LenderPlacement.findByIdAndUpdate(placementId, {
+      followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
+      isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
+      isEmailSentFirstTime: true,
+    });
+  } else {
+    await LenderPlacement.findByIdAndUpdate(placementId, {
+      followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
+      isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
+      isEmailSentFirstTime: false,
+    });
+  }
   await Deal.findByIdAndUpdate(dealId, {
-    stage: enumModel.EnumStageOfDeal.OUT_IN_MARKET,
+    stage: EnumStageOfDeal.OUT_IN_MARKET,
   });
   const deal = await Deal.findById(dealId);
   const createActivityLogBody = {
