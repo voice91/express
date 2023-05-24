@@ -24,7 +24,7 @@ export const createTask = {
 export const updateTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string(),
-    taskAnswer: Joi.string().allow(''),
+    taskAnswer: Joi.string().allow(null),
     askingPartyAdvisor: Joi.objectId(),
     askingPartyInstitute: Joi.objectId(),
     deal: Joi.objectId().required(),
