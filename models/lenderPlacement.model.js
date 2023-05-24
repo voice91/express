@@ -219,6 +219,10 @@ const LenderPlacementSchema = new mongoose.Schema(
     followOnDate: {
       type: Date,
     },
+    isEmailSentFirstTime: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }
 );
