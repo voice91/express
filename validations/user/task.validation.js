@@ -13,7 +13,7 @@ const taskDocumentSchema = Joi.object().keys({
 export const updateTask = {
   body: Joi.object().keys({
     deal: Joi.objectId().required(),
-    taskAnswer: Joi.string().allow(''),
+    taskAnswer: Joi.string().allow(null),
     taskDocuments: Joi.array().items(taskDocumentSchema),
   }),
   params: Joi.object().keys({
