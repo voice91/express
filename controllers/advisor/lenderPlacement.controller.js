@@ -101,6 +101,8 @@ export const list = catchAsync(async (req, res) => {
 
   const filter = {
     ...queryParams,
+    // TODO: Changes as per Client Reply
+    // stage: { $ne: EnumStageOfLenderPlacement.ARCHIVE },
   };
   const options = {
     ...pick(query, ['sort', 'limit', 'page']),
@@ -236,7 +238,7 @@ export const update = catchAsync(async (req, res) => {
     const stage = enumModel.EnumStageOfDeal.CLOSING;
     await Deal.findByIdAndUpdate(dealId, {
       stage,
-      details: await detailsInDeal(stage),
+      details: await detailsInDeal(stage, dealId),
     });
     const createActivityLogBody = {
       createdBy: req.user._id,
@@ -521,7 +523,7 @@ export const sendEmail = catchAsync(async (req, res) => {
 
     await emailService.sendEmail({
       to: req.user.email,
-      subject: 'TEST - PFG Property...',
+      subject: `TEST - ${getEmailTemplate.subject}`,
       from: req.user.email,
       text: isAdvisor,
       attachments: emailAttachments,
@@ -582,7 +584,7 @@ export const sendEmail = catchAsync(async (req, res) => {
   const stage = EnumStageOfDeal.OUT_IN_MARKET;
   await Deal.findByIdAndUpdate(dealId, {
     stage,
-    details: await detailsInDeal(stage),
+    details: await detailsInDeal(stage, dealId),
   });
   const deal = await Deal.findById(dealId);
   const createActivityLogBody = {
