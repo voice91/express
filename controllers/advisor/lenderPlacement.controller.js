@@ -29,6 +29,7 @@ import enumModel, {
 } from '../../models/enum.model';
 import config from '../../config/config';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
+import { detailsInDeal } from '../../utils/detailsInDeal';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -232,8 +233,10 @@ export const update = catchAsync(async (req, res) => {
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
   const dealId = lenderPlacementResult.deal;
   if (lenderPlacementResult.stage === enumModel.EnumStageOfLenderPlacement.CLOSING) {
+    const stage = enumModel.EnumStageOfDeal.CLOSING;
     await Deal.findByIdAndUpdate(dealId, {
-      stage: enumModel.EnumStageOfDeal.CLOSING,
+      stage,
+      details: await detailsInDeal(stage),
     });
     const createActivityLogBody = {
       createdBy: req.user._id,
@@ -561,10 +564,13 @@ export const sendEmail = catchAsync(async (req, res) => {
   const result = await LenderPlacement.findOne({ _id: placementId });
 
   if (result.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
+    const stage = EnumStageOfLenderPlacement.SENT;
     await LenderPlacement.findByIdAndUpdate(placementId, {
       followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
       isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
       isEmailSentFirstTime: true,
+      stage,
+      stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
     });
   } else {
     await LenderPlacement.findByIdAndUpdate(placementId, {
@@ -573,8 +579,10 @@ export const sendEmail = catchAsync(async (req, res) => {
       isEmailSentFirstTime: false,
     });
   }
+  const stage = EnumStageOfDeal.OUT_IN_MARKET;
   await Deal.findByIdAndUpdate(dealId, {
-    stage: EnumStageOfDeal.OUT_IN_MARKET,
+    stage,
+    details: await detailsInDeal(stage),
   });
   const deal = await Deal.findById(dealId);
   const createActivityLogBody = {

@@ -139,8 +139,9 @@ const EnumTermSheetOfLenderPlacement = {
   PPTX: 'pptx',
 };
 const EnumInterestRateTypeOfTerms = {
-  FIXED_RATE: 'fixedRate',
-  FLOATING_RATE: 'floatingRate',
+  FIXED_NO_INDEX: 'fixed(No_Index)',
+  FIXED_INDEX: 'fixed(Index)',
+  FLOATING: 'floating',
 };
 const EnumEmailAttachmentsOfEmailTemplate = {
   PDF: 'pdf',
