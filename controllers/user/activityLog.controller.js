@@ -53,7 +53,7 @@ export const list = catchAsync(async (req, res) => {
     flatMap(
       getallDeals
         .map((item) => {
-          return [item.involvedUsers.lenders, item.involvedUsers.borrowers, item.involvedUsers.advisors];
+          return [item.involvedUsers.borrowers];
         })
         .flat()
     ).map((item) => item.toString())
@@ -61,10 +61,9 @@ export const list = catchAsync(async (req, res) => {
   if (!getAllInvolvedUserIds) {
     getAllInvolvedUserIds.push(userId);
   }
-  const activityLog = await activityLogService.getActivityLogList(
-    { createdBy: { $in: getAllInvolvedUserIds }, ...filter },
-    options
-  );
+  const getDealId = getallDeals.map((deal) => deal._id);
+
+  const activityLog = await activityLogService.getActivityLogList({ deal: { $in: getDealId }, ...filter }, options);
 
   return res.status(httpStatus.OK).send({ results: activityLog });
 });
