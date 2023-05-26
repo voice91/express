@@ -128,6 +128,7 @@ const EnumStageOfLenderPlacement = {
   CLOSED: 'closed',
   NOT_RESPONSIVE: 'notResponsive',
   NOT_COMPETITIVE: 'notCompetitive',
+  ARCHIVE: 'archive',
 };
 const EnumTermSheetOfLenderPlacement = {
   PDF: 'pdf',
