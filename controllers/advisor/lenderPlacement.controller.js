@@ -21,7 +21,12 @@ import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { Deal, EmailTemplate, LenderPlacement } from '../../models';
 import { sendDealTemplate1Text } from '../../utils/emailContent';
-import enumModel, { EnumOfActivityType, EnumOfEmailStatus, EnumStageOfDeal } from '../../models/enum.model';
+import enumModel, {
+  EnumOfActivityType,
+  EnumOfEmailStatus,
+  EnumStageOfDeal,
+  EnumStageOfLenderPlacement,
+} from '../../models/enum.model';
 import config from '../../config/config';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 
@@ -248,22 +253,27 @@ export const update = catchAsync(async (req, res) => {
     uploadedFileUrls.push(lenderPlacementResult.termSheet.url);
     await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
   }
-
-  // if termSheet added for first time than only we add activity logs
+  // if termSheet added for first time than only we add activity logs and update lenderPlacement stage to termSheet Received
   if (!beforeLenderPlacementResult.termSheet && body.termSheet) {
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
-      update: `${beforeLenderPlacementResult.lendingInstitution.lenderNameVisible} posted a term sheet`,
+      update: `${beforeLenderPlacementResult.lendingInstitution.lenderNameVisible} posted a term sheet on ${lenderPlacementResult.deal.dealName}`,
       deal: lenderPlacementResult.deal,
       lender: lenderPlacementResult.lendingInstitution,
       type: EnumOfActivityType.ACTIVITY,
       user: config.activitySystemUser || 'system',
     };
     await activityLogService.createActivityLog(createActivityLogBody);
+
+    const stage = EnumStageOfLenderPlacement.TERMS_SHEET_RECEIVED;
+    await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
+      stage,
+      stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+    });
   }
 
-  // if terms added for first time than only we add activity logs
+  // if terms added for first time than only we add activity logs and update lenderPlacement stage to terms Received
   if (!beforeLenderPlacementResult.terms && body.terms) {
     const createActivityLogBody = {
       createdBy: req.user._id,
@@ -275,6 +285,12 @@ export const update = catchAsync(async (req, res) => {
       user: config.activitySystemUser || 'system',
     };
     await activityLogService.createActivityLog(createActivityLogBody);
+
+    const stage = EnumStageOfLenderPlacement.TERMS_RECEIVED;
+    await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
+      stage,
+      stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+    });
   }
 
   return res.status(httpStatus.OK).send({ results: lenderPlacementResult });
@@ -348,8 +364,6 @@ export const sendDeal = catchAsync(async (req, res) => {
     });
     if (!templateData) {
       templateData = await EmailTemplate.create({
-        ccList: contact.map((data) => data.sendTo),
-        bccList: contact.map((data) => data.sendTo),
         from: advisorEmail,
         advisorName,
         contact,

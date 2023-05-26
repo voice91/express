@@ -10,8 +10,8 @@ Joi.objectId = require('joi-objectid')(Joi);
 export const createEmailTemplate = {
   body: Joi.object().keys({
     from: Joi.string().email(),
-    ccList: Joi.array().items(Joi.string().email()),
-    bccList: Joi.array().items(Joi.string().email()),
+    ccList: Joi.array().items(Joi.string().email()).allow(''),
+    bccList: Joi.array().items(Joi.string().email()).allow(''),
     contact: Joi.array().items(
       Joi.object().keys({
         sendTo: Joi.string().email(),
