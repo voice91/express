@@ -138,6 +138,37 @@ export const getEmailTemplateId = {
   }),
 };
 
+export const sendEmail = {
+  params: Joi.object().keys({
+    emailTemplateId: Joi.objectId().required(),
+  }),
+  body: Joi.object().keys({
+    getEmailTemplate: Joi.object().keys({
+      from: Joi.string().email(),
+      contact: Joi.array().items(
+        Joi.object().keys({
+          sendTo: Joi.string().email(),
+          name: Joi.string(),
+        })
+      ),
+      sendTo: Joi.array().items(Joi.string().email()),
+      name: Joi.string(),
+      ccList: Joi.array().items(Joi.string().email()),
+      bccList: Joi.array().items(Joi.string().email()),
+      subject: Joi.string(),
+      dealDocument: Joi.array().items(Joi.objectId()),
+      lenderPlacement: Joi.objectId(),
+      emailContent: Joi.string(),
+      deal: Joi.objectId(),
+      emailAttachments: Joi.array().items(Joi.object()),
+      totalLoanAmount: Joi.number(),
+      templateName: Joi.string(),
+      advisorName: Joi.string(),
+    }),
+    sendToAdvisor: Joi.boolean(),
+  }),
+};
+
 export const getEmailTemplatesByLanderPlacementId = {
   params: Joi.object().keys({
     lenderPlacement: Joi.objectId().required(),
@@ -162,7 +193,7 @@ export const updateAndSaveInitialEmailContent = {
     bccList: Joi.array().items(Joi.string().email()),
     subject: Joi.string(),
     dealDocument: Joi.array().items(Joi.objectId()),
-    lenderPlacement: Joi.objectId,
+    lenderPlacement: Joi.objectId(),
     emailContent: Joi.string(),
     deal: Joi.objectId(),
     emailAttachments: Joi.array().items(Joi.object()),
