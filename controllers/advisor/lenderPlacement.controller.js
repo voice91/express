@@ -494,11 +494,57 @@ export const sendEmail = catchAsync(async (req, res) => {
   const filter = {
     _id: emailTemplateId,
   };
-  const getEmailTemplate = await EmailTemplate.findOne(filter);
+
+  const emailTemplate = await EmailTemplate.findOne(filter).lean().populate('deal');
+
+  if (!emailTemplate) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id..!!');
+  }
+
+  let getEmailTemplate;
+  if (req.body.getEmailTemplate) {
+    getEmailTemplate = req.body.getEmailTemplate;
+    const result = getEmailTemplate.sendTo.map((item) => {
+      return {
+        sendTo: item,
+      };
+    });
+    if (getEmailTemplate.contact) {
+      // eslint-disable-next-line array-callback-return
+      const data = await Promise.all(
+        result.map(async (item) => {
+          const getRecordFromContact = getEmailTemplate.contact.find((value) => item.sendTo === value.sendTo);
+          if (getRecordFromContact) {
+            return getRecordFromContact;
+          }
+          // eslint-disable-next-line no-shadow
+          const filter = {
+            email: item.sendTo,
+          };
+          const lenderContact = await lenderContactService.getOne(filter);
+
+          if (!lenderContact) {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'First, Add this Email in Lender Contact');
+          }
+          // eslint-disable-next-line no-param-reassign
+          item.name = lenderContact.firstName;
+          return item;
+        })
+      );
+
+      getEmailTemplate.contact = data;
+    } else {
+      getEmailTemplate.contact = result;
+    }
+    delete getEmailTemplate.sendTo;
+    getEmailTemplate.emailContent = he.decode(getEmailTemplate.emailContent);
+  } else {
+    getEmailTemplate = emailTemplate;
+  }
 
   const placementId = getEmailTemplate.lenderPlacement;
 
-  const dealId = getEmailTemplate.deal._id;
+  const dealId = emailTemplate.deal._id;
 
   const ccList = getEmailTemplate.ccList.map((item) => item);
 

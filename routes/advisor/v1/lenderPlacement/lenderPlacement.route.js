@@ -68,7 +68,7 @@ router
   /**
    * sendTestMail or sendEmail
    * */
-  .post(auth('advisor'), validate(lenderPlacementValidation.getEmailTemplateId), lenderPlacementController.sendEmail);
+  .post(auth('advisor'), validate(lenderPlacementValidation.sendEmail), lenderPlacementController.sendEmail);
 router
   .route('/update-sendDeal/:emailTemplateId')
   /**
