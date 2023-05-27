@@ -3,6 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import { Task } from 'models';
+import mongoose from 'mongoose';
 
 export async function getTaskById(id, options = {}) {
   const task = await Task.findById(id, options.projection, options);
@@ -24,7 +25,100 @@ export async function getTaskListWithPagination(filter, options = {}) {
   return task;
 }
 
-export async function createTask(body, options = {}) {
+export async function getTaskListWithPaginationBasedOnAskingPary(filter, options = {}, order) {
+  const id = filter.deal;
+  const objectId = mongoose.Types.ObjectId(id);
+  const { limit, page } = options;
+  const task = await Task.aggregate([
+    {
+      $match: {
+        deal: objectId,
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'user',
+      },
+    },
+    {
+      $lookup: {
+        from: 'LendingInstitution',
+        localField: 'askingPartyInstitute',
+        foreignField: '_id',
+        as: 'askingPartyInstitute',
+      },
+    },
+    {
+      $lookup: {
+        from: 'User',
+        localField: 'askingPartyAdvisor',
+        foreignField: '_id',
+        as: 'askingPartyAdvisor',
+      },
+    },
+    {
+      $addFields: {
+        askingParty: {
+          $cond: {
+            if: { $gt: [{ $size: '$askingPartyInstitute' }, 0] },
+            then: {
+              $arrayElemAt: ['$askingPartyInstitute.lenderNameVisible', 0],
+            },
+            else: {
+              $concat: [
+                { $arrayElemAt: ['$askingPartyAdvisor.firstName', 0] },
+                ' ',
+                { $arrayElemAt: ['$askingPartyAdvisor.lastName', 0] },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $sort: { askingParty: parseInt(order, 10) },
+    },
+    {
+      $group: {
+        _id: null,
+        results: { $push: '$$ROOT' },
+        totalCount: { $sum: 1 },
+      },
+    },
+    {
+      $project: {
+        results: '$results',
+        totalResults: '$totalCount',
+        limit: { $literal: limit },
+        totalPages: { $ceil: { $divide: ['$totalCount', limit] } },
+        page: { $literal: page },
+        pagingCounter: { $literal: page * limit },
+        hasPrevPage: { $gt: [page, 1] },
+        hasNextPage: { $lt: [page, { $ceil: { $divide: ['$totalCount', limit] } }] },
+        prevPage: { $cond: { if: { $gt: [page, 1] }, then: { $subtract: [page, 1] }, else: { $literal: null } } },
+        nextPage: {
+          $cond: {
+            if: { $lt: [page, { $ceil: { $divide: ['$totalCount', limit] } }] },
+            then: { $add: [page, 1] },
+            else: { $literal: null },
+          },
+        },
+      },
+    },
+    {
+      $skip: (page - 1) * limit,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
+  return task[0];
+}
+
+export async function createTask(body = {}) {
   const task = await Task.create(body);
   return task;
 }
