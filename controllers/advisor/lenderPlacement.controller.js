@@ -118,7 +118,7 @@ export const list = catchAsync(async (req, res) => {
       },
       {
         path: 'notes',
-        populate: [{ path: 'createdBy' }],
+        populate: [{ path: 'user' }],
       },
     ],
   };
