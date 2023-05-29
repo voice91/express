@@ -69,9 +69,20 @@ export const list = catchAsync(async (req, res) => {
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
   const sortingObj = pick(query, ['sort', 'order']);
-  const sortObj = {
-    [sortingObj.sort]: sortingObj.order,
-  };
+
+  let sortObj;
+  if (Array.isArray(sortingObj.sort)) {
+    const sort = {};
+    sortingObj.sort.forEach((field) => {
+      sort[field] = sortingObj.order; // Assuming all fields should be sorted in ascending order (1)
+    });
+    sortObj = sort;
+  } else {
+    sortObj = {
+      [sortingObj.sort]: sortingObj.order,
+    };
+  }
+
   const filter = {
     deal: req.params.dealId,
   };
@@ -81,12 +92,18 @@ export const paginate = catchAsync(async (req, res) => {
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
+    options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
-  const task = await taskService.getTaskListWithPagination(filter, options);
-  task.results = task.results.map((taskObject) => ({
-    createdAt: taskObject.createdAt,
-    ...taskObject.toJSON(),
-  }));
+  let task;
+  if (Array.isArray(sortingObj.sort) && sortingObj.sort.includes('askingPartyInstitute.lenderNameVisible')) {
+    task = await taskService.getTaskListWithPaginationBasedOnAskingPary(filter, options, sortingObj.order);
+  } else {
+    task = await taskService.getTaskListWithPagination(filter, options);
+    task.results = task.results.map((taskObject) => ({
+      createdAt: taskObject.createdAt,
+      ...taskObject.toJSON(),
+    }));
+  }
   return res.status(httpStatus.OK).send({ results: task });
 });
 
