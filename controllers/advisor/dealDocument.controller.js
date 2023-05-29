@@ -148,7 +148,7 @@ export const create = catchAsync(async (req, res) => {
 
     // Add created Documents in Initial Email Template
     await EmailTemplate.updateMany(
-      { isFirstTime: true, ...filter },
+      { isFirstTime: true, isBlankTemplate: false, ...filter },
       {
         $addToSet: {
           emailAttachments: {
@@ -208,7 +208,7 @@ export const removeDocument = catchAsync(async (req, res) => {
     // Find documents that have isFirstTime: true and matching deal field
     // Remove emailAttachments objects with dealDocumentId equal to documentId
     await EmailTemplate.updateMany(
-      { isFirstTime: true, deal: dealDocument.deal },
+      { isFirstTime: true, isBlankTemplate: false, deal: dealDocument.deal },
       { $pull: { emailAttachments: { dealDocumentId: documentId } } }
     );
   }

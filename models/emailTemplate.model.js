@@ -90,6 +90,10 @@ const EmailTemplateSchema = new mongoose.Schema(
     isEmailSent: {
       type: Boolean,
     },
+    isBlankTemplate: {
+      type: Boolean,
+      default: false,
+    },
     /**
      * List of documents that will be attached to the email
      * */
