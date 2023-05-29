@@ -557,7 +557,9 @@ export const sendEmail = catchAsync(async (req, res) => {
       getEmailTemplate.contact = result;
     }
     delete getEmailTemplate.sendTo;
-    getEmailTemplate.emailContent = he.decode(getEmailTemplate.emailContent);
+    if (getEmailTemplate.emailContent) {
+      getEmailTemplate.emailContent = he.decode(getEmailTemplate.emailContent);
+    }
   } else {
     getEmailTemplate = emailTemplate;
   }
