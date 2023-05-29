@@ -232,6 +232,19 @@ LenderPlacementSchema.virtual('notes', {
   localField: '_id',
   foreignField: 'lenderPlacement',
   justOne: false,
+  options: {
+    match: { NotesType: enumModel.EnumOfNotesTypeOfLenderNotes.EXTERNAL_NOTE },
+  },
+});
+
+LenderPlacementSchema.virtual('internalNotes', {
+  ref: 'LenderNotes',
+  localField: '_id',
+  foreignField: 'lenderPlacement',
+  justOne: false,
+  options: {
+    match: { NotesType: enumModel.EnumOfNotesTypeOfLenderNotes.INTERNAL_NOTE },
+  },
 });
 
 LenderPlacementSchema.virtual('lenderAllContacts', {

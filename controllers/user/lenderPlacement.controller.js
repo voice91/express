@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
 import { pick } from '../../utils/pick';
+import enumModel from '../../models/enum.model';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -94,6 +95,7 @@ export const list = catchAsync(async (req, res) => {
       {
         path: 'notes',
         populate: [{ path: 'user' }],
+        match: { notesType: enumModel.EnumOfNotesTypeOfLenderNotes.EXTERNAL_NOTE },
       },
     ],
   };

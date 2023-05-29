@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import config from 'config/config';
 import { toJSON, softDelete } from './plugins';
+import enumModel from './enum.model';
 
 const LenderNotesSchema = new mongoose.Schema(
   {
@@ -50,6 +51,11 @@ const LenderNotesSchema = new mongoose.Schema(
     lenderPlacement: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LenderPlacement',
+    },
+    notesType: {
+      type: String,
+      enum: Object.values(enumModel.EnumOfNotesTypeOfLenderNotes),
+      default: enumModel.EnumOfNotesTypeOfLenderNotes.EXTERNAL_NOTE,
     },
     isEnabled: {
       type: Boolean,

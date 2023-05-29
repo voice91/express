@@ -3,6 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
+import enumFields from '../../models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
@@ -12,6 +13,9 @@ export const createLenderNotes = {
     lastReadBy: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.objectId().required(),
     deal: Joi.objectId().required(),
+    notesType: Joi.string()
+      .valid(...Object.values(enumFields.EnumOfNotesTypeOfLenderNotes))
+      .required(),
   }),
 };
 
@@ -22,6 +26,7 @@ export const updateLenderNotes = {
     content: Joi.string(),
     lastReadBy: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.objectId().required(),
+    notesType: Joi.string().valid(...Object.values(enumFields.EnumOfNotesTypeOfLenderNotes)),
   }),
   params: Joi.object().keys({
     lenderNotesId: Joi.objectId().required(),
