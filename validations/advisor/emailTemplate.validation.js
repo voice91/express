@@ -23,13 +23,15 @@ export const createEmailTemplate = {
     dealDocument: Joi.array().items(Joi.objectId),
     deal: Joi.objectId,
     lenderPlacement: Joi.objectId,
-    subject: Joi.string().required(),
-    emailContent: Joi.string().required(),
-    emailAttachments: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|pptx|xls|xlsx)$)`
+    subject: Joi.string().allow(''),
+    emailContent: Joi.string().allow(''),
+    emailAttachments: Joi.string()
+      .regex(
+        new RegExp(
+          `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|pptx|xls|xlsx)$)`
+        )
       )
-    ),
+      .allow(''),
     isFirstTime: Joi.boolean(),
   }),
 };

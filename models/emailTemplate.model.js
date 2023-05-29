@@ -52,7 +52,6 @@ const EmailTemplateSchema = new mongoose.Schema(
      * */
     subject: {
       type: String,
-      required: true,
     },
     /**
      * List of email addresses to copy on the email
@@ -76,7 +75,6 @@ const EmailTemplateSchema = new mongoose.Schema(
      * */
     emailContent: {
       type: String,
-      required: true,
     },
     lenderPlacement: {
       ref: 'LenderPlacement',

@@ -370,12 +370,12 @@ export const sendDeal = catchAsync(async (req, res) => {
     });
 
     const staticEmailTemplateData = sendDealTemplate1Text();
-    let templateData = await EmailTemplate.findOne({
+    const templateData = await EmailTemplate.find({
       lenderPlacement,
       isFirstTime: true,
     });
-    if (!templateData) {
-      templateData = await EmailTemplate.create({
+    if (!templateData.length) {
+      const defaultTemplate = await EmailTemplate.create({
         from: advisorEmail,
         advisorName,
         contact,
@@ -390,8 +390,22 @@ export const sendDeal = catchAsync(async (req, res) => {
         totalLoanAmount,
         templateName: `defaultTemplate - ${lenderName}`,
       });
+      const blankTemplate = await EmailTemplate.create({
+        from: advisorEmail,
+        advisorName,
+        contact,
+        subject: '',
+        dealDocument: docIds,
+        emailContent: '',
+        lenderPlacement,
+        deal,
+        emailAttachments: [],
+        isFirstTime: true,
+        isEmailSent: false,
+        templateName: `blankTemplate - ${lenderName}`,
+      });
+      createTemplates.push(defaultTemplate, blankTemplate);
     }
-    createTemplates.push(templateData);
   }
   return res.status(httpStatus.OK).send({ createTemplates });
 });
