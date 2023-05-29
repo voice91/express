@@ -6,6 +6,7 @@ import httpStatus from 'http-status';
 import { lenderNotesService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import enumModel from '../../models/enum.model';
 
 const getLenderNotesFilterQuery = (query) => {
   const filter = pick(query, ['lenderPlacement']);
@@ -32,6 +33,7 @@ export const list = catchAsync(async (req, res) => {
   const filter = {
     lenderInstitute: req.params.lenderInstituteId,
     ...queryParams,
+    notesType: enumModel.EnumOfNotesTypeOfLenderNotes.EXTERNAL_NOTE,
   };
   const sortingObj = pick(query, ['sort', 'order']);
   // we have to sort the notes on the basis of pinned notes to be at the top and then the notes according to their updatedAt value

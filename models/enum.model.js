@@ -224,6 +224,11 @@ const EnumOfEmailStatus = {
   EMAIL_SENT: 'emailSent',
   FOLLOW_UP: 'followUp',
 };
+
+const EnumOfNotesTypeOfLenderNotes = {
+  EXTERNAL_NOTE: 'externalNote',
+  INTERNAL_NOTE: 'internalNote',
+};
 const EnumOfRecourse = {
   NON_RECOURSE: 'nonRecourse',
   PARTIAL_RECOURSE: 'partialRecourse',
@@ -261,6 +266,7 @@ module.exports = {
   EnumEmailAttachmentsOfEmailTemplate,
   EnumTaskDocumentsOfTask,
   EnumDocumentTypeOfDealDocument,
+  EnumOfNotesTypeOfLenderNotes,
   EnumFileOfDealDocument,
   EnumTypeOfToken,
   EnumTypeOfStatus,
