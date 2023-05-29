@@ -402,6 +402,7 @@ export const sendDeal = catchAsync(async (req, res) => {
         emailAttachments: [],
         isFirstTime: true,
         isEmailSent: false,
+        isBlankTemplate: true,
         templateName: `blankTemplate - ${lenderName}`,
       });
       createTemplates.push(defaultTemplate, blankTemplate);
