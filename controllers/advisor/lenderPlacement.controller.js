@@ -456,7 +456,7 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
   }
 
   if (req.body.templateName === getEmailTemplate.templateName) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'templateName is already present');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'A template with the same name already exists..');
   }
 
   const body = {
