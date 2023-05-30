@@ -69,18 +69,19 @@ export const list = catchAsync(async (req, res) => {
 
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
-  const sortingObj = pick(query, ['sort', 'order']);
+  const sortingObj = pick(query, ['sort', 'order']); // Extracting the 'sort' and 'order' fields from the query
 
   let sortObj;
+  // Check if 'sort' field is an array
   if (Array.isArray(sortingObj.sort)) {
     const sort = {};
     sortingObj.sort.forEach((field) => {
       sort[field] = sortingObj.order; // Assuming all fields should be sorted in ascending order (1)
     });
-    sortObj = sort;
+    sortObj = sort; // Creating the sort object
   } else {
     sortObj = {
-      [sortingObj.sort]: sortingObj.order,
+      [sortingObj.sort]: sortingObj.order, // Creating the sort object with single field and order
     };
   }
 
@@ -92,14 +93,14 @@ export const paginate = catchAsync(async (req, res) => {
     populate: [{ path: 'user' }, { path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }],
   };
   if (sortingObj.sort) {
-    options.sort = sortObj;
+    options.sort = sortObj; // Setting the sort options in the options object
     options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
   let task;
   if (Array.isArray(sortingObj.sort) && sortingObj.sort.includes('askingPartyInstitute.lenderNameVisible')) {
-    task = await taskService.getTaskListWithPaginationBasedOnAskingPary(filter, options, sortingObj.order);
+    task = await taskService.getTaskListWithPaginationBasedOnAskingPary(filter, options, sortingObj.order); // Call the function to get task list with pagination based on askingPartyInstitute
   } else {
-    task = await taskService.getTaskListWithPagination(filter, options);
+    task = await taskService.getTaskListWithPagination(filter, options); // Call the function to get task list with pagination
     task.results = task.results.map((taskObject) => ({
       createdAt: taskObject.createdAt,
       ...taskObject.toJSON(),

@@ -101,8 +101,7 @@ export const list = catchAsync(async (req, res) => {
 
   const filter = {
     ...queryParams,
-    // TODO: Changes as per Client Reply
-    // stage: { $ne: EnumStageOfLenderPlacement.ARCHIVE },
+    stage: { $ne: EnumStageOfLenderPlacement.ARCHIVE },
   };
   const options = {
     ...pick(query, ['sort', 'limit', 'page']),
@@ -239,6 +238,17 @@ export const update = catchAsync(async (req, res) => {
     ],
   };
   const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
+
+  const oldStage = beforeLenderPlacementResult.stage;
+
+  if (oldStage !== EnumStageOfLenderPlacement.CLOSED && body.stage === EnumStageOfLenderPlacement.ARCHIVE) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Only Archive possible when status changed from Closed to Archive..');
+  }
+  if (oldStage === EnumStageOfLenderPlacement.CLOSED && body.stage === EnumStageOfLenderPlacement.ARCHIVE) {
+    await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
+      stage: EnumStageOfLenderPlacement.ARCHIVE,
+    });
+  }
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
   const dealId = lenderPlacementResult.deal;
   if (lenderPlacementResult.stage === enumModel.EnumStageOfLenderPlacement.CLOSING) {
@@ -446,7 +456,7 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
   }
 
   if (req.body.templateName === getEmailTemplate.templateName) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'templateName is already present');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'A template with the same name already exists..');
   }
 
   const body = {

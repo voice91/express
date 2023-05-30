@@ -27,12 +27,12 @@ export async function getTaskListWithPagination(filter, options = {}) {
 
 export async function getTaskListWithPaginationBasedOnAskingPary(filter, options = {}, order) {
   const id = filter.deal;
-  const objectId = mongoose.Types.ObjectId(id);
+  const objectId = mongoose.Types.ObjectId(id); // Converting the 'deal' field to ObjectId
   const { limit, page } = options;
   const task = await Task.aggregate([
     {
       $match: {
-        deal: objectId,
+        deal: objectId, // Matching the 'deal' field with the ObjectId
       },
     },
     {
@@ -63,15 +63,15 @@ export async function getTaskListWithPaginationBasedOnAskingPary(filter, options
       $addFields: {
         askingParty: {
           $cond: {
-            if: { $gt: [{ $size: '$askingPartyInstitute' }, 0] },
+            if: { $gt: [{ $size: '$askingPartyInstitute' }, 0] }, // Checking if askingPartyInstitute array is not empty
             then: {
-              $arrayElemAt: ['$askingPartyInstitute.lenderNameVisible', 0],
+              $arrayElemAt: ['$askingPartyInstitute.lenderNameVisible', 0], // Getting the first element of lenderNameVisible array
             },
             else: {
               $concat: [
-                { $arrayElemAt: ['$askingPartyAdvisor.firstName', 0] },
+                { $arrayElemAt: ['$askingPartyAdvisor.firstName', 0] }, // Getting the first name of askingPartyAdvisor
                 ' ',
-                { $arrayElemAt: ['$askingPartyAdvisor.lastName', 0] },
+                { $arrayElemAt: ['$askingPartyAdvisor.lastName', 0] }, // Getting the last name of askingPartyAdvisor
               ],
             },
           },
@@ -79,13 +79,13 @@ export async function getTaskListWithPaginationBasedOnAskingPary(filter, options
       },
     },
     {
-      $sort: { askingParty: parseInt(order, 10) },
+      $sort: { askingParty: parseInt(order, 10) }, // Sorting the documents based on askingParty field and order
     },
     {
       $group: {
         _id: null,
-        results: { $push: '$$ROOT' },
-        totalCount: { $sum: 1 },
+        results: { $push: '$$ROOT' }, // Grouping all documents into the results array
+        totalCount: { $sum: 1 }, // Counting the total number of documents
       },
     },
     {
@@ -93,15 +93,15 @@ export async function getTaskListWithPaginationBasedOnAskingPary(filter, options
         results: '$results',
         totalResults: '$totalCount',
         limit: { $literal: limit },
-        totalPages: { $ceil: { $divide: ['$totalCount', limit] } },
+        totalPages: { $ceil: { $divide: ['$totalCount', limit] } }, // Calculating the total number of pages based on limit
         page: { $literal: page },
-        pagingCounter: { $literal: page * limit },
-        hasPrevPage: { $gt: [page, 1] },
-        hasNextPage: { $lt: [page, { $ceil: { $divide: ['$totalCount', limit] } }] },
-        prevPage: { $cond: { if: { $gt: [page, 1] }, then: { $subtract: [page, 1] }, else: { $literal: null } } },
+        pagingCounter: { $literal: page * limit }, // Calculating the paging counter
+        hasPrevPage: { $gt: [page, 1] }, // Checking if there is a previous page
+        hasNextPage: { $lt: [page, { $ceil: { $divide: ['$totalCount', limit] } }] }, // Checking if there is a next page
+        prevPage: { $cond: { if: { $gt: [page, 1] }, then: { $subtract: [page, 1] }, else: { $literal: null } } }, // Calculating the previous page number
         nextPage: {
           $cond: {
-            if: { $lt: [page, { $ceil: { $divide: ['$totalCount', limit] } }] },
+            if: { $lt: [page, { $ceil: { $divide: ['$totalCount', limit] } }] }, // Calculating the next page number
             then: { $add: [page, 1] },
             else: { $literal: null },
           },
@@ -109,13 +109,13 @@ export async function getTaskListWithPaginationBasedOnAskingPary(filter, options
       },
     },
     {
-      $skip: (page - 1) * limit,
+      $skip: (page - 1) * limit, // Skipping documents based on pagination
     },
     {
-      $limit: limit,
+      $limit: limit, // Limiting the number of documents in the result
     },
   ]);
-  return task[0];
+  return task[0]; // Returning the first element of the task array
 }
 
 export async function createTask(body = {}) {

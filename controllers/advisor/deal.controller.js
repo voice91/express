@@ -7,7 +7,7 @@ import { activityLogService, dealService, emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
-import enumModel, { EnumOfActivityType } from '../../models/enum.model';
+import enumModel, { EnumOfActivityType, EnumStageOfDeal } from '../../models/enum.model';
 import { Deal, Invitation, LenderPlacement } from '../../models';
 // eslint-disable-next-line import/named
 import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
@@ -186,6 +186,15 @@ export const update = catchAsync(async (req, res) => {
   const dealStage = await Deal.find(filter);
 
   const oldStage = dealStage.map((item) => item.stage).toString();
+
+  if (oldStage !== EnumStageOfDeal.CLOSED && body.stage === EnumStageOfDeal.ARCHIVE) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Only Archive possible when status changed from Closed to Archive..');
+  }
+  if (oldStage === EnumStageOfDeal.CLOSED && body.stage === EnumStageOfDeal.ARCHIVE) {
+    await Deal.findByIdAndUpdate(dealId, {
+      stage: EnumStageOfDeal.ARCHIVE,
+    });
+  }
   const deal = await dealService.updateDeal(filter, body, options);
 
   const lenderPlacement = await LenderPlacement.find({ deal: dealId }).populate([{ path: 'lendingInstitution' }]);
