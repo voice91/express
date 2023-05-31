@@ -22,6 +22,7 @@ import config from 'config/config';
 import { successHandler, errorHandler as morganErrorHandler } from 'config/morgan';
 
 const actuator = require('express-actuator');
+require('./utils/rates-cronJob');
 
 mongoosePaginate.paginate.options = {
   customLabels: { docs: 'results', totalDocs: 'totalResults' },
