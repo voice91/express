@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { activityLogService, dealService, emailService } from 'services';
+import { activityLogService, dealService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
@@ -143,15 +143,8 @@ export const create = catchAsync(async (req, res) => {
   body.updatedBy = req.user._id;
   body.user = req.user._id;
   const options = {};
-  const { dealMembers } = req.body;
   const userName = req.user.firstName;
-  const { dealName } = body;
-  const deal = await dealService.createDeal(body, options);
-  await Promise.allSettled(
-    dealMembers.map((user) => {
-      return emailService.sendInvitationEmail({ user, userName, dealName, isDealCreated: true }).then().catch();
-    })
-  );
+  const deal = await dealService.createDeal(body, options, userName);
 
   // here we create activity logs
   // with deal id , and other data as user is this
@@ -248,7 +241,6 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
   body.user = req.user._id;
-  const { email } = req.body;
   let { role } = body;
   const userName = req.user.firstName;
 
@@ -258,14 +250,6 @@ export const dealInvitation = catchAsync(async (req, res) => {
     role = enumModel.EnumRoleOfUser.USER;
   }
   const deal = await Deal.findById({ _id: body.deal });
-  await dealService.InviteToDeal(body, role);
-  await Promise.allSettled(
-    email.map(async (user) => {
-      return emailService
-        .sendInvitationEmail({ user, userName, dealName: deal.dealName, isDealCreated: false })
-        .then()
-        .catch();
-    })
-  );
+  await dealService.InviteToDeal(body, role, userName, deal);
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
 });

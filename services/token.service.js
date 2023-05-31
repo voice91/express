@@ -4,7 +4,7 @@
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import httpStatus from 'http-status';
-import { Token } from 'models';
+import { Token, User } from 'models';
 import ApiError from 'utils/ApiError';
 import config from 'config/config';
 import _ from 'lodash';
@@ -54,6 +54,10 @@ export const saveToken = async (token, userId, expires, type, blacklisted = fals
  */
 export const verifyToken = async (token, type) => {
   const payload = jwt.verify(token, config.jwt.secret);
+  const user = await User.findOne({ _id: payload.sub });
+  if (user.emailVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email Already Verified');
+  }
   const tokenDoc = await Token.findOne({ token, type, user: payload.sub });
   if (!tokenDoc) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Invalid Token');

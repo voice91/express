@@ -8,6 +8,7 @@ import { Deal, Invitation, User } from 'models';
 import mongoose from 'mongoose';
 import _ from 'lodash';
 import enumModel from '../models/enum.model';
+import { emailService } from './index';
 
 export async function getDealById(id, options = {}) {
   const deal = await Deal.findById(id, options.projection, options);
@@ -29,7 +30,7 @@ export async function getDealListWithPagination(filter, options = {}) {
   return deal;
 }
 
-export async function createDeal(body) {
+export async function createDeal(body, userName) {
   if (body.involvedUsers && body.involvedUsers.advisors) {
     const advisor = body.involvedUsers.advisors;
     const advisors = await User.find({ _id: { $in: advisor } });
@@ -71,6 +72,14 @@ export async function createDeal(body) {
       );
 
       if (userEmailNotExists.length) {
+        await Promise.allSettled(
+          userEmailNotExists.map(async (user) => {
+            return emailService
+              .sendInvitationEmail({ user, userName, dealName: body.dealName, isDealCreated: false, link: 'register' })
+              .then()
+              .catch();
+          })
+        );
         await Invitation.insertMany(
           userEmailNotExists.map((nonExistingEmail) => ({
             deal: deal._id,
@@ -80,6 +89,17 @@ export async function createDeal(body) {
           }))
         );
       }
+
+      existingUsers.map(async (item) => {
+        const user = item.email;
+        return emailService.sendInvitationEmail({
+          user,
+          userName,
+          dealName: body.dealName,
+          isDealCreated: false,
+          link: 'login',
+        });
+      });
       // as our existingUsers is array we are using map on it. below line will help us to insert many document in our db at once, and we have passed the object in the map we have to enter in our db
       // so we will get deal id, the user from which we login or who is creating deal their id will go in invitedBy and in emailExists we get the whole document and we just want id of the person which we are inviting the deal so we did emailExists._id
       await Invitation.insertMany(
@@ -92,6 +112,14 @@ export async function createDeal(body) {
         }))
       );
     } else {
+      await Promise.allSettled(
+        body.dealMembers.map(async (user) => {
+          return emailService
+            .sendInvitationEmail({ user, userName, dealName: body.dealName, isDealCreated: false, link: 'register' })
+            .then()
+            .catch();
+        })
+      );
       await Invitation.insertMany(
         body.dealMembers.map((nonExistingEmail) => ({
           deal: deal._id,
@@ -146,12 +174,15 @@ export async function removeManyDeal(filter) {
   return deal;
 }
 
-export async function InviteToDeal(body, role) {
+export async function InviteToDeal(body, role, userName, deal) {
   const dealId = { _id: body.deal };
+  const { email } = body;
+
   if (body.email && body.email.length) {
     const existingUsers = await User.find({ email: { $in: body.email } });
     // Not allowing non-existing advisor to get added in the deal
     if (role === enumModel.EnumRoleOfUser.ADVISOR) {
+      // eslint-disable-next-line no-shadow
       const nonExistingUsers = body.email.filter((email) => !existingUsers.some((user) => user.email === email));
       if (nonExistingUsers.length > 0) {
         throw new ApiError(httpStatus.BAD_REQUEST, "This advisor doesn't exist in the system");
@@ -183,6 +214,14 @@ export async function InviteToDeal(body, role) {
         existingUsers.map((item) => item.email)
       );
       if (userEmailNotExists.length) {
+        await Promise.allSettled(
+          userEmailNotExists.map(async (user) => {
+            return emailService
+              .sendInvitationEmail({ user, userName, dealName: deal.dealName, isDealCreated: false, link: 'register' })
+              .then()
+              .catch();
+          })
+        );
         await Invitation.insertMany(
           userEmailNotExists.map((nonExistingEmail) => ({
             deal: dealId,
@@ -192,6 +231,16 @@ export async function InviteToDeal(body, role) {
           }))
         );
       }
+      existingUsers.map(async (item) => {
+        const user = item.email;
+        return emailService.sendInvitationEmail({
+          user,
+          userName,
+          dealName: deal.dealName,
+          isDealCreated: false,
+          link: 'login',
+        });
+      });
       await Invitation.insertMany(
         existingUsers.map((emailExists) => ({
           deal: dealId,
@@ -202,6 +251,14 @@ export async function InviteToDeal(body, role) {
         }))
       );
     } else {
+      await Promise.allSettled(
+        email.map(async (user) => {
+          return emailService
+            .sendInvitationEmail({ user, userName, dealName: deal.dealName, isDealCreated: false, link: 'register' })
+            .then()
+            .catch();
+        })
+      );
       await Invitation.insertMany(
         body.email.map((nonExistingEmail) => ({
           deal: dealId,
