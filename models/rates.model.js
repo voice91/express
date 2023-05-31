@@ -33,6 +33,9 @@ const RatesSchema = new mongoose.Schema(
     previous: {
       type: Number,
     },
+    /*
+     * This timestamp is obtained from an API that retrieves records from a database table.
+     * */
     timestamp: {
       type: Date,
     },
@@ -49,18 +52,5 @@ RatesSchema.plugin(softDelete, {
   deletedAt: 'deletedAt',
 });
 
-// // Define the toJSON transform method for the DealNotesSchema options object
-// RatesSchema.options.toJSON.transform = function (doc, { createdAt, ...ret }) {
-//   if (createdAt) {
-//     const timeDiff = Date.now() - createdAt.getTime();
-//     if (timeDiff <= 24 * 60 * 60 * 1000) {
-//       // Set isEnabled property to false
-//       // eslint-disable-next-line no-param-reassign
-//       ret.isEnabled = false;
-//     }
-//   }
-//   // Return the ret object
-//   return ret;
-// };
 const RatesModel = mongoose.models.Rates || mongoose.model('Rates', RatesSchema, 'Rates');
 module.exports = RatesModel;
