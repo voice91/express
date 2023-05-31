@@ -11,7 +11,7 @@ import TempS3 from 'models/tempS3.model';
 import { asyncForEach, encodeUrl } from 'utils/common';
 import { flatMap } from 'lodash';
 import { pick } from '../../utils/pick';
-import { Deal, DealDocument, EmailTemplate } from '../../models';
+import { Deal, DealDocument } from '../../models';
 import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
@@ -136,27 +136,11 @@ export const create = catchAsync(async (req, res) => {
   } else {
     const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, update, options);
 
-    const newEmailAttachments = dealDocumentResult.documents.filter(
-      (itemB) => !documents.find((itemA) => itemA._id.toString() === itemB._id.toString())
-    );
-
     if (dealDocumentResult) {
       const uploadedFileUrls = [];
       uploadedFileUrls.push(dealDocumentResult.file);
       await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
     }
-
-    // Add created Documents in Initial Email Template
-    await EmailTemplate.updateMany(
-      { isFirstTime: true, isBlankTemplate: false, ...filter },
-      {
-        $addToSet: {
-          emailAttachments: {
-            $each: newEmailAttachments,
-          },
-        },
-      }
-    );
     return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
   }
 });
@@ -203,15 +187,6 @@ export const removeDocument = catchAsync(async (req, res) => {
     new: true,
   };
   const dealDocument = await dealDocumentService.updateDealDocument(filter, updateDocument, options);
-
-  if (dealDocument) {
-    // Find documents that have isFirstTime: true and matching deal field
-    // Remove emailAttachments objects with dealDocumentId equal to documentId
-    await EmailTemplate.updateMany(
-      { isFirstTime: true, isBlankTemplate: false, deal: dealDocument.deal },
-      { $pull: { emailAttachments: { dealDocumentId: documentId } } }
-    );
-  }
 
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
