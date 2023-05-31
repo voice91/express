@@ -113,7 +113,7 @@ text-align: center
 `;
   await sendEmail({ to, subject, text, isHtml: true });
 };
-export const sendInvitationEmail = async ({ user, dealName, userName, isDealCreated }) => {
+export const sendInvitationEmail = async ({ user, dealName, userName, isDealCreated, link }) => {
   const invitee = user.split('@')[0];
   const to = user;
   const subject = `Parallel: ${isDealCreated ? 'New Deal Created' : 'Added to Deal'} - ${dealName}`;
@@ -154,7 +154,7 @@ text-align: center
   <div>${userName} invited you to the ${isDealCreated ? 'new' : ''} deal, <b>${dealName} </b></div><br>
   <div>Please <a class="text-center" target="_blank" href="${
     config.front.url
-  }/register" >click here</a> to access the deal</div><br><br>
+  }/${link}" >click here</a> to access the deal</div><br><br>
   <div>Thank You,</div>
   <div>The Parallel Team</div>
   </div>

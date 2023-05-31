@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { dealService, emailService } from 'services';
+import { dealService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 import { Deal, Invitation } from '../../models';
@@ -131,19 +131,10 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
   body.user = req.user._id;
-  const { email } = req.body;
   const { role } = body;
   const userName = req.user.firstName;
 
   const deal = await Deal.findById({ _id: body.deal });
-  await dealService.InviteToDeal(body, role);
-  await Promise.allSettled(
-    email.map(async (user) => {
-      return emailService
-        .sendInvitationEmail({ user, userName, dealName: deal.dealName, isDealCreated: false })
-        .then()
-        .catch();
-    })
-  );
+  await dealService.InviteToDeal(body, role, userName, deal);
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
 });
