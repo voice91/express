@@ -16,7 +16,7 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach, encodeUrl } from 'utils/common';
-import _, { flatMap } from 'lodash';
+import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { Deal, EmailTemplate, LenderPlacement } from '../../models';
@@ -363,14 +363,6 @@ export const sendDeal = catchAsync(async (req, res) => {
     totalLoanAmount = totalLoanAmount.toFixed(2);
   }
 
-  const document = flatMap(lenderContact.dealDoc.map((item) => item.documents)).map((doc) => {
-    return {
-      dealDocumentId: doc._id,
-      fileName: doc.fileName,
-      path: doc.url,
-    };
-  });
-
   if (lenderPlacement) {
     const contact = lenderContact.lenderContact.map((lc) => {
       return {
@@ -394,7 +386,7 @@ export const sendDeal = catchAsync(async (req, res) => {
         emailContent: staticEmailTemplateData,
         lenderPlacement,
         deal,
-        emailAttachments: document,
+        emailAttachments: [],
         isFirstTime: true,
         isEmailSent: false,
         totalLoanAmount,
@@ -540,11 +532,11 @@ export const sendEmail = catchAsync(async (req, res) => {
         sendTo: item,
       };
     });
-    if (getEmailTemplate.contact) {
+    if (emailTemplate.contact) {
       // eslint-disable-next-line array-callback-return
       const data = await Promise.all(
         result.map(async (item) => {
-          const getRecordFromContact = getEmailTemplate.contact.find((value) => item.sendTo === value.sendTo);
+          const getRecordFromContact = emailTemplate.contact.find((value) => item.sendTo === value.sendTo);
           if (getRecordFromContact) {
             return getRecordFromContact;
           }
@@ -597,7 +589,7 @@ export const sendEmail = catchAsync(async (req, res) => {
     const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
       return {
         fileName: item.fileName,
-        path: item.path,
+        path: item.url,
       };
     });
 
@@ -635,7 +627,7 @@ export const sendEmail = catchAsync(async (req, res) => {
         attachments: getEmailTemplate.emailAttachments.map((item) => {
           return {
             fileName: item.fileName,
-            path: item.path,
+            path: item.url,
           };
         }),
         isHtml: true,
