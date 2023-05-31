@@ -167,6 +167,11 @@ export const update = catchAsync(async (req, res) => {
   } else if (body.askingPartyAdvisor) {
     body.$unset = { askingPartyInstitute: '' };
   }
+  if (body.taskAnswer === null) {
+    body.$unset = { taskAnswer: '' };
+    delete body.taskAnswer;
+  }
+
   const taskResult = await taskService.updateTask(filter, body, options);
   // tempS3
   if (taskResult) {
