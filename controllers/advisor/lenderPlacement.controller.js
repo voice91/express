@@ -470,6 +470,17 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
       emailContent: he.decode(emailContent),
     },
   };
+
+  if (updatedBody.emailAttachments) {
+    const emailAttachments = updatedBody.emailAttachments.map((item) => {
+      return {
+        fileName: item.fileName,
+        path: item.url ? item.url : item.path,
+      };
+    });
+    delete updatedBody.emailAttachments;
+    updatedBody.emailAttachments = emailAttachments;
+  }
   if (updatedBody.sendTo) {
     const result = updatedBody.sendTo.map((item) => {
       return {
@@ -589,7 +600,7 @@ export const sendEmail = catchAsync(async (req, res) => {
     const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
       return {
         fileName: item.fileName,
-        path: item.url,
+        path: item.url ? item.url : item.path,
       };
     });
 
@@ -627,7 +638,7 @@ export const sendEmail = catchAsync(async (req, res) => {
         attachments: getEmailTemplate.emailAttachments.map((item) => {
           return {
             fileName: item.fileName,
-            path: item.url,
+            path: item.url ? item.url : item.path,
           };
         }),
         isHtml: true,
