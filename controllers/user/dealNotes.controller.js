@@ -139,11 +139,8 @@ export const update = catchAsync(async (req, res) => {
   const { body } = req;
   body.updatedBy = req.user._id;
   const { dealNotesId } = req.params;
-  body.user = req.user._id;
-  const user = req.user._id;
   const filter = {
     _id: dealNotesId,
-    user,
   };
   const options = { new: true };
   const dealNotes = await dealNotesService.updateDealNotes(filter, body, options);
