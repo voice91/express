@@ -5,7 +5,6 @@
 import httpStatus from 'http-status';
 import { activityLogService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
-import { flatMap, uniq } from 'lodash';
 import { pick } from '../../utils/pick';
 import { Deal } from '../../models';
 
@@ -49,18 +48,6 @@ export const list = catchAsync(async (req, res) => {
 
   const getallDeals = await Deal.find({ 'involvedUsers.borrowers': userId }).select('involvedUsers _id');
 
-  const getAllInvolvedUserIds = uniq(
-    flatMap(
-      getallDeals
-        .map((item) => {
-          return [item.involvedUsers.borrowers];
-        })
-        .flat()
-    ).map((item) => item.toString())
-  );
-  if (!getAllInvolvedUserIds) {
-    getAllInvolvedUserIds.push(userId);
-  }
   const getDealId = getallDeals.map((deal) => deal._id);
 
   const activityLog = await activityLogService.getActivityLogList({ deal: { $in: getDealId }, ...filter }, options);
