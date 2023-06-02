@@ -26,10 +26,10 @@ export async function getActivityLogListWithPagination(filter, options = {}) {
   return activityLog;
 }
 
-export async function createActivityLog(body, options = {}) {
+export async function createActivityLog(body) {
   const deal = await Deal.findOne({ _id: body.deal });
   if (!deal) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'field deal is not valid');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'This Deal is Not Exist');
   }
   const activityLog = await ActivityLog.create(body);
   return activityLog;
@@ -38,7 +38,7 @@ export async function createActivityLog(body, options = {}) {
 export async function updateActivityLog(filter, body, options = {}) {
   const deal = await Deal.findOne({ _id: body.deal });
   if (!deal) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'field deal is not valid');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'This Deal is Not Exist');
   }
   const activityLog = await ActivityLog.findOneAndUpdate(filter, body, options);
   return activityLog;

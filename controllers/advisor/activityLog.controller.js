@@ -48,6 +48,7 @@ export const list = catchAsync(async (req, res) => {
   }
 
   const getallDeals = await Deal.find({ user: userId }).select('involvedUsers _id');
+  const getAlldealId = getallDeals.map((item) => item._id).map((item) => item.toString());
 
   const getAllInvolvedUserIds = uniq(
     flatMap(
@@ -62,7 +63,7 @@ export const list = catchAsync(async (req, res) => {
     getAllInvolvedUserIds.push(userId);
   }
   const activityLog = await activityLogService.getActivityLogList(
-    { createdBy: { $in: getAllInvolvedUserIds }, ...filter },
+    { createdBy: { $in: getAllInvolvedUserIds }, deal: { $in: getAlldealId }, ...filter },
     options
   );
   return res.status(httpStatus.OK).send({ results: activityLog });
