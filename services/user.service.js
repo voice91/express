@@ -65,14 +65,18 @@ export async function removeManyUser(filter) {
 
 export async function addDeviceToken(user, body) {
   const { deviceToken, platform } = body;
-  const isFCMValid = notificationService.verifyFCMToken(deviceToken);
+  const isFCMValid = await notificationService.verifyFCMToken(deviceToken);
   if (!isFCMValid) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'The FCM Token is invalid!');
   }
   const deviceTokenList = user.deviceTokens.map((data) => data.deviceToken);
   if (_.indexOf(deviceTokenList, deviceToken) === -1) {
     user.deviceTokens.push({ deviceToken, platform });
-    const updatedUser = await updateUser({ _id: user._id }, user);
+    const updateUserBody = { ...user._doc };
+    // we do not want to change password, so we delete from updated body. otherwise it change password for same user.
+    delete updateUserBody.password;
+    const updatedUser = await updateUser({ _id: user._id }, { ...updateUserBody });
     return updatedUser;
   }
+  return user;
 }
