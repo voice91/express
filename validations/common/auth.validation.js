@@ -28,7 +28,7 @@ export const login = {
     email: Joi.string().required(),
     password: Joi.string().required(),
     deviceToken: Joi.string().allow(''),
-    plateform: Joi.string().valid(...Object.values(enumFields.EnumPlatformOfDeviceToken)),
+    platform: Joi.string().valid(...Object.values(enumFields.EnumPlatformOfDeviceToken)),
   }),
 };
 
