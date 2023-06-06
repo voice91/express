@@ -16,6 +16,7 @@ import dealDocumentRoutes from './v1/dealDocument/dealDocument.route';
 import lenderInstituteNotesRoutes from './v1/lenderInstituteNotes/lenderInstituteNotes.routes';
 import authRoutes from './v1/auth/auth.route';
 import lenderNotesRoutes from './v1/lenderNotes/lenderNotes.route';
+import notificationRoutes from './v1/notification/notification.route';
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -29,6 +30,7 @@ router.use('/emailTemplate', emailTemplateRoutes);
 router.use('/activityLog', activityLogRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/bugReport', bugReportRoutes);
+router.use('/notification', notificationRoutes);
 router.use('/FAQ', FAQRoutes);
 router.use('/task', taskRoutes);
 router.use('/dealDocument', dealDocumentRoutes);
