@@ -51,3 +51,8 @@ export async function getNotificationList(filter, options = {}) {
   const notification = await Notifications.find(filter, options.projection, options);
   return notification;
 }
+
+export async function updateManyNotification(filter, body, options = {}) {
+  const notification = await Notifications.updateMany(filter, body, options);
+  return notification;
+}

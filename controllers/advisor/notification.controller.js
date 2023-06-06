@@ -67,3 +67,31 @@ export const create = catchAsync(async (req, res) => {
   const notification = await notificationService.createNotification(body, options);
   return res.status(httpStatus.CREATED).send({ results: notification });
 });
+
+export const update = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.updatedBy = req.user._id;
+  const userId = req.user._id;
+  const filter = {};
+  const getallDeals = await Deal.find({ user: userId }).select('involvedUsers _id');
+  const getAlldealId = getallDeals.map((item) => item._id).map((item) => item.toString());
+
+  const getAllInvolvedUserIds = uniq(
+    flatMap(
+      getallDeals
+        .map((item) => {
+          return [item.involvedUsers.lenders, item.involvedUsers.borrowers, item.involvedUsers.advisors];
+        })
+        .flat()
+    ).map((item) => item.toString())
+  );
+
+  if (!getAllInvolvedUserIds) {
+    getAllInvolvedUserIds.push(userId);
+  }
+  await notificationService.updateManyNotification(
+    { createdBy: { $in: getAllInvolvedUserIds }, deal: { $in: getAlldealId }, ...filter },
+    { isClear: true }
+  );
+  return res.status(httpStatus.OK).send({ success: true });
+});

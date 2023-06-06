@@ -8,11 +8,15 @@ const router = express.Router();
 router
   .route('/')
   /**
-   * createActivityLog
+   * createNotification
    * */
   .post(auth('user'), validate(notificationValidation.createNotification), notificationController.create)
   /**
-   * getActivityLog
+   * getNotification
    * */
-  .get(auth('user'), validate(notificationValidation.getNotification), notificationController.list);
+  .get(auth('user'), validate(notificationValidation.getNotification), notificationController.list)
+  /**
+   * UpdateNotification
+   * */
+  .put(auth('user'), notificationController.update);
 export default router;

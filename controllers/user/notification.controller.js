@@ -54,3 +54,16 @@ export const create = catchAsync(async (req, res) => {
   const notification = await notificationService.createNotification(body, options);
   return res.status(httpStatus.CREATED).send({ results: notification });
 });
+
+export const update = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.updatedBy = req.user._id;
+  const userId = req.user._id;
+  const filter = {};
+  const getallDeals = await Deal.find({ 'involvedUsers.borrowers': userId }).select('involvedUsers _id');
+
+  const getAllDealId = getallDeals.map((deal) => deal._id);
+
+  await notificationService.updateManyNotification({ deal: { $in: getAllDealId }, ...filter }, { isClear: true });
+  return res.status(httpStatus.OK).send({ success: true });
+});
