@@ -20,6 +20,7 @@ module.exports.Task = require('./task.model');
 module.exports.DealDocument = require('./dealDocument.model');
 module.exports.Token = require('./token.model');
 module.exports.FileFieldValidation = require('./fileFieldValidation.model');
+module.exports.Notifications = require('./notification.model');
 module.exports.Rates = require('./rates.model');
 module.exports.TempS3 = require('./tempS3.model');
 module.exports.Error = require('./error.model');

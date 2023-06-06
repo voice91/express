@@ -8,7 +8,7 @@ import { Deal, Invitation, User } from 'models';
 import mongoose from 'mongoose';
 import _ from 'lodash';
 import enumModel from '../models/enum.model';
-import { emailService } from './index';
+import { emailService, notificationService } from './index';
 
 export async function getDealById(id, options = {}) {
   const deal = await Deal.findById(id, options.projection, options);
@@ -80,6 +80,17 @@ export async function createDeal(body, userName) {
               .catch();
           })
         );
+
+        userEmailNotExists.map(async (user) => {
+          const notification = {
+            createdBy: body.createdBy,
+            updatedBy: body.createdBy,
+            message: `${user} Requested to be added to ${body.dealName}`,
+            deal,
+          };
+          await notificationService.createNotification(notification);
+        });
+
         await Invitation.insertMany(
           userEmailNotExists.map((nonExistingEmail) => ({
             deal: deal._id,
@@ -100,6 +111,17 @@ export async function createDeal(body, userName) {
           link: 'login',
         });
       });
+
+      existingUsers.map(async (user) => {
+        const notification = {
+          createdBy: body.createdBy,
+          updatedBy: body.createdBy,
+          message: `${user.email} Requested to be added to ${body.dealName}`,
+          deal,
+        };
+        await notificationService.createNotification(notification);
+      });
+
       // as our existingUsers is array we are using map on it. below line will help us to insert many document in our db at once, and we have passed the object in the map we have to enter in our db
       // so we will get deal id, the user from which we login or who is creating deal their id will go in invitedBy and in emailExists we get the whole document and we just want id of the person which we are inviting the deal so we did emailExists._id
       await Invitation.insertMany(
@@ -120,6 +142,17 @@ export async function createDeal(body, userName) {
             .catch();
         })
       );
+
+      body.dealMembers.map(async (user) => {
+        const notification = {
+          createdBy: body.createdBy,
+          updatedBy: body.createdBy,
+          message: `${user} Requested to be added to ${body.dealName}`,
+          deal,
+        };
+        await notificationService.createNotification(notification);
+      });
+
       await Invitation.insertMany(
         body.dealMembers.map((nonExistingEmail) => ({
           deal: deal._id,
@@ -222,6 +255,17 @@ export async function InviteToDeal(body, role, userName, deal) {
               .catch();
           })
         );
+
+        userEmailNotExists.map(async (user) => {
+          const notification = {
+            createdBy: body.createdBy,
+            updatedBy: body.createdBy,
+            message: `${user} Requested to be added to ${deal.dealName}`,
+            deal: dealId,
+          };
+          await notificationService.createNotification(notification);
+        });
+
         await Invitation.insertMany(
           userEmailNotExists.map((nonExistingEmail) => ({
             deal: dealId,
@@ -241,6 +285,17 @@ export async function InviteToDeal(body, role, userName, deal) {
           link: 'login',
         });
       });
+
+      existingUsers.map(async (user) => {
+        const notification = {
+          createdBy: body.createdBy,
+          updatedBy: body.createdBy,
+          message: `${user.email} Requested to be added to ${deal.dealName}`,
+          deal: dealId,
+        };
+        await notificationService.createNotification(notification);
+      });
+
       await Invitation.insertMany(
         existingUsers.map((emailExists) => ({
           deal: dealId,
@@ -259,6 +314,17 @@ export async function InviteToDeal(body, role, userName, deal) {
             .catch();
         })
       );
+
+      email.map(async (user) => {
+        const notification = {
+          createdBy: body.createdBy,
+          updatedBy: body.createdBy,
+          message: `${user} Requested to be added to ${deal.dealName}`,
+          deal: dealId,
+        };
+        await notificationService.createNotification(notification);
+      });
+
       await Invitation.insertMany(
         body.email.map((nonExistingEmail) => ({
           deal: dealId,

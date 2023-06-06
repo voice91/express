@@ -13,6 +13,7 @@ module.exports.activityLogController = require('./activityLog.controller');
 module.exports.feedbackController = require('./feedback.controller');
 module.exports.bugReportController = require('./bugReport.controller');
 module.exports.lenderInstituteNotesController = require('./lenderInstituteNotes.controller');
+module.exports.notificationController = require('./notification.controller');
 module.exports.FAQController = require('./FAQ.controller');
 module.exports.taskController = require('./task.controller');
 module.exports.dealDocumentController = require('./dealDocument.controller');

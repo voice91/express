@@ -58,3 +58,5 @@ module.exports.bugReportValidation = require('./bugReport.validation');
 module.exports.FAQValidation = require('./FAQ.validation');
 
 module.exports.lenderInstituteNotesValidation = require('./lenderInstituteNotes.validation');
+
+module.exports.notificationValidation = require('./notification.validation');

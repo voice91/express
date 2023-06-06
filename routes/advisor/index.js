@@ -16,6 +16,7 @@ import bugReportRoutes from './v1/bugReport/bugReport.routes';
 import FAQRoutes from './v1/FAQ/FAQ.routes';
 import authRoutes from './v1/auth/auth.route';
 import lenderNotesRoutes from './v1/lenderNotes/lenderNotes.route';
+import notificationRoutes from './v1/notification/notification.route';
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -27,6 +28,7 @@ router.use('/lenderPlacement', lenderPlacementRoutes);
 router.use('/lenderContact', lenderContactRoutes);
 router.use('/emailTemplate', emailTemplateRoutes);
 router.use('/activityLog', activityLogRoutes);
+router.use('/notification', notificationRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/bugReport', bugReportRoutes);
 router.use('/lenderInstituteNotes', lenderInstituteNotesRoutes);
