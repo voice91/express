@@ -1,11 +1,10 @@
-import _ from 'lodash';
+import _, { flatten } from 'lodash';
 import httpStatus from 'http-status';
 import XLSX from 'xlsx';
 import ApiError from '../../utils/ApiError';
 import { logger } from '../../config/logger';
 import {
   EnumAssetTypeOfDeal,
-  EnumLenderProgramTypeOfLenderProgram,
   EnumLenderTypeOfLendingInstitution,
   EnumLoanTypeOfDeal,
   EnumStatesOfDeal,
@@ -24,7 +23,7 @@ export async function importDataFromFile(file, res) {
     }
     if (data) {
       const lenderWorkbook = XLSX.read(data, { type: 'buffer' });
-      const lenderInstitution = lenderWorkbook.SheetNames[6];
+      const lenderInstitution = lenderWorkbook.SheetNames[2];
       const lenderInstitutionSheet = lenderWorkbook.Sheets[lenderInstitution];
       const lenderInstitutionSheetData = XLSX.utils.sheet_to_json(lenderInstitutionSheet);
       logger.info('Read lenderInstitutionSheetData');
@@ -33,6 +32,8 @@ export async function importDataFromFile(file, res) {
         Bank: EnumLenderTypeOfLendingInstitution.BANK,
         'Debt Fund': EnumLenderTypeOfLendingInstitution.DEBT_FUND,
         'Credit Union': EnumLenderTypeOfLendingInstitution.CREDIT_UNION,
+        'National Bank': EnumLenderTypeOfLendingInstitution.NATIONAL_BANK,
+        'Regional Bank': EnumLenderTypeOfLendingInstitution.REGIONAL_BANK,
         LifeCo: EnumLenderTypeOfLendingInstitution.LIFECO,
       };
 
@@ -52,20 +53,25 @@ export async function importDataFromFile(file, res) {
       );
       logger.info('Insert lenderInstitute Data');
 
-      const lenderProgram = lenderWorkbook.SheetNames[7];
+      const lenderProgram = lenderWorkbook.SheetNames[3];
       const lenderProgramSheet = lenderWorkbook.Sheets[lenderProgram];
       const lenderProgramSheetData = XLSX.utils.sheet_to_json(lenderProgramSheet);
       logger.info('Read lenderProgramSheetData');
 
       const CsvLenderProgramTypeMapping = {
-        Construction: EnumLenderProgramTypeOfLenderProgram.CONSTRUCTION,
-        Bridge: EnumLenderProgramTypeOfLenderProgram.BRIDGE,
-        Permanent: EnumLenderProgramTypeOfLenderProgram.PERMANENT,
-        Main: EnumLenderProgramTypeOfLenderProgram.MAIN,
-        'Specialty Bridge': EnumLenderProgramTypeOfLenderProgram.SPECIALTY_BRIDGE,
-        'Transitional Bridge': EnumLenderProgramTypeOfLenderProgram.TRANSITIONAL_BRIDGE,
-        Land: EnumLenderProgramTypeOfLenderProgram.LAND,
-        Conventional: EnumLenderProgramTypeOfLenderProgram.CONVENTIONAL,
+        Construction: 'construction',
+        Bridge: 'bridge',
+        Permanent: 'permanent',
+        Main: 'main',
+        'Specialty Bridge': 'specialityBridge',
+        'Transitional Bridge': 'transitionalBridge',
+        Land: 'land',
+        Conventional: 'conventional',
+        'Main Bridge': 'mainBridge',
+        'SFR Bridge': 'sfrBridge',
+        'Note on Note': 'noteOnNote',
+        'Local Bank': 'localBank',
+        'National Construction': 'nationalConstruction',
       };
 
       const CsvLenderPropertyTypeMapping = {
@@ -75,6 +81,16 @@ export async function importDataFromFile(file, res) {
         'Self-Storage': EnumAssetTypeOfDeal.SELF_STORAGE,
         Retail: EnumAssetTypeOfDeal.RETAIL,
         Condos: EnumAssetTypeOfDeal.CONDOS,
+        '1-4 SFR': EnumAssetTypeOfDeal['1_4_SFR'],
+        Hotel: EnumAssetTypeOfDeal.HOTEL,
+        SFR: EnumAssetTypeOfDeal.SFR,
+        Hospitality: EnumAssetTypeOfDeal.HOSPITALITY,
+        Office: EnumAssetTypeOfDeal.OFFICE,
+        'Anchored Retail': EnumAssetTypeOfDeal.ANCHORED_RETAIL,
+        Speciality: EnumAssetTypeOfDeal.SPECIALTY,
+        NNN: EnumAssetTypeOfDeal.NNN,
+        'Mixed Use': EnumAssetTypeOfDeal.MIXED_USE,
+        'Gas Stations': EnumAssetTypeOfDeal.GAS_STATIONS,
         All: Object.values(EnumAssetTypeOfDeal),
       };
       const CsvLenderLoanTypeMapping = {
@@ -86,33 +102,59 @@ export async function importDataFromFile(file, res) {
         'Heavy Bridge': EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL,
       };
       const CsvStatesArrayMapping = {
-        NY: EnumStatesOfDeal.NEW_YORK,
-        NJ: EnumStatesOfDeal.NEW_JERSEY,
-        CA: EnumStatesOfDeal.CALIFORNIA,
-        NV: EnumStatesOfDeal.NEVADA,
-        TX: EnumStatesOfDeal.TEXAS,
-        WA: EnumStatesOfDeal.WASHINGTON,
-        IL: EnumStatesOfDeal.ILLINOIS,
-        DC: EnumStatesOfDeal.DISTRICT_OF_COLUMBIA,
-        MA: EnumStatesOfDeal.MASSACHUSETTS,
-        WI: EnumStatesOfDeal.WISCONSIN,
-        IN: EnumStatesOfDeal.INDIANA,
+        AL: EnumStatesOfDeal.ALABAMA,
+        AK: EnumStatesOfDeal.ALASKA,
+        AZ: EnumStatesOfDeal.ARIZONA,
         AR: EnumStatesOfDeal.ARKANSAS,
-        MO: EnumStatesOfDeal.MISSOURI,
+        CA: EnumStatesOfDeal.CALIFORNIA,
+        CO: EnumStatesOfDeal.COLORADO,
+        CT: EnumStatesOfDeal.CONNECTICUT,
+        DE: EnumStatesOfDeal.DELAWARE,
+        DC: EnumStatesOfDeal.DISTRICT_OF_COLUMBIA,
         FL: EnumStatesOfDeal.FLORIDA,
-        ID: EnumStatesOfDeal.IDAHO,
-        LA: EnumStatesOfDeal.LOUISIANA,
-        MS: EnumStatesOfDeal.MISSISSIPPI,
-        TN: EnumStatesOfDeal.TENNESSEE,
-        MI: EnumStatesOfDeal.MICHIGAN,
-        KS: EnumStatesOfDeal.KANSAS,
-        OK: EnumStatesOfDeal.OKLAHOMA,
-        NC: EnumStatesOfDeal.NORTH_CAROLINA,
-        SC: EnumStatesOfDeal.SOUTH_CAROLINA,
         GA: EnumStatesOfDeal.GEORGIA,
+        HI: EnumStatesOfDeal.HAWAII,
+        ID: EnumStatesOfDeal.IDAHO,
+        IL: EnumStatesOfDeal.ILLINOIS,
+        IN: EnumStatesOfDeal.INDIANA,
+        IA: EnumStatesOfDeal.IOWA,
+        KS: EnumStatesOfDeal.KANSAS,
+        KY: EnumStatesOfDeal.KENTUCKY,
+        LA: EnumStatesOfDeal.LOUISIANA,
+        ME: EnumStatesOfDeal.MAINE,
+        MD: EnumStatesOfDeal.MARYLAND,
+        MA: EnumStatesOfDeal.MASSACHUSETTS,
+        MI: EnumStatesOfDeal.MICHIGAN,
+        MN: EnumStatesOfDeal.MINNESOTA,
+        MS: EnumStatesOfDeal.MISSISSIPPI,
+        MO: EnumStatesOfDeal.MISSOURI,
+        MT: EnumStatesOfDeal.MONTANA,
+        NE: EnumStatesOfDeal.NEBRASKA,
+        NV: EnumStatesOfDeal.NEVADA,
+        NH: EnumStatesOfDeal.NEW_HAMPSHIRE,
+        NJ: EnumStatesOfDeal.NEW_JERSEY,
+        NM: EnumStatesOfDeal.NEW_MEXICO,
+        NY: EnumStatesOfDeal.NEW_YORK,
+        NC: EnumStatesOfDeal.NORTH_CAROLINA,
+        ND: EnumStatesOfDeal.NORTH_DAKOTA,
+        OH: EnumStatesOfDeal.OHIO,
+        OK: EnumStatesOfDeal.OKLAHOMA,
+        OR: EnumStatesOfDeal.OREGON,
+        PA: EnumStatesOfDeal.PENNSYLVANIA,
+        RI: EnumStatesOfDeal.RHODE_ISLAND,
+        SC: EnumStatesOfDeal.SOUTH_CAROLINA,
+        SD: EnumStatesOfDeal.SOUTH_DAKOTA,
+        TN: EnumStatesOfDeal.TENNESSEE,
+        TX: EnumStatesOfDeal.TEXAS,
+        UT: EnumStatesOfDeal.UTAH,
+        VT: EnumStatesOfDeal.VERMONT,
+        VA: EnumStatesOfDeal.VIRGINIA,
+        WA: EnumStatesOfDeal.WASHINGTON,
+        WV: EnumStatesOfDeal.WEST_VIRGINIA,
+        WI: EnumStatesOfDeal.WISCONSIN,
+        WY: EnumStatesOfDeal.WYOMING,
         Nationwide: Object.values(EnumStatesOfDeal),
       };
-
       const lenderProgramType = lenderProgramSheetData.map((item) => {
         return { ...item, lenderProgramType: CsvLenderProgramTypeMapping[item.lenderProgramType] };
       });
@@ -120,34 +162,121 @@ export async function importDataFromFile(file, res) {
 
       // _.flatten method is a lodash method used to flatten the array. It takes simple array or array of arrays and return array.
       const lenderPropertyType = lenderProgramType.map((item) => {
-        return {
-          ...item,
-          // eslint-disable-next-line no-shadow
-          propertyType: _.flatten(item.propertyType.split(',').map((data) => CsvLenderPropertyTypeMapping[data])),
-        };
+        if (item.property) {
+          const propertyType = {
+            // eslint-disable-next-line no-shadow
+            property: flatten(item.property.split(',').map((data) => CsvLenderPropertyTypeMapping[data])),
+            propTypeArrTag: item.propTypeArrTag,
+          };
+          // eslint-disable-next-line no-param-reassign
+          delete item.property;
+          // eslint-disable-next-line no-param-reassign
+          delete item.propTypeArrTag;
+          return {
+            ...item,
+            propertyType,
+          };
+        }
+        return item;
       });
       logger.info('lenderPropertyType');
 
       const lenderLoanType = lenderPropertyType.map((item) => {
-        return {
-          ...item,
-          loanType: _.flatten(
-            item.loanType
-              .replace(/\[|\]/g, '')
-              .split(',')
-              // eslint-disable-next-line no-shadow
-              .map((data) => CsvLenderLoanTypeMapping[data])
-          ),
-        };
+        if (item && item.loan) {
+          const loanType = {
+            loan: flatten(
+              item.loan
+                .replace(/\[|\]/g, '')
+                .split(',')
+                // eslint-disable-next-line no-shadow
+                .map((data) => CsvLenderLoanTypeMapping[data])
+            ),
+            loanTypeArrTag: item.loanTypeArrTag,
+          };
+          // eslint-disable-next-line no-param-reassign
+          delete item.loan;
+          // eslint-disable-next-line no-param-reassign
+          delete item.loanTypeArrTag;
+          return {
+            ...item,
+            loanType,
+          };
+        }
+        return item;
       });
       logger.info('lenderLoanType');
 
-      const lenderStatesArray = lenderLoanType.map((item) => {
-        return {
-          ...item,
+      const lenderMinLoanSize = lenderLoanType.map((item) => {
+        if (item && item.minLoan) {
+          const minLoanSize = {
+            minLoan: item.minLoan,
+            minLoanTag: item.minLoanTag,
+          };
+          // eslint-disable-next-line no-param-reassign
+          delete item.minLoan;
+          // eslint-disable-next-line no-param-reassign
+          delete item.minLoanTag;
+          return {
+            ...item,
+            minLoanSize,
+          };
+        }
+        return item;
+      });
+      logger.info('lenderMinLoanSize');
+
+      const lenderMaxLoanSize = lenderMinLoanSize.map((item) => {
+        if (item && item.maxLoan) {
+          const maxLoanSize = {
+            maxLoan: item.maxLoan,
+            maxLoanTag: item.maxLoanTag,
+          };
+          // eslint-disable-next-line no-param-reassign
+          delete item.maxLoan;
+          // eslint-disable-next-line no-param-reassign
+          delete item.maxLoanTag;
+          return {
+            ...item,
+            maxLoanSize,
+          };
+        }
+        return item;
+      });
+      logger.info('lenderMaxLoanSize');
+
+      const lenderStatesArray = lenderMaxLoanSize.map((item) => {
+        if (item && item.state) {
           // eslint-disable-next-line no-shadow
-          statesArray: _.flatten(item.statesArray.split(',').map((data) => CsvStatesArrayMapping[data])),
-        };
+          const result = _.flatten(item.state.split(',').map((data) => CsvStatesArrayMapping[data]));
+          const stateswithTag = result.map((state, index) => {
+            if (item.statesArrTag.toString().split(',').length === 1) {
+              return {
+                state,
+                statesArrTag: item.statesArrTag,
+              };
+            }
+            if (item.statesArrTag.toString().split(',').length === result.length) {
+              return {
+                state,
+                statesArrTag: item.statesArrTag.toString().split(',')[index],
+              };
+            }
+            return {
+              state,
+            };
+          });
+          // eslint-disable-next-line no-param-reassign
+          delete item.state;
+          // eslint-disable-next-line no-param-reassign
+          delete item.statesArrTag;
+          return {
+            ...item,
+            statesArray: {
+              stateswithTag,
+            },
+          };
+        }
+        return item;
       });
       logger.info('lenderStatesArray');
 
@@ -162,20 +291,24 @@ export async function importDataFromFile(file, res) {
             return {
               lenderInstitute: institute._id,
               lenderProgramType: lsa.lenderProgramType,
-              minLoanSize: lsa.minLoanSize,
-              maxLoanSize: lsa.maxLoanSize,
-              statesArray: lsa.statesArray,
-              propertyType: lsa.propertyType,
-              loanType: lsa.loanType,
+              ...(lsa.minLoanSize && { minLoanSize: lsa.minLoanSize }),
+              ...(lsa.maxLoanSize && { maxLoanSize: lsa.maxLoanSize }),
+              ...(lsa.statesArray && { statesArray: lsa.statesArray }),
+              ...(lsa.propertyType && { propertyType: lsa.propertyType }),
+              ...(lsa.loanType && { loanType: lsa.loanType }),
+              ...(lsa.indexUsed && { indexUsed: lsa.indexUsed }),
+              ...(lsa.spreadEstimate && { spreadEstimate: lsa.spreadEstimate }),
+              ...(lsa.counties && { counties: lsa.counties }),
+              ...(lsa.recourseRequired && { recourseRequired: lsa.recourseRequired }),
+              ...(lsa.nonRecourseLTV && { nonRecourseLTV: lsa.nonRecourseLTV }),
             };
           }
         })
       );
-
       await LenderProgram.insertMany(lenderPrograms);
       logger.info('Insert lenderProgram Data');
 
-      const lenderContact = lenderWorkbook.SheetNames[8];
+      const lenderContact = lenderWorkbook.SheetNames[4];
       const lenderContactSheet = lenderWorkbook.Sheets[lenderContact];
       const lenderContactSheetData = XLSX.utils.sheet_to_json(lenderContactSheet);
       logger.info('Read lenderContactSheetData');
@@ -187,15 +320,18 @@ export async function importDataFromFile(file, res) {
           if (institute) {
             return {
               lenderInstitute: institute._id,
-              firstName: lsa.firstName,
-              lastName: lsa.lastName,
-              nickName: lsa.nickName,
-              email: lsa.email,
-              phoneNumberDirect: lsa.phoneNumberDirect,
-              phoneNumberCell: lsa.phoneNumberCell,
-              phoneNumberOffice: lsa.phoneNumberOffice,
-              city: lsa.city,
-              state: lsa.state,
+              ...(lsa.firstName && { firstName: lsa.firstName }),
+              ...(lsa.lastName && { lastName: lsa.lastName }),
+              ...(lsa.nickName && { nickName: lsa.nickName }),
+              ...(lsa.email && { email: lsa.email.trim() }),
+              ...(lsa.phoneNumberDirect && { phoneNumberDirect: lsa.phoneNumberDirect }),
+              ...(lsa.phoneNumberCell && { phoneNumberCell: lsa.phoneNumberCell }),
+              ...(lsa.phoneNumberOffice && { phoneNumberOffice: lsa.phoneNumberOffice }),
+              ...(lsa.city && { city: lsa.city }),
+              ...(lsa.state && { state: lsa.state }),
+              ...(lsa.title && { title: lsa.title }),
+              ...(lsa.emailTag && { emailTag: lsa.emailTag }),
+              ...(lsa.contactTag && { contactTag: lsa.contactTag }),
             };
           }
         })
