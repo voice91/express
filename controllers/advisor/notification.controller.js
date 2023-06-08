@@ -91,7 +91,7 @@ export const update = catchAsync(async (req, res) => {
   }
   await notificationService.updateManyNotification(
     { createdBy: { $in: getAllInvolvedUserIds }, deal: { $in: getAlldealId }, ...filter },
-    { isClear: true }
+    { isClear: true, isReadable: body.isReadable }
   );
   return res.status(httpStatus.OK).send({ success: true });
 });

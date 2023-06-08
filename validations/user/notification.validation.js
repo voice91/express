@@ -13,6 +13,12 @@ export const createNotification = {
   }),
 };
 
+export const updateNotification = {
+  body: Joi.object().keys({
+    isReadable: Joi.bool(),
+  }),
+};
+
 export const getNotification = {
   body: Joi.object().keys({}).unknown(true),
   query: Joi.object()
