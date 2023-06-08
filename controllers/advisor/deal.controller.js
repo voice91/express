@@ -25,10 +25,8 @@ const getDealFilterQuery = (query) => {
 };
 export const get = catchAsync(async (req, res) => {
   const { dealId } = req.params;
-  const user = req.user._id;
   const filter = {
     _id: dealId,
-    user,
   };
   const options = {
     populate: [
