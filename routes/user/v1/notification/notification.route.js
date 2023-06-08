@@ -18,5 +18,6 @@ router
   /**
    * UpdateNotification
    * */
-  .put(auth('user'), notificationController.update);
+  .put(auth('user'), validate(notificationValidation.updateNotification), notificationController.update);
+
 export default router;

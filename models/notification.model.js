@@ -35,6 +35,10 @@ const NotificationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isReadable: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );

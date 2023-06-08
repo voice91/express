@@ -64,6 +64,9 @@ export const update = catchAsync(async (req, res) => {
 
   const getAllDealId = getallDeals.map((deal) => deal._id);
 
-  await notificationService.updateManyNotification({ deal: { $in: getAllDealId }, ...filter }, { isClear: true });
+  await notificationService.updateManyNotification(
+    { deal: { $in: getAllDealId }, ...filter },
+    { isClear: true, isReadable: body.isReadable }
+  );
   return res.status(httpStatus.OK).send({ success: true });
 });
