@@ -36,64 +36,49 @@ const LenderProgramSchema = new mongoose.Schema(
      * List of all the states in the US where the lender will lend for the given program
      * */
     statesArray: {
-      stateswithTag: [
-        {
-          state: {
-            type: String,
-            enum: Object.values(enumModel.EnumStatesOfDeal),
-          },
-          statesArrTag: {
-            type: Number,
-          },
-        },
-      ],
+      type: [String],
+      enum: Object.values(enumModel.EnumStatesOfDeal),
+      required: true,
     },
-
+    statesArrTag: {
+      type: [Number],
+      default: 1,
+    },
     /**
      * The minimum loan amount for the given program
-     */
+     * */
     minLoanSize: {
-      minLoan: {
-        type: Number,
-        min: 100000,
-        max: 1000000000,
-      },
-      minLoanTag: { type: Number },
+      type: Number,
+      min: 100000,
+      max: 1000000000,
     },
+    minLoanTag: { type: Number, default: 1 },
+
     /**
      * The maximum loan amount for the given program
-     */
+     * */
     maxLoanSize: {
-      maxLoan: {
-        type: Number,
-        min: 100000,
-        max: 1000000000,
-        validate: {
-          validator(value) {
-            const { minLoan } = this.parent().minLoanSize[0];
-            return minLoan <= value;
-          },
-        },
-      },
-      maxLoanTag: { type: Number },
+      type: Number,
+      min: 100000,
+      max: 1000000000,
     },
+    maxLoanTag: { type: Number, default: 1 },
     propertyType: {
-      property: {
-        type: [String],
-        enum: Object.values(enumModel.EnumAssetTypeOfDeal),
-      },
-      propTypeArrTag: {
-        type: Number,
-      },
+      type: [String],
+      enum: Object.values(enumModel.EnumAssetTypeOfDeal),
+      required: true,
+    },
+    propTypeArrTag: {
+      type: Number,
+      default: 1,
     },
     loanType: {
-      loan: {
-        type: [String],
-        enum: Object.values(enumModel.EnumLoanTypeOfDeal),
-      },
-      loanTypeArrTag: {
-        type: Number,
-      },
+      type: [String],
+      enum: Object.values(enumModel.EnumLoanTypeOfDeal),
+    },
+    loanTypeArrTag: {
+      type: Number,
+      default: 1,
     },
     lenderInstitute: {
       type: mongoose.Schema.Types.ObjectId,
@@ -118,18 +103,6 @@ const LenderProgramSchema = new mongoose.Schema(
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
-
-LenderProgramSchema.pre('save', function (next) {
-  const { minLoan } = this.minLoanSize[0];
-  const { maxLoan } = this.maxLoanSize[0];
-
-  if (minLoan > maxLoan) {
-    const error = new Error('Maximum loan amount should be greater than the minimum loan amount');
-    return next(error);
-  }
-
-  next();
-});
 
 LenderProgramSchema.plugin(toJSON);
 LenderProgramSchema.plugin(mongoosePaginateV2);

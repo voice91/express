@@ -1,4 +1,4 @@
-import _, { flatten } from 'lodash';
+import _ from 'lodash';
 import httpStatus from 'http-status';
 import XLSX from 'xlsx';
 import ApiError from '../../utils/ApiError';
@@ -87,7 +87,7 @@ export async function importDataFromFile(file, res) {
         Hospitality: EnumAssetTypeOfDeal.HOSPITALITY,
         Office: EnumAssetTypeOfDeal.OFFICE,
         'Anchored Retail': EnumAssetTypeOfDeal.ANCHORED_RETAIL,
-        Speciality: EnumAssetTypeOfDeal.SPECIALTY,
+        Specialty: EnumAssetTypeOfDeal.SPECIALTY,
         NNN: EnumAssetTypeOfDeal.NNN,
         'Mixed Use': EnumAssetTypeOfDeal.MIXED_USE,
         'Gas Stations': EnumAssetTypeOfDeal.GAS_STATIONS,
@@ -162,19 +162,11 @@ export async function importDataFromFile(file, res) {
 
       // _.flatten method is a lodash method used to flatten the array. It takes simple array or array of arrays and return array.
       const lenderPropertyType = lenderProgramType.map((item) => {
-        if (item.property) {
-          const propertyType = {
-            // eslint-disable-next-line no-shadow
-            property: flatten(item.property.split(',').map((data) => CsvLenderPropertyTypeMapping[data])),
-            propTypeArrTag: item.propTypeArrTag,
-          };
-          // eslint-disable-next-line no-param-reassign
-          delete item.property;
-          // eslint-disable-next-line no-param-reassign
-          delete item.propTypeArrTag;
+        if (item.propertyType) {
           return {
             ...item,
-            propertyType,
+            // eslint-disable-next-line no-shadow
+            propertyType: _.flatten(item.propertyType.split(',').map((data) => CsvLenderPropertyTypeMapping[data])),
           };
         }
         return item;
@@ -182,98 +174,44 @@ export async function importDataFromFile(file, res) {
       logger.info('lenderPropertyType');
 
       const lenderLoanType = lenderPropertyType.map((item) => {
-        if (item && item.loan) {
-          const loanType = {
-            loan: flatten(
-              item.loan
+        if (item && item.loanType) {
+          return {
+            ...item,
+            loanType: _.flatten(
+              item.loanType
                 .replace(/\[|\]/g, '')
                 .split(',')
                 // eslint-disable-next-line no-shadow
                 .map((data) => CsvLenderLoanTypeMapping[data])
             ),
-            loanTypeArrTag: item.loanTypeArrTag,
-          };
-          // eslint-disable-next-line no-param-reassign
-          delete item.loan;
-          // eslint-disable-next-line no-param-reassign
-          delete item.loanTypeArrTag;
-          return {
-            ...item,
-            loanType,
           };
         }
         return item;
       });
       logger.info('lenderLoanType');
 
-      const lenderMinLoanSize = lenderLoanType.map((item) => {
-        if (item && item.minLoan) {
-          const minLoanSize = {
-            minLoan: item.minLoan,
-            minLoanTag: item.minLoanTag,
-          };
-          // eslint-disable-next-line no-param-reassign
-          delete item.minLoan;
-          // eslint-disable-next-line no-param-reassign
-          delete item.minLoanTag;
-          return {
-            ...item,
-            minLoanSize,
-          };
-        }
-        return item;
-      });
-      logger.info('lenderMinLoanSize');
-
-      const lenderMaxLoanSize = lenderMinLoanSize.map((item) => {
-        if (item && item.maxLoan) {
-          const maxLoanSize = {
-            maxLoan: item.maxLoan,
-            maxLoanTag: item.maxLoanTag,
-          };
-          // eslint-disable-next-line no-param-reassign
-          delete item.maxLoan;
-          // eslint-disable-next-line no-param-reassign
-          delete item.maxLoanTag;
-          return {
-            ...item,
-            maxLoanSize,
-          };
-        }
-        return item;
-      });
-      logger.info('lenderMaxLoanSize');
-
-      const lenderStatesArray = lenderMaxLoanSize.map((item) => {
-        if (item && item.state) {
-          // eslint-disable-next-line no-shadow
-          const result = _.flatten(item.state.split(',').map((data) => CsvStatesArrayMapping[data]));
-          const stateswithTag = result.map((state, index) => {
-            if (item.statesArrTag.toString().split(',').length === 1) {
-              return {
-                state,
-                statesArrTag: item.statesArrTag,
-              };
-            }
-            if (item.statesArrTag.toString().split(',').length === result.length) {
-              return {
-                state,
-                statesArrTag: item.statesArrTag.toString().split(',')[index],
-              };
-            }
+      const lenderStatesArrTag = lenderLoanType.map((item) => {
+        if (item && item.statesArrTag) {
+          if (typeof item.statesArrTag === 'string') {
             return {
-              state,
+              ...item,
+              // eslint-disable-next-line no-shadow
+              statesArrTag: _.flatten(item.statesArrTag.split(',').map((data) => data)).map(Number),
             };
-          });
-          // eslint-disable-next-line no-param-reassign
-          delete item.state;
-          // eslint-disable-next-line no-param-reassign
-          delete item.statesArrTag;
+          }
           return {
             ...item,
-            statesArray: {
-              stateswithTag,
-            },
+            statesArrTag: item.statesArrTag,
+          };
+        }
+        return item;
+      });
+      const lenderStatesArray = lenderStatesArrTag.map((item) => {
+        if (item && item.statesArray) {
+          return {
+            ...item,
+            // eslint-disable-next-line no-shadow
+            statesArray: _.flatten(item.statesArray.split(',').map((data) => CsvStatesArrayMapping[data])),
           };
         }
         return item;
@@ -292,10 +230,15 @@ export async function importDataFromFile(file, res) {
               lenderInstitute: institute._id,
               lenderProgramType: lsa.lenderProgramType,
               ...(lsa.minLoanSize && { minLoanSize: lsa.minLoanSize }),
+              ...(lsa.minLoanTag && { minLoanTag: lsa.minLoanTag }),
               ...(lsa.maxLoanSize && { maxLoanSize: lsa.maxLoanSize }),
+              ...(lsa.maxLoanTag && { maxLoanTag: lsa.maxLoanTag }),
               ...(lsa.statesArray && { statesArray: lsa.statesArray }),
+              ...(lsa.statesArrTag && { statesArrTag: lsa.statesArrTag }),
               ...(lsa.propertyType && { propertyType: lsa.propertyType }),
+              ...(lsa.propTypeArrTag && { propTypeArrTag: lsa.propTypeArrTag }),
               ...(lsa.loanType && { loanType: lsa.loanType }),
+              ...(lsa.loanTypeArrTag && { loanTypeArrTag: lsa.loanTypeArrTag }),
               ...(lsa.indexUsed && { indexUsed: lsa.indexUsed }),
               ...(lsa.spreadEstimate && { spreadEstimate: lsa.spreadEstimate }),
               ...(lsa.counties && { counties: lsa.counties }),
