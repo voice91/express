@@ -68,7 +68,7 @@ export const editLender = {
     }),
     lenderProgram: Joi.array().items(
       Joi.object().keys({
-        _id: Joi.objectId().allow(''),
+        id: Joi.objectId().allow(''),
         lenderProgramType: Joi.string().required(),
         statesArray: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal))),
         statesArrTag: Joi.array().items(Joi.number().integer()).allow(''),
