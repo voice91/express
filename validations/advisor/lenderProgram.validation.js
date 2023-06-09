@@ -84,6 +84,7 @@ export const editLender = {
         counties: Joi.string().allow(''),
         recourseRequired: Joi.string().default('No').allow(''),
         nonRecourseLTV: Joi.string().allow(''),
+        lenderInstitute: Joi.objectId(),
       })
     ),
   }),

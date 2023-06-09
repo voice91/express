@@ -143,6 +143,10 @@ export const editLender = catchAsync(async (req, res) => {
 
   const lenderProgram = await Promise.all(
     body.lenderProgram.map(async (item) => {
+      if (!item.lenderInstitute) {
+        // eslint-disable-next-line no-param-reassign
+        item.lenderInstitute = lenderInstitute;
+      }
       const result = await LenderProgram.findOneAndUpdate({ _id: item._id || mongoose.Types.ObjectId() }, item, {
         upsert: true,
         new: true,
