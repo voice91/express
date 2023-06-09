@@ -63,6 +63,7 @@ export const addLender = {
 export const editLender = {
   body: Joi.object().keys({
     lender: Joi.object().keys({
+      lenderNameVisible: Joi.string(),
       lenderType: Joi.string().valid(...Object.values(enumFields.EnumLenderTypeOfLendingInstitution)),
     }),
     lenderProgram: Joi.array().items(
