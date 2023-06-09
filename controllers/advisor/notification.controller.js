@@ -7,7 +7,7 @@ import { notificationService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { flatMap, uniq } from 'lodash';
 import { pick } from '../../utils/pick';
-import { Deal } from '../../models';
+import { Deal, Notifications } from '../../models';
 
 const getNotificationFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -91,7 +91,12 @@ export const update = catchAsync(async (req, res) => {
   }
   await notificationService.updateManyNotification(
     { createdBy: { $in: getAllInvolvedUserIds }, deal: { $in: getAlldealId }, ...filter },
-    { isClear: true, isReadable: body.isReadable }
+    { isClear: body.isClear, isReadable: body.isReadable }
   );
-  return res.status(httpStatus.OK).send({ success: true });
+  const notification = await Notifications.find({
+    createdBy: { $in: getAllInvolvedUserIds },
+    deal: { $in: getAlldealId },
+    ...filter,
+  });
+  return res.status(httpStatus.OK).send({ results: notification });
 });

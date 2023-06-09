@@ -16,6 +16,7 @@ export const createNotification = {
 export const updateNotification = {
   body: Joi.object().keys({
     isReadable: Joi.bool(),
+    isClear: Joi.bool(),
   }),
 };
 
