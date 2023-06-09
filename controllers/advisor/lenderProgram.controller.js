@@ -152,7 +152,9 @@ export const editLender = catchAsync(async (req, res) => {
         // eslint-disable-next-line no-param-reassign
         item.lenderInstitute = lenderInstitute;
       }
-      const result = await LenderProgram.findOneAndUpdate({ _id: item._id || mongoose.Types.ObjectId() }, item, {
+      console.log('===item._id || mongoose.Types.ObjectId()===>', item.id || mongoose.Types.ObjectId());
+
+      const result = await LenderProgram.findOneAndUpdate({ _id: item.id || mongoose.Types.ObjectId() }, item, {
         upsert: true,
         new: true,
       });
