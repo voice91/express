@@ -3,29 +3,114 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
-import enumFields from 'models/enum.model';
+import enumFields from '../../models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
 export const createLenderProgram = {
   body: Joi.object().keys({
-    lenderProgramType: Joi.string()
-      .valid(...Object.values(enumFields.EnumLenderProgramTypeOfLenderProgram))
-      .required(),
-    statesArray: Joi.array().items(Joi.string()),
+    lenderProgramType: Joi.string().required(),
+    statesArray: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal))),
+    statesArrTag: Joi.array().items(Joi.number().integer()).allow(''),
     minLoanSize: Joi.number().integer(),
+    minLoanTag: Joi.number().integer(),
     maxLoanSize: Joi.number().integer(),
+    maxLoanTag: Joi.number().integer(),
+    propertyType: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumAssetTypeOfDeal))),
+    propTypeArrTag: Joi.number().integer(),
+    loanType: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumLoanTypeOfDeal))),
+    loanTypeArrTag: Joi.number().integer(),
+    lenderInstitute: Joi.objectId().required(),
+    indexUsed: Joi.string().allow(''),
+    spreadEstimate: Joi.string().allow(''),
+    counties: Joi.string().allow(''),
+    recourseRequired: Joi.string().default('No').allow(''),
+    nonRecourseLTV: Joi.string().allow(''),
+  }),
+};
+
+export const addLender = {
+  body: Joi.object().keys({
+    lender: Joi.object().keys({
+      lenderNameVisible: Joi.string().required(),
+      lenderType: Joi.string()
+        .valid(...Object.values(enumFields.EnumLenderTypeOfLendingInstitution))
+        .required(),
+    }),
+    lenderProgram: Joi.array().items(
+      Joi.object().keys({
+        lenderProgramType: Joi.string().required(),
+        statesArray: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal))),
+        statesArrTag: Joi.array().items(Joi.number().integer()).allow(''),
+        minLoanSize: Joi.number().integer(),
+        minLoanTag: Joi.number().integer().allow(''),
+        maxLoanSize: Joi.number().integer(),
+        maxLoanTag: Joi.number().integer().allow(''),
+        propertyType: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumAssetTypeOfDeal))),
+        propTypeArrTag: Joi.number().integer().allow(''),
+        loanType: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumLoanTypeOfDeal))),
+        loanTypeArrTag: Joi.number().integer().allow(''),
+        indexUsed: Joi.string().allow(''),
+        spreadEstimate: Joi.string().allow(''),
+        counties: Joi.string().allow(''),
+        recourseRequired: Joi.string().default('No').allow(''),
+        nonRecourseLTV: Joi.string().allow(''),
+      })
+    ),
+  }),
+};
+
+export const editLender = {
+  body: Joi.object().keys({
+    lender: Joi.object().keys({
+      lenderType: Joi.string().valid(...Object.values(enumFields.EnumLenderTypeOfLendingInstitution)),
+    }),
+    lenderProgram: Joi.array().items(
+      Joi.object().keys({
+        _id: Joi.objectId().allow(''),
+        lenderProgramType: Joi.string().required(),
+        statesArray: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal))),
+        statesArrTag: Joi.array().items(Joi.number().integer()).allow(''),
+        minLoanSize: Joi.number().integer(),
+        minLoanTag: Joi.number().integer().allow(''),
+        maxLoanSize: Joi.number().integer(),
+        maxLoanTag: Joi.number().integer().allow(''),
+        propertyType: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumAssetTypeOfDeal))),
+        propTypeArrTag: Joi.number().integer().allow(''),
+        loanType: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumLoanTypeOfDeal))),
+        loanTypeArrTag: Joi.number().integer().allow(''),
+        indexUsed: Joi.string().allow(''),
+        spreadEstimate: Joi.string().allow(''),
+        counties: Joi.string().allow(''),
+        recourseRequired: Joi.string().default('No').allow(''),
+        nonRecourseLTV: Joi.string().allow(''),
+        lenderInstitute: Joi.objectId(),
+      })
+    ),
+  }),
+  params: Joi.object().keys({
     lenderInstitute: Joi.objectId().required(),
   }),
 };
 
 export const updateLenderProgram = {
   body: Joi.object().keys({
-    lenderProgramType: Joi.string().valid(...Object.values(enumFields.EnumLenderProgramTypeOfLenderProgram)),
-    statesArray: Joi.array().items(Joi.string()),
+    lenderProgramType: Joi.string(),
+    statesArray: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal))),
+    statesArrTag: Joi.array().items(Joi.number().integer()).allow(''),
     minLoanSize: Joi.number().integer(),
+    minLoanTag: Joi.number().integer(),
     maxLoanSize: Joi.number().integer(),
-    lenderInstitute: Joi.objectId().required(),
+    maxLoanTag: Joi.number().integer(),
+    propertyType: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumAssetTypeOfDeal))),
+    propTypeArrTag: Joi.number().integer(),
+    loanType: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumLoanTypeOfDeal))),
+    loanTypeArrTag: Joi.number().integer(),
+    indexUsed: Joi.string().allow(''),
+    spreadEstimate: Joi.string().allow(''),
+    counties: Joi.string().allow(''),
+    recourseRequired: Joi.string().default('No').allow(''),
+    nonRecourseLTV: Joi.string().allow(''),
   }),
   params: Joi.object().keys({
     lenderProgramId: Joi.objectId().required(),

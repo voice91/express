@@ -30,7 +30,6 @@ const LenderProgramSchema = new mongoose.Schema(
      * */
     lenderProgramType: {
       type: String,
-      enum: Object.values(enumModel.EnumLenderProgramTypeOfLenderProgram),
       required: true,
     },
     /**
@@ -41,34 +40,70 @@ const LenderProgramSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumStatesOfDeal),
       required: true,
     },
+    statesArrTag: {
+      type: [Number],
+      default: 1,
+    },
     /**
      * The minimum loan amount for the given program
      * */
     minLoanSize: {
       type: Number,
+      min: 100000,
+      max: 1000000000,
     },
+    minLoanTag: { type: Number, default: 1 },
+
     /**
      * The maximum loan amount for the given program
      * */
     maxLoanSize: {
       type: Number,
+      min: 100000,
+      max: 1000000000,
     },
+    maxLoanTag: { type: Number, default: 1 },
     propertyType: {
       type: [String],
       enum: Object.values(enumModel.EnumAssetTypeOfDeal),
       required: true,
     },
+    propTypeArrTag: {
+      type: Number,
+      default: 1,
+    },
     loanType: {
       type: [String],
       enum: Object.values(enumModel.EnumLoanTypeOfDeal),
+    },
+    loanTypeArrTag: {
+      type: Number,
+      default: 1,
     },
     lenderInstitute: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LendingInstitution',
     },
+    indexUsed: {
+      type: String,
+    },
+    spreadEstimate: {
+      type: String,
+    },
+    counties: {
+      type: String,
+    },
+    recourseRequired: {
+      type: String,
+      default: 'No',
+    },
+    nonRecourseLTV: {
+      type: String,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
+
 LenderProgramSchema.plugin(toJSON);
 LenderProgramSchema.plugin(mongoosePaginateV2);
 LenderProgramSchema.plugin(softDelete, {

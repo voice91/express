@@ -3,10 +3,12 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { lenderProgramService } from 'services';
+import { lenderProgramService, lendingInstitutionService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import mongoose from 'mongoose';
 import { pick } from '../../utils/pick';
-import { LendingInstitution } from '../../models';
+import { LenderProgram, LendingInstitution } from '../../models';
+import ApiError from '../../utils/ApiError';
 
 export const get = catchAsync(async (req, res) => {
   const { lenderProgramId } = req.params;
@@ -76,6 +78,83 @@ export const paginate = catchAsync(async (req, res) => {
     createdAt: lenderProgramObject.createdAt,
     ...lenderProgramObject.toJSON(),
   }));
+  return res.status(httpStatus.OK).send({ results: lenderProgram });
+});
+
+export const addLender = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
+
+  const getlenderInstitute = await LendingInstitution.findOne({ lenderNameVisible: body.lender.lenderNameVisible });
+  let lenderInstitute;
+  if (getlenderInstitute === null) {
+    const createLenderBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      lenderNameVisible: body.lender.lenderNameVisible,
+      lenderType: body.lender.lenderType,
+    };
+    lenderInstitute = await lendingInstitutionService.createLendingInstitution(createLenderBody);
+  }
+
+  const result = body.lenderProgram.map((item) => {
+    if (item.minLoanSize < item.maxLoanSize) {
+      return {
+        createdBy: req.user._id,
+        updatedBy: req.user._id,
+        lenderProgramType: item.lenderProgramType,
+        statesArray: item.statesArray,
+        statesArrTag: item.statesArrTag,
+        minLoanSize: item.minLoanSize,
+        minLoanTag: item.minLoanTag,
+        maxLoanSize: item.maxLoanSize,
+        maxLoanTag: item.maxLoanTag,
+        propertyType: item.propertyType,
+        propTypeArrTag: item.propTypeArrTag,
+        loanType: item.loanType,
+        loanTypeArrTag: item.loanTypeArrTag,
+        indexUsed: item.indexUsed,
+        spreadEstimate: item.spreadEstimate,
+        counties: item.counties,
+        recourseRequired: item.recourseRequired,
+        nonRecourseLTV: item.nonRecourseLTV,
+        lenderInstitute: getlenderInstitute && getlenderInstitute._id ? getlenderInstitute._id : lenderInstitute._id,
+      };
+    }
+
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Minimum Loan Amount is Greater than Maximum Loan Amount..!!');
+  });
+  const lenderProgram = await lenderProgramService.addLender(result);
+  return res.status(httpStatus.CREATED).send({ results: lenderProgram });
+});
+
+export const editLender = catchAsync(async (req, res) => {
+  const { body } = req;
+  const { lenderInstitute } = req.params;
+  body.updatedBy = req.user;
+
+  const getlenderInstitute = await LendingInstitution.findOne({ _id: lenderInstitute });
+
+  if (!getlenderInstitute) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'This LenderInstitute is not Exist..!!');
+  }
+  await LendingInstitution.findOneAndUpdate({ _id: lenderInstitute }, { lenderType: body.lender.lenderType });
+
+  const lenderProgram = await Promise.all(
+    body.lenderProgram.map(async (item) => {
+      if (!item.lenderInstitute) {
+        // eslint-disable-next-line no-param-reassign
+        item.lenderInstitute = lenderInstitute;
+      }
+      const result = await LenderProgram.findOneAndUpdate({ _id: item._id || mongoose.Types.ObjectId() }, item, {
+        upsert: true,
+        new: true,
+      });
+      return result;
+    })
+  );
+
   return res.status(httpStatus.OK).send({ results: lenderProgram });
 });
 

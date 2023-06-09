@@ -55,6 +55,14 @@ const LenderContactSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    emailTag: {
+      type: Number,
+      default: 1,
+    },
+    contactTag: {
+      type: Number,
+      default: 1,
+    },
     /**
      * Free text with a combination of country code and phone number
      * */

@@ -16,6 +16,18 @@ router
    * */
   .get(auth('advisor'), validate(lenderProgramValidation.getLenderProgram), lenderProgramController.list);
 router
+  .route('/add-lender')
+  /**
+   * Add Lender
+   */
+  .post(auth('advisor'), validate(lenderProgramValidation.addLender), lenderProgramController.addLender);
+router
+  .route('/edit-lender/:lenderInstitute')
+  /**
+   * Edit Lender
+   */
+  .put(auth('advisor'), validate(lenderProgramValidation.editLender), lenderProgramController.editLender);
+router
   .route('/paginated')
   /**
    * getLenderProgramPaginated

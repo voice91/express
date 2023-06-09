@@ -4,6 +4,7 @@
  */
 import { LenderProgram, LendingInstitution } from 'models';
 import httpStatus from 'http-status';
+import { uniq } from 'lodash';
 import ApiError from '../utils/ApiError';
 
 export async function getLenderProgramById(id, options = {}) {
@@ -30,6 +31,16 @@ export async function createLenderProgram(body) {
   const lenderInstitute = await LendingInstitution.findOne({ _id: body.lenderInstitute });
   if (!lenderInstitute) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field lenderInstitute is not valid');
+  }
+  const lenderProgram = await LenderProgram.create(body);
+  return lenderProgram;
+}
+
+export async function addLender(body) {
+  const lenderInstitute = uniq(body.map((institute) => institute.lenderInstitute));
+  const lendingInstitution = await LendingInstitution.findOne({ _id: lenderInstitute.map((item) => item) });
+  if (!lendingInstitution) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'LenderInstitute is not Exist..');
   }
   const lenderProgram = await LenderProgram.create(body);
   return lenderProgram;
