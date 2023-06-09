@@ -99,31 +99,36 @@ export const addLender = catchAsync(async (req, res) => {
   }
 
   const result = body.lenderProgram.map((item) => {
-    if (item.minLoanSize < item.maxLoanSize) {
-      return {
-        createdBy: req.user._id,
-        updatedBy: req.user._id,
-        lenderProgramType: item.lenderProgramType,
-        statesArray: item.statesArray,
-        statesArrTag: item.statesArrTag,
-        minLoanSize: item.minLoanSize,
-        minLoanTag: item.minLoanTag,
-        maxLoanSize: item.maxLoanSize,
-        maxLoanTag: item.maxLoanTag,
-        propertyType: item.propertyType,
-        propTypeArrTag: item.propTypeArrTag,
-        loanType: item.loanType,
-        loanTypeArrTag: item.loanTypeArrTag,
-        indexUsed: item.indexUsed,
-        spreadEstimate: item.spreadEstimate,
-        counties: item.counties,
-        recourseRequired: item.recourseRequired,
-        nonRecourseLTV: item.nonRecourseLTV,
-        lenderInstitute: getlenderInstitute && getlenderInstitute._id ? getlenderInstitute._id : lenderInstitute._id,
-      };
+    if (item.minLoanSize && item.maxLoanSize) {
+      if (item.minLoanSize > item.maxLoanSize) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Minimum Loan Amount is Greater than Maximum Loan Amount..!!');
+      }
+    } else if (item.minLoanSize && !item.maxLoanSize) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Maximum Loan Amount..!!');
+    } else if (!item.minLoanSize && item.maxLoanSize) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Minimum Loan Amount..!!');
     }
-
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Minimum Loan Amount is Greater than Maximum Loan Amount..!!');
+    return {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      lenderProgramType: item.lenderProgramType,
+      statesArray: item.statesArray,
+      statesArrTag: item.statesArrTag,
+      minLoanSize: item.minLoanSize,
+      minLoanTag: item.minLoanTag,
+      maxLoanSize: item.maxLoanSize,
+      maxLoanTag: item.maxLoanTag,
+      propertyType: item.propertyType,
+      propTypeArrTag: item.propTypeArrTag,
+      loanType: item.loanType,
+      loanTypeArrTag: item.loanTypeArrTag,
+      indexUsed: item.indexUsed,
+      spreadEstimate: item.spreadEstimate,
+      counties: item.counties,
+      recourseRequired: item.recourseRequired,
+      nonRecourseLTV: item.nonRecourseLTV,
+      lenderInstitute: getlenderInstitute && getlenderInstitute._id ? getlenderInstitute._id : lenderInstitute._id,
+    };
   });
   const lenderProgram = await lenderProgramService.addLender(result);
   return res.status(httpStatus.CREATED).send({ results: lenderProgram });
