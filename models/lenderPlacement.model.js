@@ -38,7 +38,7 @@ const TermsSchema = new mongoose.Schema({
   interestRateType: {
     type: String,
     enum: Object.values(enumModel.EnumInterestRateTypeOfTerms),
-    default: 'fixedRate',
+    default: enumModel.EnumInterestRateTypeOfTerms.FIXED_INDEX,
   },
   interestRateIndexValue: {
     type: String,
