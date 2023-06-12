@@ -66,7 +66,7 @@ export const update = catchAsync(async (req, res) => {
 
   await notificationService.updateManyNotification(
     { deal: { $in: getAllDealId }, ...filter },
-    { isClear: body.isClear, isReadable: body.isReadable }
+    { isReadable: body.isReadable, ...(body.isClear && { isClear: body.isClear }) }
   );
   const notification = await Notifications.find({
     deal: { $in: getAllDealId },
