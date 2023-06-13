@@ -12,6 +12,8 @@ import authRoutes from './common/auth/auth.route';
 
 import importFileRoutes from './common/importFile/importFile.route';
 
+import exportDBRoutes from './common/ExportDB/exportDB.route';
+
 const userRoutes = require('./user');
 const advisorRoutes = require('./advisor');
 const lenderRoutes = require('./lender');
@@ -25,5 +27,6 @@ router.use('/docs', docsRoutes);
 router.use('/search', searchRoutes);
 router.use('/rates', ratesRoutes);
 router.use('/importFile', importFileRoutes);
+router.use('/exportDB', exportDBRoutes);
 router.use('/auth', authRoutes);
 module.exports = router;
