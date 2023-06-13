@@ -120,6 +120,8 @@ export const addLender = catchAsync(async (req, res) => {
       maxLoanTag: item.maxLoanTag,
       propertyType: item.propertyType,
       propTypeArrTag: item.propTypeArrTag,
+      doesNotLandOn: item.doesNotLandOn,
+      doesNotLandOnArrTag: item.doesNotLandOnArrTag,
       loanType: item.loanType,
       loanTypeArrTag: item.loanTypeArrTag,
       indexUsed: item.indexUsed,

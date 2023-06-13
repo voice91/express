@@ -72,6 +72,14 @@ const LenderProgramSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    doesNotLandOn: {
+      type: [String],
+      enum: Object.values(enumModel.EnumAssetTypeOfDeal),
+    },
+    doesNotLandOnArrTag: {
+      type: Number,
+      default: 1,
+    },
     loanType: {
       type: [String],
       enum: Object.values(enumModel.EnumLoanTypeOfDeal),
