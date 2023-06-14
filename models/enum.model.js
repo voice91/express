@@ -97,6 +97,13 @@ const EnumAssetTypeOfDeal = {
   ANCHORED_RETAIL: 'anchoredRetail',
   SPECIALTY: 'specialty',
   GAS_STATIONS: 'gasStations',
+  '1_4_UNIT_SFR': '1_4_unit_sfr',
+  FOR_SALE_CONDOS: 'forSaleCondos',
+  NNN_RETAIL: 'nnnRetail',
+  HEALTHCARE: 'healthcare',
+  SHORT_TERM_RENTALS: 'shortTermRentals',
+  CO_LIVING: 'coLiving',
+  OUTDOOR_STORAGE: 'outdoorStorage',
 };
 const EnumLoanPurposeOfDeal = {
   PURCHASE: 'purchase',
