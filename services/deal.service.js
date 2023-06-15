@@ -30,7 +30,9 @@ export async function getDealListWithPagination(filter, options = {}) {
   return deal;
 }
 
-export async function createDeal(body, userName) {
+export async function createDeal(body) {
+  const getUser = await User.findOne({ _id: body.user });
+  const userName = getUser.firstName;
   if (body.involvedUsers && body.involvedUsers.advisors) {
     const advisor = body.involvedUsers.advisors;
     const advisors = await User.find({ _id: { $in: advisor } });
