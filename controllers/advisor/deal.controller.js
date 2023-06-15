@@ -144,13 +144,12 @@ export const create = catchAsync(async (req, res) => {
     dealName: body.dealName,
   };
   const options = {};
-  const userName = req.user.firstName;
 
   const dealName = await Deal.findOne(filter);
   if (dealName) {
     throw new ApiError(httpStatus.BAD_REQUEST, `DealName Already Exists..!!`);
   }
-  const deal = await dealService.createDeal(body, options, userName);
+  const deal = await dealService.createDeal(body, options);
 
   // here we create activity logs
   // with deal id , and other data as user is this
