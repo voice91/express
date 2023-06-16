@@ -42,8 +42,17 @@ export async function importDataFromFile(file, res) {
       });
       logger.info('Get lenderInstitutes');
 
+      const lenderInstName = [];
+      // eslint-disable-next-line array-callback-return
+      const uniqLenderInstitutes = lenderInstitutes.filter((lenderInst) => {
+        if (!lenderInstName.includes(lenderInst.lenderNameVisible)) {
+          lenderInstName.push(lenderInst.lenderNameVisible);
+          return lenderInst;
+        }
+      });
+
       await Promise.all(
-        lenderInstitutes.map((lenderInst) =>
+        uniqLenderInstitutes.map((lenderInst) =>
           LendingInstitution.findOneAndUpdate(
             { lenderNameVisible: lenderInst.lenderNameVisible },
             { ...lenderInst },
@@ -206,6 +215,8 @@ export async function importDataFromFile(file, res) {
         }
         return item;
       });
+      logger.info('lenderStatesArrTag');
+
       const lenderStatesArray = lenderStatesArrTag.map((item) => {
         if (item && item.statesArray) {
           return {
@@ -218,12 +229,34 @@ export async function importDataFromFile(file, res) {
       });
       logger.info('lenderStatesArray');
 
+      const lenderPropertyTypeArrTag = lenderStatesArray.map((item) => {
+        if (item && item.propTypeArrTag) {
+          return {
+            ...item,
+            propTypeArrTag: item.propTypeArrTag,
+          };
+        }
+        return item;
+      });
+      logger.info('lenderPropertyTypeArrTag');
+
+      const lenderLoanTypeArrTag = lenderPropertyTypeArrTag.map((item) => {
+        if (item && item.loanTypeArrTag) {
+          return {
+            ...item,
+            loanTypeArrTag: item.loanTypeArrTag,
+          };
+        }
+        return item;
+      });
+      logger.info('lenderLoanTypeArrTag');
+
       const lenderInstitute = await LendingInstitution.find({});
       logger.info('Find lenderInstitute Data');
 
       const lenderPrograms = _.compact(
         // eslint-disable-next-line array-callback-return
-        lenderStatesArray.map((lsa) => {
+        lenderLoanTypeArrTag.map((lsa) => {
           const institute = lenderInstitute.find((lI) => lI.lenderNameVisible === lsa.Lender_Name);
           if (institute) {
             return {
