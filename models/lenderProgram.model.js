@@ -69,7 +69,7 @@ const LenderProgramSchema = new mongoose.Schema(
       required: true,
     },
     propTypeArrTag: {
-      type: Number,
+      type: [Number],
       default: 1,
     },
     doesNotLandOn: {
@@ -77,7 +77,7 @@ const LenderProgramSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumAssetTypeOfDeal),
     },
     doesNotLandOnArrTag: {
-      type: Number,
+      type: [Number],
       default: 1,
     },
     loanType: {
@@ -85,7 +85,7 @@ const LenderProgramSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumLoanTypeOfDeal),
     },
     loanTypeArrTag: {
-      type: Number,
+      type: [Number],
       default: 1,
     },
     lenderInstitute: {
