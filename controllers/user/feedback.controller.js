@@ -13,12 +13,17 @@ export const create = catchAsync(async (req, res) => {
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
   const options = {};
-  const attachments = body.images.map((item) => {
-    return {
-      fileName: item.fileName,
-      path: item.path,
-    };
-  });
+
+  const attachments = await Promise.all(
+    body.images.map(async (item) => {
+      return {
+        fileName: item.fileName,
+        path: item.path,
+        fileType: item.fileType,
+      };
+    })
+  );
+
   const feedback = await feedbackService.createFeedback(body, options);
 
   await emailService.sendFeedbackEmail({

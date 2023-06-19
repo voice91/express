@@ -10,6 +10,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const documentSchema = Joi.object().keys({
   url: Joi.string().required(),
   fileName: Joi.string().required(),
+  fileType: Joi.string(),
   documentType: Joi.string()
     .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
     .required(),

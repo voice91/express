@@ -15,6 +15,7 @@ export const createFeedback = {
       Joi.object({
         fileName: Joi.string(),
         path: Joi.string(),
+        fileType: Joi.string(),
       })
     ),
   }),

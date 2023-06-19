@@ -4,6 +4,7 @@
 // import nodemailer from 'nodemailer';
 import config from 'config/config';
 import { logger } from 'config/logger';
+import axios from 'axios';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const postmark = require('postmark');
@@ -41,6 +42,20 @@ export const sendEmail = async (emailParams) => {
   if (bcc) {
     msg.bcc = msg.bcc.join(',');
   }
+
+  if (attachments) {
+    msg.attachments = await Promise.all(
+      msg.attachments.map(async (item) => {
+        const response = await axios.get(item.path, { responseType: 'arraybuffer' });
+        return {
+          Name: item.fileName,
+          Content: Buffer.from(response.data).toString('base64'),
+          ContentType: item.fileType,
+        };
+      })
+    );
+  }
+
   await transport.sendEmail(msg);
 };
 

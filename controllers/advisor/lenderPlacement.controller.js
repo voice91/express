@@ -476,6 +476,7 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
       return {
         fileName: item.fileName,
         path: item.url ? item.url : item.path,
+        fileType: item.fileType,
       };
     });
     delete updatedBody.emailAttachments;
@@ -601,6 +602,7 @@ export const sendEmail = catchAsync(async (req, res) => {
       return {
         fileName: item.fileName,
         path: item.url ? item.url : item.path,
+        fileType: item.fileType,
       };
     });
 
@@ -639,6 +641,7 @@ export const sendEmail = catchAsync(async (req, res) => {
           return {
             fileName: item.fileName,
             path: item.url ? item.url : item.path,
+            fileType: item.fileType,
           };
         }),
         isHtml: true,
