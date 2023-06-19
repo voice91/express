@@ -19,6 +19,9 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    fileType: {
+      type: String,
+    },
     documentType: {
       type: String,
       enum: Object.values(enumModel.EnumDocumentTypeOfDealDocument),
