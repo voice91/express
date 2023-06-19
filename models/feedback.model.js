@@ -45,6 +45,7 @@ const FeedbackSchema = new mongoose.Schema(
       {
         fileName: String,
         path: String,
+        fileType: String,
       },
     ],
   },
