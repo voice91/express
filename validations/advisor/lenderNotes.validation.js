@@ -16,6 +16,7 @@ export const createLenderNotes = {
     notesType: Joi.string()
       .valid(...Object.values(enumFields.EnumOfNotesTypeOfLenderNotes))
       .required(),
+    responseSenderName: Joi.string().allow(''),
   }),
 };
 

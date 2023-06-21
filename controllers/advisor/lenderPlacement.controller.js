@@ -188,7 +188,13 @@ export const create = catchAsync(async (req, res) => {
   // Before it wasn't allowing other institute to add as well even if one is already added, so using promise.all so that it'll throw error for one but will allow others to get added in deal
   await Promise.all(
     body.lendingDetails.map(async (lendingInstitute) => {
-      const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(lendingInstitute, options);
+      const placement = {
+        ...lendingInstitute,
+        createdBy: body.createdBy,
+        updatedBy: body.updatedBy,
+      };
+      const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(placement, options);
+
       if (lenderPlacementResult) {
         const uploadedFileUrls = [];
         uploadedFileUrls.push(lenderPlacementResult.termSheet);
@@ -586,6 +592,13 @@ export const sendEmail = catchAsync(async (req, res) => {
   const ccList = getEmailTemplate.ccList.map((item) => item);
 
   const bccList = getEmailTemplate.bccList.map((item) => item);
+
+  const headers = [
+    {
+      Value: `${placementId}`,
+    },
+  ];
+
   const sendToIsEmpty = getEmailTemplate.contact.map((item) => item.sendTo);
   _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
   if (sendToIsEmpty.length === 0) {
@@ -613,6 +626,7 @@ export const sendEmail = catchAsync(async (req, res) => {
       text: isAdvisor,
       attachments: emailAttachments,
       isHtml: true,
+      headers,
     });
     return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
   }
@@ -645,6 +659,7 @@ export const sendEmail = catchAsync(async (req, res) => {
           };
         }),
         isHtml: true,
+        headers,
       });
     })
   );

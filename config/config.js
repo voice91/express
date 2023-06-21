@@ -42,6 +42,7 @@ const envVarsSchema = Joi.object()
     MONGODB_HOST: Joi.string().required().description('MongoDB Host required'),
     MONGO_DB: Joi.string().required().description('Database name required'),
     POSTMARK_API_TOKEN: Joi.string().required().description('Postmark API Token is Required'),
+    POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
   })
   .unknown();
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -59,6 +60,7 @@ export default {
   mongodbHost: envVars.MONGODB_HOST,
   mongodb: envVars.MONGO_DB,
   postmarkAPIToken: envVars.POSTMARK_API_TOKEN,
+  postmarkInboundDomain: envVars.POSTMARK_INBOUND_DOMAIN,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {

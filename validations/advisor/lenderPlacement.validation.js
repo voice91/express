@@ -81,6 +81,7 @@ export const createLenderPlacement = {
     termSheet: TermSheetSchema,
     isEmailSent: Joi.string().valid(...Object.values(enumFields.EnumOfEmailStatus)),
     followOnDate: Joi.date(),
+    postmarkMessageId: Joi.array().items(Joi.string()),
   }),
 };
 
