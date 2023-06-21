@@ -5,6 +5,7 @@
 import config from 'config/config';
 import { logger } from 'config/logger';
 import axios from 'axios';
+import { LenderPlacement } from '../models';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const postmark = require('postmark');
@@ -28,8 +29,8 @@ export const transport = new postmark.ServerClient(config.postmarkAPIToken);
  * @param emailParams
  */
 export const sendEmail = async (emailParams) => {
-  const { to, cc, bcc, subject, text, isHtml, attachments } = emailParams;
-  const msg = { from: config.email.from, to, cc, bcc, subject, text, attachments };
+  const { to, cc, bcc, subject, text, isHtml, attachments, headers } = emailParams;
+  const msg = { from: config.email.from, to, cc, bcc, subject, text, attachments, headers };
   if (isHtml) {
     msg.HtmlBody = text;
     delete msg.text;
@@ -56,7 +57,24 @@ export const sendEmail = async (emailParams) => {
     );
   }
 
-  await transport.sendEmail(msg);
+  const senderName = msg.from.split('@').reverse().pop();
+
+  msg.ReplyTo = `${senderName}@${config.postmarkInboundDomain}`;
+
+  let placement = [];
+  if (msg.headers) {
+    placement = msg.headers.map((item) => item.Value);
+  }
+  const response = await transport.sendEmail(msg);
+
+  const messageId = response.MessageID;
+
+  // await LenderPlacement.findOne({ _id: placement[0] });
+  await LenderPlacement.findOneAndUpdate(
+    { _id: placement[0] },
+    { $addToSet: { postmarkMessageId: messageId } },
+    { new: true }
+  );
 };
 
 /**

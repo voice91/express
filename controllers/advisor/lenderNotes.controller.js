@@ -30,7 +30,6 @@ export const list = catchAsync(async (req, res) => {
   const { query } = req;
   const queryParams = getLenderNotesFilterQuery(query);
   const filter = {
-    lenderInstitute: req.params.lenderInstituteId,
     ...queryParams,
   };
   const sortingObj = pick(query, ['sort', 'order']);

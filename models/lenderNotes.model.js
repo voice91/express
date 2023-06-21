@@ -57,6 +57,9 @@ const LenderNotesSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumOfNotesTypeOfLenderNotes),
       default: enumModel.EnumOfNotesTypeOfLenderNotes.EXTERNAL_NOTE,
     },
+    responseSenderName: {
+      type: String,
+    },
     isEnabled: {
       type: Boolean,
       default: true,

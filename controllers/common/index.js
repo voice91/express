@@ -7,3 +7,4 @@ module.exports.ratesController = require('./rates.controller');
 module.exports.authController = require('./auth.controller');
 module.exports.importFileController = require('./importFile.controller');
 module.exports.exportDBController = require('./exportDB.controller');
+module.exports.wehbookController = require('./wehbook.controller');

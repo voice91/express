@@ -223,6 +223,9 @@ const LenderPlacementSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    postmarkMessageId: {
+      type: [String],
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }
 );
