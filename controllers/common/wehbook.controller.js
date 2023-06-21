@@ -13,6 +13,7 @@ export const list = catchAsync(async (req, res) => {
 
   let msgId;
   if (req.body.Headers) {
+    // Filter the Headers array to find the item with the name 'References'
     // eslint-disable-next-line array-callback-return
     msgId = req.body.Headers.filter((item) => {
       if (item.Name === 'References') {
@@ -20,11 +21,16 @@ export const list = catchAsync(async (req, res) => {
       }
       // eslint-disable-next-line array-callback-return
     }).map((value) => {
+      // Decode the value using 'he' library
       const decodedString = he.decode(value.Value);
+
+      // Regular expression pattern to extract the desired string
       const regex = /<([^@>]+)@/;
       const matches = decodedString.match(regex);
+
+      // If there is a match and it has at least one group
       if (matches && matches.length > 1) {
-        return matches[1];
+        return matches[1]; // Return the captured value
       }
     });
   }
