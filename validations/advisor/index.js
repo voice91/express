@@ -60,3 +60,5 @@ module.exports.FAQValidation = require('./FAQ.validation');
 module.exports.lenderInstituteNotesValidation = require('./lenderInstituteNotes.validation');
 
 module.exports.notificationValidation = require('./notification.validation');
+
+module.exports.dealSummaryValidation = require('./dealSummary.validation');

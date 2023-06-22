@@ -17,6 +17,7 @@ import FAQRoutes from './v1/FAQ/FAQ.routes';
 import authRoutes from './v1/auth/auth.route';
 import lenderNotesRoutes from './v1/lenderNotes/lenderNotes.route';
 import notificationRoutes from './v1/notification/notification.route';
+import dealSummaryRoutes from './v1/dealSummary/dealSummary.routes';
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -37,4 +38,5 @@ router.use('/task', taskRoutes);
 router.use('/dealDocument', dealDocumentRoutes);
 router.use('/auth', authRoutes);
 router.use('/lenderNotes', lenderNotesRoutes);
+router.use('/dealSummary', dealSummaryRoutes);
 module.exports = router;
