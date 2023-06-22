@@ -65,6 +65,10 @@ export const sendEmail = async (emailParams) => {
   if (msg.headers) {
     placement = msg.headers.map((item) => item.Value);
   }
+  if (!msg.subject) {
+    msg.subject = '';
+  }
+
   const response = await transport.sendEmail(msg);
 
   const messageId = response.MessageID;
