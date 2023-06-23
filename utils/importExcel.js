@@ -141,14 +141,16 @@ export const importExcelFile = async (url) => {
         const key = worksheet.getCell(currentCell.row + 1, currentCell.col);
         const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
         const valueResult = formatMathFormulaFormValue(value.value);
-        if (key.value !== 'Sources') {
-          sourceObj.Amount = valueResult;
-          sourceObj.Sources = key.value;
-        }
-        const secondValue = worksheet.getCell(currentCell.row + 1, currentCell.col + 2);
-        const secondValueResult = formatMathFormulaFormValue(secondValue.value);
-        if (key.value !== 'Sources') {
-          sourceObj.percentage = secondValueResult;
+        if (key.value) {
+          if (key.value !== 'Sources') {
+            sourceObj.Amount = valueResult;
+            sourceObj.Sources = key.value;
+          }
+          const secondValue = worksheet.getCell(currentCell.row + 1, currentCell.col + 2);
+          const secondValueResult = formatMathFormulaFormValue(secondValue.value);
+          if (key.value !== 'Sources') {
+            sourceObj.percentage = secondValueResult;
+          }
         }
 
         if (Object.keys(sourceObj).length) {
@@ -170,17 +172,19 @@ export const importExcelFile = async (url) => {
         while (true) {
           const usesObj = {};
           const key = worksheet.getCell(currentCellForUses.row + 1, currentCellForUses.col);
-          // eslint-disable-next-line no-shadow
-          const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
-          const valueResult = formatMathFormulaFormValue(value.value);
-          if (key.value !== 'Sources') {
-            usesObj.Amount = valueResult;
-            usesObj.Sources = key.value;
-          }
-          const secondValue = worksheet.getCell(currentCell.row + 1, currentCell.col + 2);
-          const secondValueResult = formatMathFormulaFormValue(secondValue.value);
-          if (key.value !== 'Sources') {
-            usesObj.percentage = secondValueResult;
+
+          const value = worksheet.getCell(currentCellForUses.row + 1, currentCellForUses.col + 1);
+          if (key.value) {
+            const valueResult = formatMathFormulaFormValue(value.value);
+            if (key.value !== 'Sources') {
+              usesObj.Amount = valueResult;
+              usesObj.Sources = key.value;
+            }
+            const secondValue = worksheet.getCell(currentCellForUses.row + 1, currentCellForUses.col + 2);
+            const secondValueResult = formatMathFormulaFormValue(secondValue.value);
+            if (key.value !== 'Sources') {
+              usesObj.percentage = secondValueResult;
+            }
           }
 
           if (Object.keys(usesObj).length) {

@@ -123,7 +123,9 @@ const LenderContactSchema = new mongoose.Schema(
     note: {
       type: String,
     },
-
+    programs: {
+      type: [String],
+    },
     lenderInstitute: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LendingInstitution',
