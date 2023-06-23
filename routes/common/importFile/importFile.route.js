@@ -7,5 +7,5 @@ const router = express();
 /**
  * FileUpload
  * */
-router.post('/', upload.single('file'), importFileController.importDataFromFile);
+router.post('/', upload.single('file'), importFileController.importDataFromFileV2);
 module.exports = router;
