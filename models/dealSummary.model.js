@@ -55,6 +55,18 @@ const DealSummarySchema = new mongoose.Schema(
       ref: 'Deal',
       required: true,
     },
+    executiveSummary: {
+      type: String,
+    },
+    dealHighLights: {
+      type: [String],
+    },
+    marketSummary: {
+      type: String,
+    },
+    sponserOverview: {
+      type: String,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );

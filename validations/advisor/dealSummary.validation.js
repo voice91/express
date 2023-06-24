@@ -19,3 +19,25 @@ export const getDealSummaryById = {
     dealSummaryId: Joi.objectId().required(),
   }),
 };
+
+export const updateDealSummary = {
+  body: Joi.object().keys({
+    propertySummary: Joi.object(),
+    propertyInformation: Joi.object(),
+    loanMetrics: Joi.object(),
+    financingRequest: Joi.object(),
+    sourcesAndUses: Joi.object().keys({
+      sources: Joi.array(),
+      uses: Joi.array(),
+    }),
+    rentRollSummary: Joi.array(),
+    financialSummary: Joi.object(),
+    executiveSummary: Joi.string(),
+    dealHighLights: Joi.array().items(Joi.string()),
+    marketSummary: Joi.string(),
+    sponserOverview: Joi.string(),
+  }),
+  params: Joi.object().keys({
+    dealSummaryId: Joi.objectId().required(),
+  }),
+};
