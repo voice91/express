@@ -375,7 +375,9 @@ export async function importDataFromFileV2(file, res) {
             });
             program.lenderInstitute = institute._id;
           }
-          program.lenderInstitute = findInstitute._id;
+          if (findInstitute) {
+            program.lenderInstitute = findInstitute._id;
+          }
         }
 
         const programName = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 2);
@@ -721,8 +723,10 @@ export async function importDataFromFileV2(file, res) {
     }
     if (notAvailableLender.length > 0) {
       return res.status(httpStatus.OK).send({
-        message: 'This contacts were not added because they did not match our conditions...',
-        results: notAvailableLender,
+        result: {
+          message: 'This contacts were not added because they did not match our conditions...',
+          data: notAvailableLender,
+        },
       });
     }
   } catch (e) {
