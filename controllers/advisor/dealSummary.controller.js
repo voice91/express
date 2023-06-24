@@ -20,3 +20,15 @@ export const get = catchAsync(async (req, res) => {
   const dealSummary = await dealSummaryService.getDealSummaryById(filter, options);
   return res.status(httpStatus.OK).send({ results: dealSummary });
 });
+
+export const update = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.updatedBy = req.user;
+  const { dealSummaryId } = req.params;
+  const filter = {
+    _id: dealSummaryId,
+  };
+  const options = { new: true };
+  const dealSummary = await dealSummaryService.updateDealSummary(filter, body, options);
+  return res.status(httpStatus.OK).send({ results: dealSummary });
+});

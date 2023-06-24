@@ -17,3 +17,8 @@ export async function getDealSummaryById(query, options = {}) {
   const dealSummary = await DealSummary.findOne(query, options.projection, options);
   return dealSummary;
 }
+
+export async function updateDealSummary(filter, body, options = {}) {
+  const dealSummary = await DealSummary.findOneAndUpdate(filter, body, options);
+  return dealSummary;
+}

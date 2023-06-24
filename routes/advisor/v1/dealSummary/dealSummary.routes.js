@@ -17,5 +17,9 @@ router
   /**
    * getDealSummaryById
    * */
-  .get(auth('advisor'), validate(dealSummaryValidation.getDealSummaryById), dealSummaryController.get);
+  .get(auth('advisor'), validate(dealSummaryValidation.getDealSummaryById), dealSummaryController.get)
+  /**
+   * updateDealSummary
+   * */
+  .put(auth('advisor'), validate(dealSummaryValidation.updateDealSummary), dealSummaryController.update);
 module.exports = router;
