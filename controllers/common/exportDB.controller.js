@@ -25,59 +25,37 @@ export async function exportToExcel(req, res) {
 
     // Create a new workbook
     const workbook = new excel.Workbook();
-    const LenderInstitutesheet = workbook.addWorksheet('Lender Institute');
+    const LenderContactsheet = workbook.addWorksheet('CLEAN_CONTACTS');
     // Collection name
-    const collectionName1 = 'LendingInstitution';
+    const collectionName1 = 'LenderContact';
 
     // Define field names
-    const fieldNamesofLenderInstitute = ['Id', 'Lender Name', 'Lender Type'];
+    const fieldNamesofLenderContact = [
+      'Id',
+      'Lender',
+      'LenderId',
+      'First Name',
+      'Last Name',
+      'Nick Name',
+      'Program(s)',
+      'Email',
+      'Email Tag',
+      'contactTag',
+      'Main Phone',
+      'Mobile Phone',
+      'Office Phone',
+      'Title',
+      'City',
+      'State',
+    ];
 
-    // Write field names to Excel sheet
-    fieldNamesofLenderInstitute.forEach((fieldName, columnIndex) => {
-      const cell = LenderInstitutesheet.getCell(`${String.fromCharCode(65 + columnIndex)}1`);
-      cell.value = fieldName;
-      cell.font = { bold: true };
-    });
-
-    // Fetch the data from MongoDB collection
-    db.collection(collectionName1)
+    db.collection('LendingInstitution')
       .find()
       // eslint-disable-next-line no-shadow
-      .toArray((err, data) => {
+      .toArray((err, lenderInstituteData) => {
         if (err) {
           return res.status(500).send('Error While fetching data from MongoDB');
         }
-        // Write data to Excel sheet
-        data.forEach((item) => {
-          const row = LenderInstitutesheet.addRow(); // Create a new row
-
-          row.getCell('A').value = item._id;
-          row.getCell('B').value = item.lenderNameVisible;
-          row.getCell('C').value = item.lenderType;
-        });
-
-        const LenderContactsheet = workbook.addWorksheet('Lender Contact');
-
-        // Collection name
-        const collectionName2 = 'LenderContact';
-
-        // Define field names
-        const fieldNamesofLenderContact = [
-          'Id',
-          'First Name',
-          'Last Name',
-          'Nick Name',
-          'Email',
-          'Email Tag',
-          'contactTag',
-          'Main Phone',
-          'Mobile Phone',
-          'Office Phone',
-          'Title',
-          'City',
-          'State',
-          'Lender',
-        ];
 
         // Write field names to Excel sheet
         fieldNamesofLenderContact.forEach((fieldName, columnIndex) => {
@@ -85,40 +63,47 @@ export async function exportToExcel(req, res) {
           cell.value = fieldName;
           cell.font = { bold: true };
         });
+
         // Fetch the data from MongoDB collection
-        db.collection(collectionName2)
+        db.collection(collectionName1)
           .find()
           // eslint-disable-next-line no-shadow
           .toArray((err, data) => {
             if (err) {
-              return res.status(500).send('Error While fetching data from MongoDB');
+              return res.status(500).send('Error while fetching data from MongoDB');
             }
             // Write data to Excel sheet
             data.forEach((item) => {
+              const lender = lenderInstituteData.find((ltItem) => ltItem._id.toString() === item.lenderInstitute.toString());
               const row = LenderContactsheet.addRow(); // Create a new row
 
               row.getCell('A').value = item._id;
-              row.getCell('B').value = item.firstName;
-              row.getCell('C').value = item.lastName;
-              row.getCell('D').value = item.nickName;
-              row.getCell('E').value = item.email;
-              row.getCell('F').value = item.emailTag;
-              row.getCell('G').value = item.contactTag;
-              row.getCell('H').value = item.phoneNumberDirect;
-              row.getCell('I').value = item.phoneNumberCell;
-              row.getCell('J').value = item.phoneNumberOffice;
-              row.getCell('K').value = item.title;
-              row.getCell('L').value = item.city;
-              row.getCell('M').value = item.state;
-              row.getCell('N').value = item.lenderInstitute;
+              row.getCell('B').value = lender.lenderNameVisible;
+              row.getCell('C').value = lender._id;
+              row.getCell('D').value = item.firstName;
+              row.getCell('E').value = item.lastName;
+              row.getCell('F').value = item.nickName;
+              row.getCell('G').value = item.programs;
+              row.getCell('H').value = item.email;
+              row.getCell('I').value = item.emailTag;
+              row.getCell('J').value = item.contactTag;
+              row.getCell('K').value = item.phoneNumberDirect;
+              row.getCell('L').value = item.phoneNumberCell;
+              row.getCell('M').value = item.phoneNumberOffice;
+              row.getCell('N').value = item.title;
+              row.getCell('O').value = item.city;
+              row.getCell('P').value = item.state;
             });
 
-            const LenderProgramsheet = workbook.addWorksheet('Lender Program');
+            const LenderProgramsheet = workbook.addWorksheet('CLEAN_LENDERS');
             const collectionName3 = 'LenderProgram';
 
             // Define field names
             const fieldNamesofLenderProgram = [
               'Id',
+              'Lender Name',
+              'Lender Type',
+              'LenderInstituteId',
               'Program Name',
               'States Array',
               'StatesArrTag',
@@ -128,65 +113,82 @@ export async function exportToExcel(req, res) {
               'MaxLoanTag',
               'Property Type',
               'PropTypeArrTag',
+              'DoesNotLandOn',
+              'DoesNotLandOnArrTag',
               'Loan Type',
               'LoanTypeArrTag',
-              'Lender',
               'Index Used',
               'Spread Estimate',
               'Counties',
               'Recourse Required',
               'Non-Recourse LTV',
             ];
-
-            // Write field names to Excel sheet
-            fieldNamesofLenderProgram.forEach((fieldName, columnIndex) => {
-              const cell = LenderProgramsheet.getCell(`${String.fromCharCode(65 + columnIndex)}1`);
-              cell.value = fieldName;
-              cell.font = { bold: true };
-            });
-            // Fetch the data from MongoDB collection
-            db.collection(collectionName3)
+            db.collection('LendingInstitution')
               .find()
               // eslint-disable-next-line no-shadow
-              .toArray((err, data) => {
+              .toArray((err, lenderInstituteData) => {
                 if (err) {
                   return res.status(500).send('Error While fetching data from MongoDB');
                 }
-                // Write data to Excel sheet
-                data.forEach((item) => {
-                  const row = LenderProgramsheet.addRow(); // Create a new row
 
-                  row.getCell('A').value = item._id;
-                  row.getCell('B').value = item.lenderProgramType;
-                  row.getCell('C').value = item.statesArray;
-                  row.getCell('D').value = item.statesArrTag;
-                  row.getCell('E').value = item.minLoanSize;
-                  row.getCell('F').value = item.minLoanTag;
-                  row.getCell('G').value = item.maxLoanSize;
-                  row.getCell('H').value = item.maxLoanTag;
-                  row.getCell('I').value = item.propertyType;
-                  row.getCell('J').value = item.propTypeArrTag;
-                  row.getCell('K').value = item.loanType;
-                  row.getCell('L').value = item.loanTypeArrTag;
-                  row.getCell('M').value = item.lenderInstitute;
-                  row.getCell('N').value = item.indexUsed;
-                  row.getCell('O').value = item.spreadEstimate;
-                  row.getCell('P').value = item.counties;
-                  row.getCell('Q').value = item.recourseRequired;
-                  row.getCell('R').value = item.nonRecourseLTV;
+                // Write field names to Excel sheet
+                fieldNamesofLenderProgram.forEach((fieldName, columnIndex) => {
+                  const cell = LenderProgramsheet.getCell(`${String.fromCharCode(65 + columnIndex)}1`);
+                  cell.value = fieldName;
+                  cell.font = { bold: true };
                 });
-
-                // Save the workbook as an Excel file
-                const filePath = 'LenderData.xlsx';
-                workbook.xlsx
-                  .writeFile(filePath)
-                  .then(() => {
-                    logger.info('Excel file created successfully');
-                    return res.status(httpStatus.OK).send({ message: 'Export Database to ExcelSheet Successfully..' });
-                  })
+                // Fetch the data from MongoDB collection
+                db.collection(collectionName3)
+                  .find()
                   // eslint-disable-next-line no-shadow
-                  .catch((err) => {
-                    res.status(500).send(`Error While creating Excel file : ${err}`);
+                  .toArray((err, data) => {
+                    if (err) {
+                      return res.status(500).send('Error While fetching data from MongoDB');
+                    }
+                    // Write data to Excel sheet
+                    data.forEach((item) => {
+                      const lender = lenderInstituteData.find(
+                        (ltItem) => ltItem._id.toString() === item.lenderInstitute.toString()
+                      );
+
+                      const row = LenderProgramsheet.addRow(); // Create a new row
+
+                      row.getCell('A').value = item._id;
+                      row.getCell('B').value = lender.lenderNameVisible;
+                      row.getCell('C').value = lender.lenderType;
+                      row.getCell('D').value = lender._id;
+                      row.getCell('E').value = item.lenderProgramType;
+                      row.getCell('F').value = item.statesArray;
+                      row.getCell('G').value = item.statesArrTag;
+                      row.getCell('H').value = item.minLoanSize;
+                      row.getCell('I').value = item.minLoanTag;
+                      row.getCell('J').value = item.maxLoanSize;
+                      row.getCell('K').value = item.maxLoanTag;
+                      row.getCell('L').value = item.propertyType;
+                      row.getCell('M').value = item.propTypeArrTag;
+                      row.getCell('N').value = item.doesNotLandOn;
+                      row.getCell('O').value = item.doesNotLandOnArrTag;
+                      row.getCell('P').value = item.loanType;
+                      row.getCell('Q').value = item.loanTypeArrTag;
+                      row.getCell('R').value = item.indexUsed;
+                      row.getCell('S').value = item.spreadEstimate;
+                      row.getCell('T').value = item.counties;
+                      row.getCell('U').value = item.recourseRequired;
+                      row.getCell('V').value = item.nonRecourseLTV;
+                    });
+
+                    // Save the workbook as an Excel file when all rows have been processed
+                    const filePath = 'LenderData.xlsx';
+                    workbook.xlsx
+                      .writeFile(filePath)
+                      .then(() => {
+                        logger.info('Excel file created successfully');
+                        return res.status(httpStatus.OK).send({ message: 'Export Database to ExcelSheet Successfully..' });
+                      })
+                      // eslint-disable-next-line no-shadow
+                      .catch((err) => {
+                        res.status(500).send(`Error while creating Excel file: ${err}`);
+                      });
                   });
               });
           });
