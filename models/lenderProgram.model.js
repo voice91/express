@@ -49,8 +49,8 @@ const LenderProgramSchema = new mongoose.Schema(
      * */
     minLoanSize: {
       type: Number,
-      // min: 100000,
-      // max: 1000000000,
+      min: 100000,
+      max: 1000000000,
     },
     minLoanTag: { type: Number, default: 1 },
 
@@ -59,9 +59,8 @@ const LenderProgramSchema = new mongoose.Schema(
      * */
     maxLoanSize: {
       type: Number,
-      // TODO: Need to discuss with client
-      // min: 100000,
-      // max: 1000000000,
+      min: 100000,
+      max: 1000000000,
     },
     maxLoanTag: { type: Number, default: 1 },
     propertyType: {
