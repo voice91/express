@@ -1,4 +1,4 @@
-import { DealSummary } from '../models';
+import { Deal, DealSummary } from '../models';
 import { importExcelFile } from '../utils/importExcel';
 
 // eslint-disable-next-line import/prefer-default-export
@@ -6,10 +6,12 @@ export async function createDealSummary(body) {
   const record = await importExcelFile(body.url);
 
   record.deal = body.deal;
+  record.url = body.url;
   record.createdBy = body.createdBy;
   record.updatedBy = body.updatedBy;
 
   const dealSummary = await DealSummary.create(record);
+  await Deal.findOneAndUpdate({ _id: dealSummary.deal }, { dealSummary: dealSummary._id }, { new: true });
   return dealSummary;
 }
 

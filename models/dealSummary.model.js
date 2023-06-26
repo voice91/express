@@ -55,6 +55,10 @@ const DealSummarySchema = new mongoose.Schema(
       ref: 'Deal',
       required: true,
     },
+    url: {
+      type: String,
+      required: true,
+    },
     executiveSummary: {
       type: String,
     },
