@@ -39,8 +39,6 @@ const envVarsSchema = Joi.object()
     FOLLOW_UP_TIME_FOR_SEND_EMAIL: Joi.number().default(86400000),
     GET_RATES_DATA: Joi.string(),
     ADMIN_EMAIL_ID: Joi.string().description('Admin Email Id'),
-    MONGODB_HOST: Joi.string().required().description('MongoDB Host required'),
-    MONGO_DB: Joi.string().required().description('Database name required'),
     POSTMARK_API_TOKEN: Joi.string().required().description('Postmark API Token is Required'),
     POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
   })
@@ -57,8 +55,6 @@ export default {
   followUpTimeForSendEmail: envVars.FOLLOW_UP_TIME_FOR_SEND_EMAIL,
   getsRatesData: envVars.GET_RATES_DATA,
   adminEmailId: envVars.ADMIN_EMAIL_ID,
-  mongodbHost: envVars.MONGODB_HOST,
-  mongodb: envVars.MONGO_DB,
   postmarkAPIToken: envVars.POSTMARK_API_TOKEN,
   postmarkInboundDomain: envVars.POSTMARK_INBOUND_DOMAIN,
   mongoose: {
