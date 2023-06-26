@@ -44,6 +44,7 @@ export const createDeal = {
     dealNotes: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.array().items(Joi.objectId()),
     documents: Joi.array().items(Joi.objectId()),
+    dealSummary: Joi.objectId(),
   }),
 };
 

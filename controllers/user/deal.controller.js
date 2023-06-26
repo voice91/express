@@ -25,6 +25,7 @@ export const get = catchAsync(async (req, res) => {
       { path: 'involvedUsers.advisors' },
       { path: 'involvedUsers.borrowers' }, // added this as we need details of all the involved users in the deal for the info/setting tab.
       { path: 'notes' },
+      { path: 'dealSummary' },
     ],
   };
 
@@ -68,7 +69,7 @@ export const list = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['sort', 'limit', 'page']),
-    populate: [{ path: 'notes' }, { path: 'documents' }, { path: 'task' }],
+    populate: [{ path: 'notes' }, { path: 'documents' }, { path: 'task' }, { path: 'dealSummary' }],
   };
   const deal = await dealService.getDealList(filter, options);
   return res.status(httpStatus.OK).send({ results: deal });

@@ -192,6 +192,10 @@ const DealSchema = new mongoose.Schema(
       type: String,
       default: 'Waiting on initial information needed from borrower',
     },
+    dealSummary: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'DealSummary',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
