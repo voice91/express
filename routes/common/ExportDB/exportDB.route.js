@@ -1,5 +1,5 @@
 import express from 'express';
-import { exportDBController } from '../../../controllers/common';
+import { exportDBController } from 'controllers/common';
 
 const router = express();
 /**

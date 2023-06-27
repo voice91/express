@@ -1,16 +1,18 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import httpStatus from 'http-status';
-import { logger } from '../../config/logger';
 import { LenderContact, LenderProgram, LendingInstitution } from '../../models';
+import { catchAsync } from '../../utils/catchAsync';
 
-const os = require('os');
+const homedir = require('os').homedir();
+
+const basePath = `${homedir}`;
 const path = require('path');
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const excel = require('exceljs');
 
 // eslint-disable-next-line import/prefer-default-export
-export async function exportToExcel(req, res) {
+export const exportToExcel = catchAsync(async (req, res) => {
   // Create a new workbook
   const workbook = new excel.Workbook();
   const LenderContactsheet = workbook.addWorksheet('CLEAN_CONTACTS');
@@ -133,19 +135,12 @@ export async function exportToExcel(req, res) {
 
   // Save the workbook as an Excel file when all rows have been processed
   // Get the user's home directory path
-  const downloadDir = path.join(os.homedir(), 'Downloads');
   // Set the file path with the download directory
-  const fileName = 'LenderData.xlsx';
-  const filePath = path.join(downloadDir, fileName);
+  const fileName = '/LenderData.xlsx';
+  // todo : this can be dynamic so we have to change it
 
-  workbook.xlsx
-    .writeFile(filePath)
-    .then(() => {
-      logger.info('Excel file created successfully');
-      return res.status(httpStatus.OK).send({ message: 'Export Database to ExcelSheet Successfully..' });
-    })
-    // eslint-disable-next-line no-shadow
-    .catch((err) => {
-      res.status(500).send(`Error while creating Excel file: ${err}`);
-    });
-}
+  const filePath = path.join(basePath, fileName);
+  const outPath = `${filePath}`;
+  res.sendFile(outPath);
+  return res.status(httpStatus.OK).sendFile(outPath);
+});
