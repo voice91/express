@@ -96,7 +96,6 @@ const EnumAssetTypeOfDeal = {
   SHORT_TERM_RENTALS: 'shortTermRentals',
   CO_LIVING: 'coLiving',
   OUTDOOR_STORAGE: 'outdoorStorage',
-  HOSPITALITY: 'hospitality',
 };
 
 const defaulAssetTypeOfDeal = [

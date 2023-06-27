@@ -191,7 +191,6 @@ export async function importDataFromFile(file, res) {
           'Short-term rentals': EnumAssetTypeOfDeal.SHORT_TERM_RENTALS,
           'Co-living': EnumAssetTypeOfDeal.CO_LIVING,
           'Outdoor Storage': EnumAssetTypeOfDeal.OUTDOOR_STORAGE,
-          Hospitality: EnumAssetTypeOfDeal.HOSPITALITY,
         };
 
         if (property.value) {
