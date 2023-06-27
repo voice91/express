@@ -3,6 +3,9 @@ import httpStatus from 'http-status';
 import { logger } from '../../config/logger';
 import { LenderContact, LenderProgram, LendingInstitution } from '../../models';
 
+const os = require('os');
+const path = require('path');
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 const excel = require('exceljs');
 
@@ -129,7 +132,12 @@ export async function exportToExcel(req, res) {
   });
 
   // Save the workbook as an Excel file when all rows have been processed
-  const filePath = 'LenderData.xlsx';
+  // Get the user's home directory path
+  const downloadDir = path.join(os.homedir(), 'Downloads');
+  // Set the file path with the download directory
+  const fileName = 'LenderData.xlsx';
+  const filePath = path.join(downloadDir, fileName);
+
   workbook.xlsx
     .writeFile(filePath)
     .then(() => {
