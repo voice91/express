@@ -84,6 +84,8 @@ export const paginate = catchAsync(async (req, res) => {
       filter._id = { $in: lenderProgram.map((item) => item.lenderInstitute) };
     } else if (field === 'lenderNameVisible') {
       filter[field] = new RegExp(fields.lenderNameVisible, 'i');
+    } else if (field === 'lenderType') {
+      filter[field] = new RegExp(`.*bank$`, 'i');
     } else {
       filter[field] = fields[field];
     }
