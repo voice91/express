@@ -30,7 +30,6 @@ const LenderProgramSchema = new mongoose.Schema(
      * */
     lenderProgramType: {
       type: String,
-      required: true,
     },
     /**
      * List of all the states in the US where the lender will lend for the given program

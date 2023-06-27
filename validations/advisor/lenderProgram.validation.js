@@ -41,7 +41,7 @@ export const addLender = {
     }),
     lenderProgram: Joi.array().items(
       Joi.object().keys({
-        lenderProgramType: Joi.string().required(),
+        lenderProgramType: Joi.string(),
         statesArray: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal))),
         statesArrTag: Joi.array().items(Joi.number().integer()).allow(''),
         minLoanSize: Joi.number().integer(),
@@ -73,7 +73,7 @@ export const editLender = {
     lenderProgram: Joi.array().items(
       Joi.object().keys({
         id: Joi.objectId().allow(''),
-        lenderProgramType: Joi.string().required(),
+        lenderProgramType: Joi.string(),
         statesArray: Joi.array().items(Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal))),
         statesArrTag: Joi.array().items(Joi.number().integer()).allow(''),
         minLoanSize: Joi.number().integer(),

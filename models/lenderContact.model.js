@@ -98,7 +98,6 @@ const LenderContactSchema = new mongoose.Schema(
      * */
     city: {
       type: String,
-      required: true,
       maxLength: 30,
     },
     /**
@@ -107,7 +106,6 @@ const LenderContactSchema = new mongoose.Schema(
     state: {
       type: String,
       enum: Object.values(enumModel.EnumStatesOfDeal),
-      required: true,
     },
     /**
      * Zipcode of the address of the contact
