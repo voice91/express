@@ -1,7 +1,15 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import httpStatus from 'http-status';
-import { LenderContact, LenderProgram, LendingInstitution } from '../../models';
-import { catchAsync } from '../../utils/catchAsync';
+import _ from 'lodash';
+import { LenderContact, LenderProgram, LendingInstitution } from 'models';
+import {
+  CsvReverseLenderLoanTypeMapping,
+  CsvReverseLenderPropertyTypeMapping,
+  CsvReverseLenderTypeMapping,
+  CsvStatesArrayMapping,
+} from 'utils/common';
+import { catchAsync } from 'utils/catchAsync';
+import { defaulAssetTypeOfDeal, EnumAssetTypeOfDeal } from '../../models/enum.model';
 
 const homedir = require('os').homedir();
 
@@ -49,24 +57,26 @@ export const exportToExcel = catchAsync(async (req, res) => {
 
   lenderContact.forEach((item) => {
     const lender = lenderInstitution.find((lenderItem) => lenderItem._id.toString() === item.lenderInstitute.toString());
-    const row = LenderContactsheet.addRow(); // Create a new row
 
-    row.getCell('A').value = item._id;
-    row.getCell('B').value = lender.lenderNameVisible;
-    row.getCell('C').value = lender._id;
-    row.getCell('D').value = item.firstName;
-    row.getCell('E').value = item.lastName;
-    row.getCell('F').value = item.nickName;
-    row.getCell('G').value = item.programs;
-    row.getCell('H').value = item.email;
-    row.getCell('I').value = item.emailTag;
-    row.getCell('J').value = item.contactTag;
-    row.getCell('K').value = item.phoneNumberDirect;
-    row.getCell('L').value = item.phoneNumberCell;
-    row.getCell('M').value = item.phoneNumberOffice;
-    row.getCell('N').value = item.title;
-    row.getCell('O').value = item.city;
-    row.getCell('P').value = item.state;
+    const rowValues = [];
+    rowValues[1] = `${item._id}`;
+    rowValues[2] = lender.lenderNameVisible;
+    rowValues[3] = `${lender._id}`;
+    rowValues[4] = item.firstName;
+    rowValues[5] = item.lastName;
+    rowValues[6] = item.nickName;
+    rowValues[7] = item.programs ? item.programs.join(', ') : item.programs;
+    rowValues[8] = item.email;
+    rowValues[9] = item.emailTag;
+    rowValues[10] = item.contactTag;
+    rowValues[11] = item.phoneNumberDirect;
+    rowValues[12] = item.phoneNumberCell;
+    rowValues[13] = item.phoneNumberOffice;
+    rowValues[14] = item.title;
+    rowValues[15] = item.city;
+    rowValues[16] = item.state;
+
+    LenderContactsheet.addRow(rowValues);
   });
 
   const LenderProgramsheet = workbook.addWorksheet('CLEAN_LENDERS');
@@ -107,30 +117,68 @@ export const exportToExcel = catchAsync(async (req, res) => {
 
   lenderProgram.forEach((item) => {
     const lender = lenderInstitution.find((lenderItem) => lenderItem._id.toString() === item.lenderInstitute.toString());
-    const row = LenderProgramsheet.addRow(); // Create a new row
 
-    row.getCell('A').value = item._id;
-    row.getCell('B').value = lender.lenderNameVisible;
-    row.getCell('C').value = lender.lenderType;
-    row.getCell('D').value = lender._id;
-    row.getCell('E').value = item.lenderProgramType;
-    row.getCell('F').value = item.statesArray;
-    row.getCell('G').value = item.statesArrTag;
-    row.getCell('H').value = item.minLoanSize;
-    row.getCell('I').value = item.minLoanTag;
-    row.getCell('J').value = item.maxLoanSize;
-    row.getCell('K').value = item.maxLoanTag;
-    row.getCell('L').value = item.propertyType;
-    row.getCell('M').value = item.propTypeArrTag;
-    row.getCell('N').value = item.doesNotLandOn;
-    row.getCell('O').value = item.doesNotLandOnArrTag;
-    row.getCell('P').value = item.loanType;
-    row.getCell('Q').value = item.loanTypeArrTag;
-    row.getCell('R').value = item.indexUsed;
-    row.getCell('S').value = item.spreadEstimate;
-    row.getCell('T').value = item.counties;
-    row.getCell('U').value = item.recourseRequired;
-    row.getCell('V').value = item.nonRecourseLTV;
+    let { statesArray } = item;
+    const result = _.intersection(statesArray, CsvStatesArrayMapping.Nationwide);
+    if (result.length >= CsvStatesArrayMapping.Nationwide.length) {
+      statesArray = ['Nationwide'];
+    }
+
+    function returnPropertyArrayAsExcelSheet(propertyArray) {
+      // eslint-disable-next-line no-shadow
+      const propertyMappingValue = propertyArray.map((item) => CsvReverseLenderPropertyTypeMapping[item]);
+      return propertyMappingValue.join(', ');
+    }
+
+    let property;
+    if (item.propertyType.length >= defaulAssetTypeOfDeal.length) {
+      if (item.propertyType.length === defaulAssetTypeOfDeal.length) {
+        if (JSON.stringify(item.propertyType.sort()) === JSON.stringify(defaulAssetTypeOfDeal.sort())) {
+          property = 'Default';
+        } else {
+          property = returnPropertyArrayAsExcelSheet(item.propertyType);
+        }
+      } else if (Object.values(EnumAssetTypeOfDeal).length === item.propertyType.length) {
+        if (JSON.stringify(item.propertyType.sort()) === JSON.stringify(Object.values(EnumAssetTypeOfDeal).sort())) {
+          property = 'All';
+        }
+      } else if (defaulAssetTypeOfDeal.every((value) => item.propertyType.includes(value))) {
+        const diffValues = item.propertyType.filter((value) => !defaulAssetTypeOfDeal.includes(value)).filter(Boolean);
+        // eslint-disable-next-line no-shadow
+        const diffMappingValue = diffValues.map((item) => CsvReverseLenderPropertyTypeMapping[item]);
+        property = `Default+${diffMappingValue.join('+')}`;
+      } else {
+        property = returnPropertyArrayAsExcelSheet(item.propertyType);
+      }
+    } else {
+      property = returnPropertyArrayAsExcelSheet(item.propertyType);
+    }
+
+    const rowValues = [];
+    rowValues[1] = `${item._id}`;
+    rowValues[2] = lender.lenderNameVisible;
+    rowValues[3] = CsvReverseLenderTypeMapping[lender.lenderType];
+    rowValues[4] = `${lender._id}`;
+    rowValues[5] = item.lenderProgramType;
+    rowValues[6] = statesArray.join(', ');
+    rowValues[7] = item.statesArrTag.join(', ');
+    rowValues[8] = `$${item.minLoanSize}`;
+    rowValues[9] = item.minLoanTag;
+    rowValues[10] = `$${item.maxLoanSize}`;
+    rowValues[11] = item.maxLoanTag;
+    rowValues[12] = property;
+    rowValues[13] = item.propTypeArrTag.join(', ');
+    rowValues[14] = item.doesNotLandOn.map((val) => CsvReverseLenderPropertyTypeMapping[val]).join(', ');
+    rowValues[15] = item.doesNotLandOnArrTag.join(', ');
+    rowValues[16] = item.loanType.map((val) => CsvReverseLenderLoanTypeMapping[val]).join(', ');
+    rowValues[17] = item.loanTypeArrTag.join(', ');
+    rowValues[18] = item.indexUsed;
+    rowValues[19] = item.spreadEstimate;
+    rowValues[20] = item.counties;
+    rowValues[21] = item.recourseRequired;
+    rowValues[22] = item.nonRecourseLTV;
+
+    LenderProgramsheet.addRow(rowValues);
   });
 
   // Save the workbook as an Excel file when all rows have been processed
@@ -140,6 +188,7 @@ export const exportToExcel = catchAsync(async (req, res) => {
   // todo : this can be dynamic so we have to change it
 
   const filePath = path.join(basePath, fileName);
+  await workbook.xlsx.writeFile(filePath);
   const outPath = `${filePath}`;
   res.sendFile(outPath);
   return res.status(httpStatus.OK).sendFile(outPath);

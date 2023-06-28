@@ -1,4 +1,10 @@
 import { Mongoose } from 'mongoose';
+import {
+  EnumAssetTypeOfDeal,
+  EnumLenderTypeOfLendingInstitution,
+  EnumLoanTypeOfDeal,
+  EnumStatesOfDeal,
+} from 'models/enum.model';
 import contentType from './content-type.json';
 /* eslint-disable */
 export const asyncForEach = async (array, callback) => {
@@ -138,4 +144,145 @@ export const encodeUrl = (url) => {
   fileRemoveUnEncodedPart.push(encodedUrl);
   const finalEncodedUrl = fileRemoveUnEncodedPart.join('/');
   return finalEncodedUrl;
+};
+
+export const CsvReverseLenderTypeMapping = {
+  [EnumLenderTypeOfLendingInstitution.BANK]: 'Bank',
+  [EnumLenderTypeOfLendingInstitution.DEBT_FUND]: 'Debt Fund',
+  [EnumLenderTypeOfLendingInstitution.CREDIT_UNION]: 'Credit Union',
+  [EnumLenderTypeOfLendingInstitution.NATIONAL_BANK]: 'National Bank',
+  [EnumLenderTypeOfLendingInstitution.REGIONAL_BANK]: 'Regional Bank',
+  [EnumLenderTypeOfLendingInstitution.LIFECO]: 'LifeCo',
+  [EnumLenderTypeOfLendingInstitution.LIFE_INSURANCE]: 'Life Insurance',
+  [EnumLenderTypeOfLendingInstitution.CMBS]: 'CMBS',
+  [EnumLenderTypeOfLendingInstitution.LOCAL_BANK]: 'Local Bank',
+};
+export const CsvLenderTypeMapping = {
+  Bank: EnumLenderTypeOfLendingInstitution.BANK,
+  'Debt Fund': EnumLenderTypeOfLendingInstitution.DEBT_FUND,
+  'Credit Union': EnumLenderTypeOfLendingInstitution.CREDIT_UNION,
+  'National Bank': EnumLenderTypeOfLendingInstitution.NATIONAL_BANK,
+  'Regional Bank': EnumLenderTypeOfLendingInstitution.REGIONAL_BANK,
+  LifeCo: EnumLenderTypeOfLendingInstitution.LIFECO,
+  'Life Insurance': EnumLenderTypeOfLendingInstitution.LIFE_INSURANCE,
+  CMBS: EnumLenderTypeOfLendingInstitution.CMBS,
+  'Local Bank': EnumLenderTypeOfLendingInstitution.LOCAL_BANK,
+};
+
+export const CsvReverseLenderPropertyTypeMapping = {
+  [EnumAssetTypeOfDeal.MULTIFAMILY]: 'Multifamily',
+  [EnumAssetTypeOfDeal.STUDENT_HOUSING]: 'Student Housing',
+  [EnumAssetTypeOfDeal.INDUSTRIAL]: 'Industrial',
+  [EnumAssetTypeOfDeal.SELF_STORAGE]: 'Self-Storage',
+  [EnumAssetTypeOfDeal.RETAIL]: 'Retail',
+  [EnumAssetTypeOfDeal['1_4_SFR']]: '1_4 SFR',
+  [EnumAssetTypeOfDeal.HOTELS]: 'Hotels',
+  [EnumAssetTypeOfDeal.OFFICE]: 'Office',
+  [EnumAssetTypeOfDeal.NNN_RETAIL]: 'NNN Retail',
+  [EnumAssetTypeOfDeal.MOBILE_HOME_PARK]: 'Mobile Home Park',
+  [EnumAssetTypeOfDeal.CANNABIS]: 'Cannabis',
+  [EnumAssetTypeOfDeal.FOR_SALE_CONDOS]: 'For Sale Condos',
+  [EnumAssetTypeOfDeal.HEALTHCARE]: 'Healthcare',
+  [EnumAssetTypeOfDeal.SHORT_TERM_RENTALS]: 'Short-term rentals',
+  [EnumAssetTypeOfDeal.CO_LIVING]: 'Co-living',
+  [EnumAssetTypeOfDeal.OUTDOOR_STORAGE]: 'Outdoor Storage',
+};
+
+export const CsvLenderPropertyTypeMapping = {
+  Multifamily: EnumAssetTypeOfDeal.MULTIFAMILY,
+  'Student Housing': EnumAssetTypeOfDeal.STUDENT_HOUSING,
+  Industrial: EnumAssetTypeOfDeal.INDUSTRIAL,
+  'Self-Storage': EnumAssetTypeOfDeal.SELF_STORAGE,
+  Retail: EnumAssetTypeOfDeal.RETAIL,
+  '1_4 SFR': EnumAssetTypeOfDeal['1_4_SFR'],
+  Hotels: EnumAssetTypeOfDeal.HOTELS,
+  Hospitality: EnumAssetTypeOfDeal.HOTELS,
+  Office: EnumAssetTypeOfDeal.OFFICE,
+  'NNN Retail': EnumAssetTypeOfDeal.NNN_RETAIL,
+  All: Object.values(EnumAssetTypeOfDeal),
+  'Mobile Home Park': EnumAssetTypeOfDeal.MOBILE_HOME_PARK,
+  Cannabis: EnumAssetTypeOfDeal.CANNABIS,
+  'For Sale Condos': EnumAssetTypeOfDeal.FOR_SALE_CONDOS,
+  Healthcare: EnumAssetTypeOfDeal.HEALTHCARE,
+  'Short-term rentals': EnumAssetTypeOfDeal.SHORT_TERM_RENTALS,
+  'Co-living': EnumAssetTypeOfDeal.CO_LIVING,
+  'Outdoor Storage': EnumAssetTypeOfDeal.OUTDOOR_STORAGE,
+};
+
+export const CsvReverseLenderLoanTypeMapping = {
+  [EnumLoanTypeOfDeal.CONSTRUCTION]: 'Construction',
+  [EnumLoanTypeOfDeal.STABILIZED]: 'Permanent',
+  [EnumLoanTypeOfDeal.PRE_DEVELOPMENT_LAND]: 'Land',
+  [EnumLoanTypeOfDeal.LIGHT_TRANSITIONAL]: 'Light Transitional',
+  [EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL]: 'Heavy Transitional',
+  [EnumLoanTypeOfDeal.TRANSITIONAL]: 'Transitional',
+  [EnumLoanTypeOfDeal.STABILIZED]: 'Stabilized',
+};
+
+export const CsvLenderLoanTypeMapping = {
+  Construction: EnumLoanTypeOfDeal.CONSTRUCTION,
+  Bridge: [EnumLoanTypeOfDeal.LIGHT_TRANSITIONAL, EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL],
+  Permanent: EnumLoanTypeOfDeal.STABILIZED,
+  Land: EnumLoanTypeOfDeal.PRE_DEVELOPMENT_LAND,
+  'Light Bridge': EnumLoanTypeOfDeal.LIGHT_TRANSITIONAL,
+  'Heavy Bridge': EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL,
+  'Light Transitional': EnumLoanTypeOfDeal.LIGHT_TRANSITIONAL,
+  'Heavy Transitional': EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL,
+  Transitional: EnumLoanTypeOfDeal.TRANSITIONAL,
+  Stabilized: EnumLoanTypeOfDeal.STABILIZED,
+};
+
+export const CsvStatesArrayMapping = {
+  AL: EnumStatesOfDeal.ALABAMA,
+  AK: EnumStatesOfDeal.ALASKA,
+  AZ: EnumStatesOfDeal.ARIZONA,
+  AR: EnumStatesOfDeal.ARKANSAS,
+  CA: EnumStatesOfDeal.CALIFORNIA,
+  CO: EnumStatesOfDeal.COLORADO,
+  CT: EnumStatesOfDeal.CONNECTICUT,
+  DE: EnumStatesOfDeal.DELAWARE,
+  DC: EnumStatesOfDeal.DISTRICT_OF_COLUMBIA,
+  FL: EnumStatesOfDeal.FLORIDA,
+  GA: EnumStatesOfDeal.GEORGIA,
+  HI: EnumStatesOfDeal.HAWAII,
+  ID: EnumStatesOfDeal.IDAHO,
+  IL: EnumStatesOfDeal.ILLINOIS,
+  IN: EnumStatesOfDeal.INDIANA,
+  IA: EnumStatesOfDeal.IOWA,
+  KS: EnumStatesOfDeal.KANSAS,
+  KY: EnumStatesOfDeal.KENTUCKY,
+  LA: EnumStatesOfDeal.LOUISIANA,
+  ME: EnumStatesOfDeal.MAINE,
+  MD: EnumStatesOfDeal.MARYLAND,
+  MA: EnumStatesOfDeal.MASSACHUSETTS,
+  MI: EnumStatesOfDeal.MICHIGAN,
+  MN: EnumStatesOfDeal.MINNESOTA,
+  MS: EnumStatesOfDeal.MISSISSIPPI,
+  MO: EnumStatesOfDeal.MISSOURI,
+  MT: EnumStatesOfDeal.MONTANA,
+  NE: EnumStatesOfDeal.NEBRASKA,
+  NV: EnumStatesOfDeal.NEVADA,
+  NH: EnumStatesOfDeal.NEW_HAMPSHIRE,
+  NJ: EnumStatesOfDeal.NEW_JERSEY,
+  NM: EnumStatesOfDeal.NEW_MEXICO,
+  NY: EnumStatesOfDeal.NEW_YORK,
+  NC: EnumStatesOfDeal.NORTH_CAROLINA,
+  ND: EnumStatesOfDeal.NORTH_DAKOTA,
+  OH: EnumStatesOfDeal.OHIO,
+  OK: EnumStatesOfDeal.OKLAHOMA,
+  OR: EnumStatesOfDeal.OREGON,
+  PA: EnumStatesOfDeal.PENNSYLVANIA,
+  RI: EnumStatesOfDeal.RHODE_ISLAND,
+  SC: EnumStatesOfDeal.SOUTH_CAROLINA,
+  SD: EnumStatesOfDeal.SOUTH_DAKOTA,
+  TN: EnumStatesOfDeal.TENNESSEE,
+  TX: EnumStatesOfDeal.TEXAS,
+  UT: EnumStatesOfDeal.UTAH,
+  VT: EnumStatesOfDeal.VERMONT,
+  VA: EnumStatesOfDeal.VIRGINIA,
+  WA: EnumStatesOfDeal.WASHINGTON,
+  WV: EnumStatesOfDeal.WEST_VIRGINIA,
+  WI: EnumStatesOfDeal.WISCONSIN,
+  WY: EnumStatesOfDeal.WYOMING,
+  Nationwide: Object.values(EnumStatesOfDeal),
 };

@@ -10,9 +10,9 @@ import ratesRoutes from './common/rates/rates.route';
 
 import authRoutes from './common/auth/auth.route';
 
-import importFileRoutes from './common/importFile/importFile.route';
+import importFileRoutes from './common/import/importFile.route';
 
-import exportDBRoutes from './common/ExportDB/exportDB.route';
+import exportDBRoutes from './common/export/exportDB.route';
 
 import wehbookRoutes from './common/wehbook/wehbook.route';
 

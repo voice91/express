@@ -4,7 +4,10 @@ import config from './config';
 
 const jwtOptions = {
   secretOrKey: config.jwt.secret,
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  jwtFromRequest: ExtractJwt.fromExtractors([
+    ExtractJwt.fromUrlQueryParameter('token'), // Extract from query parameter 'token'
+    ExtractJwt.fromAuthHeaderAsBearerToken(), // Extract from 'Authorization' header as a Bearer token
+  ]),
   // don't make ignoreExpiration true because it does not validate auth expire time
   ignoreExpiration: false,
 };
