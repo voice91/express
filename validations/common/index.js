@@ -5,3 +5,4 @@ module.exports.captchaValidation = require('./captcha.validation');
 module.exports.s3Validation = require('./s3.validation');
 module.exports.searchValidation = require('./search.validation');
 module.exports.authValidation = require('./auth.validation');
+module.exports.addUserValidation = require('./addUser.validation');
