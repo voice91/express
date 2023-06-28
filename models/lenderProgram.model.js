@@ -39,12 +39,12 @@ const LenderProgramSchema = new mongoose.Schema(
       enum: Object.values(enumModel.EnumStatesOfDeal),
       required: true,
     },
-    statesArrTag: {
-      type: [Number],
-      default: 1,
-      min: 1,
-      max: 5,
-    },
+    statesArrTag: [
+      {
+        type: Number,
+        default: 1,
+      },
+    ],
     /**
      * The minimum loan amount for the given program
      * */
@@ -54,7 +54,10 @@ const LenderProgramSchema = new mongoose.Schema(
       max: 1000000000,
       required: false,
     },
-    minLoanTag: { type: Number, default: 1, min: 1, max: 5 },
+    minLoanTag: {
+      type: Number,
+      default: 1,
+    },
 
     /**
      * The maximum loan amount for the given program
@@ -64,7 +67,10 @@ const LenderProgramSchema = new mongoose.Schema(
       min: 100000,
       max: 1000000000,
     },
-    maxLoanTag: { type: Number, default: 1, min: 1, max: 5 },
+    maxLoanTag: {
+      type: Number,
+      default: 1,
+    },
     propertyType: {
       type: [String],
       enum: Object.values(enumModel.EnumAssetTypeOfDeal),
@@ -73,8 +79,6 @@ const LenderProgramSchema = new mongoose.Schema(
     propTypeArrTag: {
       type: [Number],
       default: 1,
-      min: 1,
-      max: 5,
     },
     doesNotLandOn: {
       type: [String],
@@ -83,8 +87,6 @@ const LenderProgramSchema = new mongoose.Schema(
     doesNotLandOnArrTag: {
       type: [Number],
       default: 1,
-      min: 1,
-      max: 5,
     },
     loanType: {
       type: [String],
@@ -93,8 +95,6 @@ const LenderProgramSchema = new mongoose.Schema(
     loanTypeArrTag: {
       type: [Number],
       default: 1,
-      min: 1,
-      max: 5,
     },
     lenderInstitute: {
       type: mongoose.Schema.Types.ObjectId,
