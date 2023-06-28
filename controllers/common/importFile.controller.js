@@ -580,7 +580,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
       if (notAvailableLender.length > 0) {
         return res.status(httpStatus.OK).send({
           result: {
-            message: 'This contacts were not added because they did not match our conditions...',
+            message: 'This contacts were not added because they do not have Email, FirstName or LastName...',
             data: notAvailableLender,
           },
         });
