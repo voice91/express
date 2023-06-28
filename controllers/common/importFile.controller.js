@@ -10,7 +10,7 @@ import {
 } from 'utils/common';
 import { catchAsync } from 'utils/catchAsync';
 import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution } from '../../models';
-import { EnumAssetTypeOfDeal } from '../../models/enum.model';
+import { EnumAssetTypeOfDeal, EnumStatesOfDeal } from '../../models/enum.model';
 import ApiError from '../../utils/ApiError';
 
 const mongoose = require('mongoose');
@@ -39,6 +39,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
     if (lenderIdValue) {
       let currentCell = lenderWorksheet.getCell(lenderIdValue[0]);
       while (true) {
+        const allNation = Object.values(EnumStatesOfDeal);
         const program = {};
         const defaulAssetTypeOfDeal = [
           EnumAssetTypeOfDeal.MULTIFAMILY,
@@ -72,10 +73,10 @@ export const importDataFromFile = catchAsync(async (file, res) => {
         // todo : make function for comman code for getting state value=
         if (state.value) {
           if (state.value === 'Nationwide') {
-            program.statesArray = CsvStatesArrayMapping.Nationwide;
+            program.statesArray = allNation;
           } else if (state.value.includes('Nationwide')) {
             if (state.value.includes('-')) {
-              const valueToRemoveState = CsvStatesArrayMapping.Nationwide;
+              const valueToRemoveState = allNation;
               // eslint-disable-next-line array-callback-return
               state.value.split('-').map((item) => {
                 if (item !== 'Nationwide') {
@@ -137,7 +138,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
             throw new Error('maxLoanSize must be a containing from 100000 to 1000000000');
           }
           if (typeof max.value === 'number') {
-            program.maxLoanSize = max.value
+            program.maxLoanSize = max.value;
           } else {
             program.maxLoanSize = Number(max.value.replace(/[^0-9.-]+/g, ''));
           }
@@ -277,6 +278,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
         let currentCell = lenderWorksheet.getCell(lenderValue[0]);
         while (true) {
           const program = {};
+          const allNation = Object.values(EnumStatesOfDeal);
           const defaulAssetTypeOfDeal = [
             EnumAssetTypeOfDeal.MULTIFAMILY,
             EnumAssetTypeOfDeal.OFFICE,
@@ -334,7 +336,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
               throw new Error('maxLoanSize must be a containing from 100000 to 1000000000');
             }
             if (typeof max.value === 'number') {
-              program.maxLoanSize = max.value
+              program.maxLoanSize = max.value;
             } else {
               program.maxLoanSize = Number(max.value.replace(/[^0-9.-]+/g, ''));
             }
@@ -355,10 +357,10 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
           if (state.value) {
             if (state.value === 'Nationwide') {
-              program.statesArray = CsvStatesArrayMapping.Nationwide;
+              program.statesArray = allNation;
             } else if (state.value.includes('Nationwide')) {
               if (state.value.includes('-')) {
-                const valueToRemoveState = CsvStatesArrayMapping.Nationwide;
+                const valueToRemoveState = allNation;
                 // eslint-disable-next-line array-callback-return
                 state.value.split('-').map((item) => {
                   if (item !== 'Nationwide') {
@@ -521,7 +523,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           }
           lenderProgram.push(program);
         }
-        await LenderProgram.deleteMany({})
+        await LenderProgram.deleteMany({});
         await LenderProgram.create(lenderProgram);
       }
     }
