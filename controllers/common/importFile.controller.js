@@ -520,6 +520,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           }
           lenderProgram.push(program);
         }
+        await LenderProgram.deleteMany({})
         await LenderProgram.create(lenderProgram);
       }
     }
