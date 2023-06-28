@@ -5,7 +5,7 @@ import ApiError from '../../utils/ApiError';
 import { userService } from '../../services';
 
 // eslint-disable-next-line import/prefer-default-export
-export const addUsers = catchAsync(async (req, res) => {
+export const addUser = catchAsync(async (req, res) => {
   const { body } = req;
   const userEmail = req.user.email;
   const options = {};

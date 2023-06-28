@@ -2,7 +2,7 @@ import Joi from 'joi';
 import enumFields from '../../models/enum.model';
 
 // eslint-disable-next-line import/prefer-default-export
-export const addUsers = {
+export const addUser = {
   body: Joi.object().keys({
     name: Joi.string(),
     email: Joi.string().email().required(),

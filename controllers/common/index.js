@@ -8,4 +8,4 @@ module.exports.authController = require('./auth.controller');
 module.exports.importFileController = require('./importFile.controller');
 module.exports.exportDBController = require('./exportDB.controller');
 module.exports.wehbookController = require('./wehbook.controller');
-module.exports.addUsersController = require('./addUsers.controller');
+module.exports.addUserController = require('./addUser.controller');

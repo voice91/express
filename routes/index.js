@@ -16,7 +16,7 @@ import exportDBRoutes from './common/ExportDB/exportDB.route';
 
 import wehbookRoutes from './common/wehbook/wehbook.route';
 
-import addUsersRoute from './common/addUsers/addUsers.route';
+import addUserRoute from './common/addUser/addUser.route';
 
 const userRoutes = require('./user');
 const advisorRoutes = require('./advisor');
@@ -34,5 +34,5 @@ router.use('/importFile', importFileRoutes);
 router.use('/exportDB', exportDBRoutes);
 router.use('/auth', authRoutes);
 router.use('/wehbook', wehbookRoutes);
-router.use('/add-users', addUsersRoute);
+router.use('/add-user', addUserRoute);
 module.exports = router;
