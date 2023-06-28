@@ -152,6 +152,14 @@ export const editLender = catchAsync(async (req, res) => {
 
   const lenderProgram = await Promise.all(
     body.lenderProgram.map(async (item) => {
+      const existingProgramName = await LenderProgram.find({
+        lenderInstitute,
+        lenderProgramType: item.lenderProgramType,
+      });
+
+      if (existingProgramName.length > 0) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Lender program with the same name already exists');
+      }
       if (!item.lenderInstitute) {
         // eslint-disable-next-line no-param-reassign
         item.lenderInstitute = lenderInstitute;

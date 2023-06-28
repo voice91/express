@@ -30,7 +30,7 @@ const envVarsSchema = Joi.object()
     GOOGLE_CLIENT_SECRET: Joi.string().required().description('Google Client Secret required'),
     CAPTCHA_SECRET_KEY: Joi.string().required().description('Google Captcha Secret Key required'),
     ACTIVITY_SYSTEM_USER: Joi.string(),
-    ADMIN_EMAILS: Joi.string(),
+    ADMIN_EMAILS: Joi.string().required().default(['richardjsutt@gmail.com', 'richard@parallelcre.com']),
     // 1 hr = 3600000
     DISABLED_TIME_FOR_NOTES: Joi.number().default(3600000),
     JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: Joi.number()

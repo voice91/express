@@ -11,7 +11,7 @@ export const createLenderContact = {
   body: Joi.object().keys({
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
-    nickName: Joi.string(),
+    nickName: Joi.string().allow(null),
     email: Joi.string().email().required(),
     phoneNumberDirect: Joi.string(),
     phoneNumberOffice: Joi.string(),
@@ -33,7 +33,7 @@ export const updateLenderContact = {
   body: Joi.object().keys({
     firstName: Joi.string(),
     lastName: Joi.string(),
-    nickName: Joi.string(),
+    nickName: Joi.string().allow(null),
     email: Joi.string().email(),
     phoneNumberDirect: Joi.string(),
     phoneNumberOffice: Joi.string(),
