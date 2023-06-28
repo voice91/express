@@ -103,6 +103,8 @@ export const addLender = catchAsync(async (req, res) => {
       if (item.minLoanSize > item.maxLoanSize) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Minimum Loan Amount is Greater than Maximum Loan Amount..!!');
       }
+    } else if (item.minLoanSize > 100000) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'The minimum loan amount should be less than 100000');
     } else if (item.minLoanSize && !item.maxLoanSize) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Maximum Loan Amount..!!');
     } else if (!item.minLoanSize && item.maxLoanSize) {
