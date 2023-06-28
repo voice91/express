@@ -104,7 +104,7 @@ const LenderProgramSchema = new mongoose.Schema(
       type: String,
     },
     spreadEstimate: {
-      type: String,
+      type: Number,
     },
     counties: {
       type: String,
