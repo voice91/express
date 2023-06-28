@@ -85,7 +85,11 @@ export const paginate = catchAsync(async (req, res) => {
     } else if (field === 'lenderNameVisible') {
       filter[field] = new RegExp(fields.lenderNameVisible, 'i');
     } else if (field === 'lenderType') {
-      filter[field] = new RegExp(`.*bank$`, 'i');
+      if (fields[field] === 'bank') {
+        filter[field] = new RegExp(`.*bank$`, 'i');
+      } else {
+        filter[field] = fields[field];
+      }
     } else {
       filter[field] = fields[field];
     }
