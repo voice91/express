@@ -2,20 +2,23 @@ import _ from 'lodash';
 import httpStatus from 'http-status';
 import XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
-import ApiError from '../../utils/ApiError';
 import {
-  EnumAssetTypeOfDeal,
-  EnumLenderTypeOfLendingInstitution,
-  EnumLoanTypeOfDeal,
-  EnumStatesOfDeal,
-  defaulAssetTypeOfDeal,
-} from '../../models/enum.model';
+  CsvLenderLoanTypeMapping,
+  CsvLenderPropertyTypeMapping,
+  CsvLenderTypeMapping,
+  CsvStatesArrayMapping,
+} from 'utils/common';
+import { catchAsync } from 'utils/catchAsync';
+import ApiError from '../../utils/ApiError';
 import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution } from '../../models';
+import { EnumAssetTypeOfDeal } from '../../models/enum.model';
+
+const mongoose = require('mongoose');
 
 const workbook = new ExcelJS.Workbook();
 
 // eslint-disable-next-line import/prefer-default-export
-export async function importDataFromFile(file, res) {
+export const importDataFromFile = catchAsync(async (file, res) => {
   try {
     let data;
     if (Object.values(file.files).length) {
@@ -31,113 +34,42 @@ export async function importDataFromFile(file, res) {
     const lenderWorkbookSheetName = lenderWorkbook.SheetNames[1];
     const lenderWorkbookSheet = lenderWorkbook.Sheets[lenderWorkbookSheetName];
 
-    const lenderValue = Object.entries(lenderWorkbookSheet).find(([, value]) => value.v === 'Lender Name');
+    const lenderIdValue = Object.entries(lenderWorkbookSheet).find(([, value]) => value.v === 'Id');
 
-    const lenderProgram = [];
-    if (lenderValue) {
-      let currentCell = lenderWorksheet.getCell(lenderValue[0]);
+    if (lenderIdValue) {
+      let currentCell = lenderWorksheet.getCell(lenderIdValue[0]);
       while (true) {
         const program = {};
-        const lenderName = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col);
-        const lenderType = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 1);
-        const CsvLenderTypeMapping = {
-          Bank: EnumLenderTypeOfLendingInstitution.BANK,
-          'Debt Fund': EnumLenderTypeOfLendingInstitution.DEBT_FUND,
-          'Credit Union': EnumLenderTypeOfLendingInstitution.CREDIT_UNION,
-          'National Bank': EnumLenderTypeOfLendingInstitution.NATIONAL_BANK,
-          'Regional Bank': EnumLenderTypeOfLendingInstitution.REGIONAL_BANK,
-          LifeCo: EnumLenderTypeOfLendingInstitution.LIFECO,
-          'Life Insurance': EnumLenderTypeOfLendingInstitution.LIFE_INSURANCE,
-          CMBS: EnumLenderTypeOfLendingInstitution.CMBS,
-          'Local Bank': EnumLenderTypeOfLendingInstitution.LOCAL_BANK,
-        };
-        if (lenderName.value) {
-          // eslint-disable-next-line no-await-in-loop
-          const findInstitute = await LendingInstitution.findOne({ lenderNameVisible: lenderName.value });
-          if (!findInstitute) {
-            // eslint-disable-next-line no-await-in-loop
-            const institute = await LendingInstitution.create({
-              lenderNameVisible: lenderName.value,
-              lenderType: CsvLenderTypeMapping[lenderType.value],
-            });
-            program.lenderInstitute = institute._id;
-          }
-          if (findInstitute) {
-            program.lenderInstitute = findInstitute._id;
-          }
-        }
+        const defaulAssetTypeOfDeal = [
+          EnumAssetTypeOfDeal.MULTIFAMILY,
+          EnumAssetTypeOfDeal.OFFICE,
+          EnumAssetTypeOfDeal.RETAIL,
+          EnumAssetTypeOfDeal.INDUSTRIAL,
+          EnumAssetTypeOfDeal.SELF_STORAGE,
+          EnumAssetTypeOfDeal.STUDENT_HOUSING,
+          EnumAssetTypeOfDeal.MOBILE_HOME_PARK,
+          EnumAssetTypeOfDeal.FOR_SALE_CONDOS,
+          EnumAssetTypeOfDeal.NNN_RETAIL,
+        ];
+        const id = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col);
 
-        const programName = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 2);
+        // eslint-disable-next-line no-await-in-loop
+        const lenderName = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 1);
+        const lenderType = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 2);
+        const lenderId = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 3);
+
+        const obj = {
+          lenderNameVisible: lenderName.value,
+          lenderType: lenderType.value,
+        };
+        // eslint-disable-next-line no-await-in-loop
+        await LendingInstitution.findByIdAndUpdate(lenderId.value, obj);
+
+        const programName = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 4);
         program.lenderProgramType = programName.value;
-        const min = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 3);
-        program.minLoanSize = min.value;
 
-        const minTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 4);
-        program.minLoanTag = minTag.value;
-
-        const max = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 5);
-        program.maxLoanSize = max.value;
-
-        const maxTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 6);
-        program.maxLoanTag = maxTag.value;
-
-        const state = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 7);
-
-        const CsvStatesArrayMapping = {
-          AL: EnumStatesOfDeal.ALABAMA,
-          AK: EnumStatesOfDeal.ALASKA,
-          AZ: EnumStatesOfDeal.ARIZONA,
-          AR: EnumStatesOfDeal.ARKANSAS,
-          CA: EnumStatesOfDeal.CALIFORNIA,
-          CO: EnumStatesOfDeal.COLORADO,
-          CT: EnumStatesOfDeal.CONNECTICUT,
-          DE: EnumStatesOfDeal.DELAWARE,
-          DC: EnumStatesOfDeal.DISTRICT_OF_COLUMBIA,
-          FL: EnumStatesOfDeal.FLORIDA,
-          GA: EnumStatesOfDeal.GEORGIA,
-          HI: EnumStatesOfDeal.HAWAII,
-          ID: EnumStatesOfDeal.IDAHO,
-          IL: EnumStatesOfDeal.ILLINOIS,
-          IN: EnumStatesOfDeal.INDIANA,
-          IA: EnumStatesOfDeal.IOWA,
-          KS: EnumStatesOfDeal.KANSAS,
-          KY: EnumStatesOfDeal.KENTUCKY,
-          LA: EnumStatesOfDeal.LOUISIANA,
-          ME: EnumStatesOfDeal.MAINE,
-          MD: EnumStatesOfDeal.MARYLAND,
-          MA: EnumStatesOfDeal.MASSACHUSETTS,
-          MI: EnumStatesOfDeal.MICHIGAN,
-          MN: EnumStatesOfDeal.MINNESOTA,
-          MS: EnumStatesOfDeal.MISSISSIPPI,
-          MO: EnumStatesOfDeal.MISSOURI,
-          MT: EnumStatesOfDeal.MONTANA,
-          NE: EnumStatesOfDeal.NEBRASKA,
-          NV: EnumStatesOfDeal.NEVADA,
-          NH: EnumStatesOfDeal.NEW_HAMPSHIRE,
-          NJ: EnumStatesOfDeal.NEW_JERSEY,
-          NM: EnumStatesOfDeal.NEW_MEXICO,
-          NY: EnumStatesOfDeal.NEW_YORK,
-          NC: EnumStatesOfDeal.NORTH_CAROLINA,
-          ND: EnumStatesOfDeal.NORTH_DAKOTA,
-          OH: EnumStatesOfDeal.OHIO,
-          OK: EnumStatesOfDeal.OKLAHOMA,
-          OR: EnumStatesOfDeal.OREGON,
-          PA: EnumStatesOfDeal.PENNSYLVANIA,
-          RI: EnumStatesOfDeal.RHODE_ISLAND,
-          SC: EnumStatesOfDeal.SOUTH_CAROLINA,
-          SD: EnumStatesOfDeal.SOUTH_DAKOTA,
-          TN: EnumStatesOfDeal.TENNESSEE,
-          TX: EnumStatesOfDeal.TEXAS,
-          UT: EnumStatesOfDeal.UTAH,
-          VT: EnumStatesOfDeal.VERMONT,
-          VA: EnumStatesOfDeal.VIRGINIA,
-          WA: EnumStatesOfDeal.WASHINGTON,
-          WV: EnumStatesOfDeal.WEST_VIRGINIA,
-          WI: EnumStatesOfDeal.WISCONSIN,
-          WY: EnumStatesOfDeal.WYOMING,
-          Nationwide: Object.values(EnumStatesOfDeal),
-        };
-
+        const state = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 5);
+        // todo : make function for comman code for getting state value=
         if (state.value) {
           if (state.value === 'Nationwide') {
             program.statesArray = CsvStatesArrayMapping.Nationwide;
@@ -162,7 +94,7 @@ export async function importDataFromFile(file, res) {
           }
         }
 
-        const stateTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 8);
+        const stateTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 6);
         if (typeof stateTag.value !== 'number') {
           if (stateTag.value) {
             program.statesArrTag = stateTag.value.split(', ').map((item) => parseInt(item, 10));
@@ -171,28 +103,24 @@ export async function importDataFromFile(file, res) {
           program.statesArrTag = stateTag.value;
         }
 
-        const property = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 9);
+        const min = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 7);
+        if (min.value) {
+          program.minLoanSize = Number(min.value.replace(/[^0-9.-]+/g, ''));
+        }
 
-        const CsvLenderPropertyTypeMapping = {
-          Multifamily: EnumAssetTypeOfDeal.MULTIFAMILY,
-          'Student Housing': EnumAssetTypeOfDeal.STUDENT_HOUSING,
-          Industrial: EnumAssetTypeOfDeal.INDUSTRIAL,
-          'Self-Storage': EnumAssetTypeOfDeal.SELF_STORAGE,
-          Retail: EnumAssetTypeOfDeal.RETAIL,
-          '1_4 SFR': EnumAssetTypeOfDeal['1_4_SFR'],
-          Hotels: EnumAssetTypeOfDeal.HOTELS,
-          Office: EnumAssetTypeOfDeal.OFFICE,
-          'NNN Retail': EnumAssetTypeOfDeal.NNN_RETAIL,
-          All: Object.values(EnumAssetTypeOfDeal),
-          'Mobile Home Park': EnumAssetTypeOfDeal.MOBILE_HOME_PARK,
-          Cannabis: EnumAssetTypeOfDeal.CANNABIS,
-          'For Sale Condos': EnumAssetTypeOfDeal.FOR_SALE_CONDOS,
-          Healthcare: EnumAssetTypeOfDeal.HEALTHCARE,
-          'Short-term rentals': EnumAssetTypeOfDeal.SHORT_TERM_RENTALS,
-          'Co-living': EnumAssetTypeOfDeal.CO_LIVING,
-          'Outdoor Storage': EnumAssetTypeOfDeal.OUTDOOR_STORAGE,
-        };
+        const minTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
+        program.minLoanTag = minTag.value;
 
+        const max = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
+        if (max.value) {
+          program.maxLoanSize = Number(max.value.replace(/[^0-9.-]+/g, ''));
+        }
+
+        const maxTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 10);
+        program.maxLoanTag = maxTag.value;
+
+        const property = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 11);
+        // todo : make function for comman code for getting property value
         if (property.value) {
           if (property.value === 'All') {
             program.propertyType = CsvLenderPropertyTypeMapping.All;
@@ -230,7 +158,7 @@ export async function importDataFromFile(file, res) {
           }
         }
 
-        const propertyTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 10);
+        const propertyTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 12);
         if (typeof propertyTag.value !== 'number') {
           if (propertyTag.value) {
             program.propTypeArrTag = propertyTag.value.split(', ').map((item) => parseInt(item, 10));
@@ -238,32 +166,16 @@ export async function importDataFromFile(file, res) {
         } else {
           program.propTypeArrTag = propertyTag.value;
         }
-
-        lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 11);
         const actualArray = CsvLenderPropertyTypeMapping.All;
         const propArray = program.propertyType;
         if (propArray) {
           program.doesNotLandOn = actualArray.filter((item) => !propArray.includes(item));
         }
 
-        const doesNotTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 12);
+        const doesNotTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 14);
         program.doesNotLandOnArrTag = doesNotTag.value;
 
-        const loanType = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 13);
-
-        const CsvLenderLoanTypeMapping = {
-          Construction: EnumLoanTypeOfDeal.CONSTRUCTION,
-          Bridge: [EnumLoanTypeOfDeal.LIGHT_TRANSITIONAL, EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL],
-          Permanent: EnumLoanTypeOfDeal.STABILIZED,
-          Land: EnumLoanTypeOfDeal.PRE_DEVELOPMENT_LAND,
-          'Light Bridge': EnumLoanTypeOfDeal.LIGHT_TRANSITIONAL,
-          'Heavy Bridge': EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL,
-          'Light Transitional': EnumLoanTypeOfDeal.LIGHT_TRANSITIONAL,
-          'Heavy Transitional': EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL,
-          Transitional: EnumLoanTypeOfDeal.TRANSITIONAL,
-          Stabilized: EnumLoanTypeOfDeal.STABILIZED,
-        };
-
+        const loanType = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 15);
         if (loanType.value) {
           if (loanType.value.includes(', ')) {
             program.loanType = loanType.value.split(',').map((item) => CsvLenderLoanTypeMapping[item.trim()]);
@@ -272,150 +184,412 @@ export async function importDataFromFile(file, res) {
           }
         }
 
-        const loanTypeTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 14);
+        const loanTypeTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 16);
         if (typeof loanTypeTag.value !== 'number') {
           if (loanTypeTag.value) {
-            program.loanTypeArrTag = loanTypeTag.value.split(', ').map((item) => parseInt(item, 10));
+            program.loanTypeArrTag = loanTypeTag.value.split(',').map((item) => parseInt(item, 10));
           }
         } else {
           program.loanTypeArrTag = loanTypeTag.value;
         }
 
-        const index = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 15);
+        const index = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 17);
         program.indexUsed = index.value;
 
-        const spread = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 16);
+        const spread = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 18);
         program.spreadEstimate = spread.value;
 
-        const counties = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 17);
+        const counties = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 19);
         program.counties = counties.value;
 
-        const recourse = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 18);
+        const recourse = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 20);
         program.recourseRequired = recourse.value;
 
-        const nonRecourse = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 19);
+        const nonRecourse = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 21);
         program.nonRecourseLTV = nonRecourse.value;
 
-        const note = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 20);
-        if (note.value) {
-          // eslint-disable-next-line no-await-in-loop
-          await LenderInstituteNotes.create({
-            content: note.value,
-            lenderInstitute: program.lenderInstitute,
-          });
-        }
-
         currentCell = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col);
-        if (!lenderName.value || !lenderType.value || lenderName.value === null || lenderType.value === null) {
+        if (!id.value || id.value === null) {
           break;
         }
-        lenderProgram.push(program);
+        // eslint-disable-next-line no-await-in-loop
+        await LenderProgram.findByIdAndUpdate(id.value, program);
       }
-      await LenderProgram.create(lenderProgram);
+    } else {
+      const lenderValue = Object.entries(lenderWorkbookSheet).find(([, value]) => value.v === 'Lender Name');
+
+      const lenderProgram = [];
+      if (lenderValue) {
+        let currentCell = lenderWorksheet.getCell(lenderValue[0]);
+        while (true) {
+          const program = {};
+          const defaulAssetTypeOfDeal = [
+            EnumAssetTypeOfDeal.MULTIFAMILY,
+            EnumAssetTypeOfDeal.OFFICE,
+            EnumAssetTypeOfDeal.RETAIL,
+            EnumAssetTypeOfDeal.INDUSTRIAL,
+            EnumAssetTypeOfDeal.SELF_STORAGE,
+            EnumAssetTypeOfDeal.STUDENT_HOUSING,
+            EnumAssetTypeOfDeal.MOBILE_HOME_PARK,
+            EnumAssetTypeOfDeal.FOR_SALE_CONDOS,
+            EnumAssetTypeOfDeal.NNN_RETAIL,
+          ];
+          const lenderName = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col);
+          const lenderType = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 1);
+          if (lenderName.value) {
+            // eslint-disable-next-line no-await-in-loop
+            const findInstitute = await LendingInstitution.findOne({ lenderNameVisible: lenderName.value });
+            if (!findInstitute) {
+              // eslint-disable-next-line no-await-in-loop
+              const institute = await LendingInstitution.create({
+                lenderNameVisible: lenderName.value,
+                lenderType: CsvLenderTypeMapping[lenderType.value],
+              });
+              program.lenderInstitute = institute._id;
+            }
+            if (findInstitute) {
+              program.lenderInstitute = findInstitute._id;
+            }
+          }
+
+          const programName = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 2);
+          program.lenderProgramType = programName.value;
+          const min = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 3);
+          program.minLoanSize = min.value;
+
+          const minTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 4);
+          program.minLoanTag = minTag.value;
+
+          const max = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 5);
+          program.maxLoanSize = max.value;
+
+          const maxTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 6);
+          program.maxLoanTag = maxTag.value;
+
+          const state = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 7);
+
+          if (state.value) {
+            if (state.value === 'Nationwide') {
+              program.statesArray = CsvStatesArrayMapping.Nationwide;
+            } else if (state.value.includes('Nationwide')) {
+              if (state.value.includes('-')) {
+                const valueToRemoveState = CsvStatesArrayMapping.Nationwide;
+                // eslint-disable-next-line array-callback-return
+                state.value.split('-').map((item) => {
+                  if (item !== 'Nationwide') {
+                    const indexToRemove = valueToRemoveState.indexOf(CsvStatesArrayMapping[item]);
+                    if (indexToRemove !== -1) {
+                      valueToRemoveState.splice(indexToRemove, 1);
+                    }
+                  }
+                });
+                program.statesArray = valueToRemoveState.filter(Boolean);
+              }
+            } else if (state.value.includes(', ')) {
+              program.statesArray = state.value.split(',').map((item) => CsvStatesArrayMapping[item.trim()]);
+            } else {
+              program.statesArray = [CsvStatesArrayMapping[state.value]];
+            }
+          }
+
+          const stateTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 8);
+          if (typeof stateTag.value !== 'number') {
+            if (stateTag.value) {
+              program.statesArrTag = stateTag.value.split(', ').map((item) => parseInt(item, 10));
+            }
+          } else {
+            program.statesArrTag = stateTag.value;
+          }
+
+          const property = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 9);
+          if (property.value) {
+            if (property.value === 'All') {
+              program.propertyType = CsvLenderPropertyTypeMapping.All;
+            } else if (property.value === 'Default') {
+              program.propertyType = defaulAssetTypeOfDeal;
+            } else if (property.value.includes('Default')) {
+              if (property.value.includes('+')) {
+                const valueToAddInProperty = defaulAssetTypeOfDeal;
+                // eslint-disable-next-line array-callback-return
+                property.value.split('+').map((item) => {
+                  if (item !== 'Default') {
+                    if (!valueToAddInProperty.includes(CsvLenderPropertyTypeMapping[item])) {
+                      valueToAddInProperty.push(CsvLenderPropertyTypeMapping[item]);
+                    }
+                  }
+                });
+                program.propertyType = valueToAddInProperty.filter(Boolean);
+              } else if (property.value.includes('-')) {
+                const valueToRemoveProperty = defaulAssetTypeOfDeal;
+                // eslint-disable-next-line array-callback-return
+                property.value.split('-').map((item) => {
+                  if (item !== 'Default') {
+                    const indexToRemove = valueToRemoveProperty.indexOf(CsvLenderPropertyTypeMapping[item]);
+                    if (indexToRemove !== -1) {
+                      valueToRemoveProperty.splice(indexToRemove, 1);
+                    }
+                  }
+                });
+                program.propertyType = valueToRemoveProperty.filter(Boolean);
+              }
+            } else if (property.value.includes(', ')) {
+              program.propertyType = property.value.split(',').map((item) => CsvLenderPropertyTypeMapping[item.trim()]);
+            } else {
+              program.propertyType = [CsvLenderPropertyTypeMapping[property.value]];
+            }
+          }
+          const propertyTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 10);
+          if (typeof propertyTag.value !== 'number') {
+            if (propertyTag.value) {
+              program.propTypeArrTag = propertyTag.value.split(', ').map((item) => parseInt(item, 10));
+            }
+          } else {
+            program.propTypeArrTag = propertyTag.value;
+          }
+
+          lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 11);
+          const actualArray = CsvLenderPropertyTypeMapping.All;
+          const propArray = program.propertyType;
+          if (propArray) {
+            program.doesNotLandOn = actualArray.filter((item) => !propArray.includes(item));
+          }
+
+          const doesNotTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 12);
+          program.doesNotLandOnArrTag = doesNotTag.value;
+
+          const loanType = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 13);
+
+          if (loanType.value) {
+            if (loanType.value.includes(', ')) {
+              program.loanType = loanType.value.split(',').map((item) => CsvLenderLoanTypeMapping[item.trim()]);
+            } else {
+              program.loanType = [CsvLenderLoanTypeMapping[loanType.value]];
+            }
+          }
+
+          const loanTypeTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 14);
+
+          if (typeof loanTypeTag.value !== 'number') {
+            if (loanTypeTag.value) {
+              program.loanTypeArrTag = loanTypeTag.value.split(',').map((item) => parseInt(item, 10));
+            }
+          } else {
+            program.loanTypeArrTag = loanTypeTag.value;
+          }
+          const index = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 15);
+          program.indexUsed = index.value;
+
+          const spread = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 16);
+          program.spreadEstimate = spread.value;
+
+          const counties = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 17);
+          program.counties = counties.value;
+
+          const recourse = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 18);
+          program.recourseRequired = recourse.value;
+
+          const nonRecourse = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 19);
+          program.nonRecourseLTV = nonRecourse.value;
+
+          const note = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 20);
+          if (note.value) {
+            // eslint-disable-next-line no-await-in-loop
+            await LenderInstituteNotes.create({
+              content: note.value,
+              lenderInstitute: program.lenderInstitute,
+            });
+          }
+
+          currentCell = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col);
+          if (!lenderName.value || !lenderType.value || lenderName.value === null || lenderType.value === null) {
+            break;
+          }
+          lenderProgram.push(program);
+        }
+        await LenderProgram.create(lenderProgram);
+      }
     }
 
     const lenderContactWorksheet = workbook.getWorksheet(lenderWorkbook.SheetNames[0]);
     const lenderContactWorkbookSheetName = lenderWorkbook.SheetNames[0];
     const lenderContactWorkbookSheet = lenderWorkbook.Sheets[lenderContactWorkbookSheetName];
 
-    const lenderContactValue = Object.entries(lenderContactWorkbookSheet).find(([, value]) => value.v === 'Lender');
-    const lenderContact = [];
-    const notAvailableLender = [];
-    if (lenderContactValue) {
-      let currentCell = lenderContactWorksheet.getCell(lenderContactValue[0]);
+    const lenderContactIdValue = Object.entries(lenderContactWorkbookSheet).find(([, value]) => value.v === 'Id');
+    if (lenderContactIdValue) {
+      let currentCell = lenderContactWorksheet.getCell(lenderContactIdValue[0]);
       while (true) {
         const contact = {};
-        const lender = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
-        if (lender.value) {
+        const id = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
+        if (id.value) {
+          const lenderId = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 2);
+
           // eslint-disable-next-line no-await-in-loop
-          const lenderInstitute = await LendingInstitution.findOne({ lenderNameVisible: lender.value });
-          if (lenderInstitute) {
-            contact.lenderInstitute = lenderInstitute._id;
+          // const lenderInstitute = await LendingInstitution.findOne({ _id: lenderId.value});
 
-            const firstName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 1);
-            contact.firstName = firstName.value;
+          contact.lenderInstitute = lenderId.value;
 
-            const lastName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 2);
-            contact.lastName = lastName.value;
+          const firstName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 3);
+          contact.firstName = firstName.value;
 
-            const program = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 3);
-            contact.programs = program.value;
+          const lastName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 4);
+          contact.lastName = lastName.value;
 
-            const nickName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 4);
-            contact.nickName = nickName.value;
+          const nickName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 5);
+          contact.nickName = nickName.value;
 
-            const email = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 5);
-            if (email.value) {
-              if (typeof email.value === 'string') {
-                contact.email = email.value;
-              } else if (typeof email.value === 'object') {
-                if (email.value.text) {
-                  contact.email = email.value.text;
-                }
-              } else {
-                throw new ApiError(httpStatus.BAD_REQUEST, 'Please provide valid Email');
+          const program = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 6);
+          contact.programs = program.value;
+
+          const email = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 7);
+          if (email.value) {
+            if (typeof email.value === 'string') {
+              contact.email = email.value;
+            } else if (typeof email.value === 'object') {
+              if (email.value.text) {
+                contact.email = email.value.text;
               }
+            } else {
+              throw new ApiError(httpStatus.BAD_REQUEST, 'Please provide valid Email');
             }
-
-            const mainPhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 6);
-            contact.phoneNumberDirect = mainPhone.value;
-
-            const mobilePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 7);
-            contact.phoneNumberCell = mobilePhone.value;
-
-            const officePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
-            contact.phoneNumberOffice = officePhone.value;
-
-            const title = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
-            contact.title = title.value;
-
-            const city = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 10);
-            contact.city = city.value;
-
-            const state = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 11);
-            contact.state = state.value;
-
-            const contactTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 12);
-            contact.contactTag = contactTag.value;
-
-            const emailTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 13);
-            contact.emailTag = emailTag.value;
-
-            if (contact.email) {
-              lenderContact.push(contact);
-            }
-            if (!contact.email) {
-              notAvailableLender.push(contact);
-            }
-          } else {
-            notAvailableLender.push({ lenderName: lender.value });
           }
-        }
 
+          const emailTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
+          contact.emailTag = emailTag.value;
+
+          const contactTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
+          contact.contactTag = contactTag.value;
+
+          const mainPhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 10);
+          contact.phoneNumberDirect = mainPhone.value;
+
+          const mobilePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 11);
+          contact.phoneNumberCell = mobilePhone.value;
+
+          const officePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 12);
+          contact.phoneNumberOffice = officePhone.value;
+
+          const title = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 13);
+          contact.title = title.value;
+
+          const city = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 14);
+          contact.city = city.value;
+
+          const state = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 15);
+          contact.state = state.value;
+        }
         currentCell = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
-        if (!lender.value || lender.value === null) {
+        if (!id.value || id.value === null) {
           break;
         }
+
+        const objectId = mongoose.Types.ObjectId(id.value);
+
+        // eslint-disable-next-line no-await-in-loop
+        await LenderContact.findByIdAndUpdate(objectId, contact);
+      }
+    } else {
+      const lenderContactValue = Object.entries(lenderContactWorkbookSheet).find(([, value]) => value.v === 'Lender');
+      const lenderContact = [];
+      const notAvailableLender = [];
+      if (lenderContactValue) {
+        let currentCell = lenderContactWorksheet.getCell(lenderContactValue[0]);
+        while (true) {
+          const contact = {};
+          const lender = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
+          if (lender.value) {
+            // eslint-disable-next-line no-await-in-loop
+            const lenderInstitute = await LendingInstitution.findOne({ lenderNameVisible: lender.value });
+            if (lenderInstitute) {
+              contact.lenderInstitute = lenderInstitute._id;
+
+              const firstName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 1);
+              contact.firstName = firstName.value;
+
+              const lastName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 2);
+              contact.lastName = lastName.value;
+
+              const program = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 3);
+              contact.programs = program.value;
+
+              const nickName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 4);
+              contact.nickName = nickName.value;
+
+              const email = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 5);
+              if (email.value) {
+                if (typeof email.value === 'string') {
+                  contact.email = email.value;
+                } else if (typeof email.value === 'object') {
+                  if (email.value.text) {
+                    contact.email = email.value.text;
+                  }
+                } else {
+                  throw new ApiError(httpStatus.BAD_REQUEST, 'Please provide valid Email');
+                }
+              }
+
+              const mainPhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 6);
+              contact.phoneNumberDirect = mainPhone.value;
+
+              const mobilePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 7);
+              contact.phoneNumberCell = mobilePhone.value;
+
+              const officePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
+              contact.phoneNumberOffice = officePhone.value;
+
+              const title = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
+              contact.title = title.value;
+
+              const city = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 10);
+              contact.city = city.value;
+
+              const state = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 11);
+              contact.state = state.value;
+
+              const contactTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 12);
+              contact.contactTag = contactTag.value;
+
+              const emailTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 13);
+              contact.emailTag = emailTag.value;
+
+              if (contact.email) {
+                lenderContact.push(contact);
+              }
+              if (!contact.email) {
+                notAvailableLender.push(contact);
+              }
+            } else {
+              notAvailableLender.push({ lenderName: lender.value });
+            }
+          }
+
+          currentCell = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
+          if (!lender.value || lender.value === null) {
+            break;
+          }
+        }
+      }
+      await Promise.all(
+        lenderContact.map((lenderCon) =>
+          LenderContact.findOneAndUpdate({ email: lenderCon.email }, { ...lenderCon }, { upsert: true })
+        )
+      );
+
+      if (notAvailableLender.length === 0) {
+        return res.status(httpStatus.OK).send({ message: 'data insert from file' });
+      }
+      if (notAvailableLender.length > 0) {
+        return res.status(httpStatus.OK).send({
+          result: {
+            message: 'This contacts were not added because they did not match our conditions...',
+            data: notAvailableLender,
+          },
+        });
       }
     }
-    await Promise.all(
-      lenderContact.map((lenderCon) =>
-        LenderContact.findOneAndUpdate({ email: lenderCon.email }, { ...lenderCon }, { upsert: true })
-      )
-    );
 
-    if (notAvailableLender.length === 0) {
-      return res.status(httpStatus.OK).send({ message: 'data insert from file' });
-    }
-    if (notAvailableLender.length > 0) {
-      return res.status(httpStatus.OK).send({
-        result: {
-          message: 'This contacts were not added because they did not match our conditions...',
-          data: notAvailableLender,
-        },
-      });
-    }
+    // return { message: ' data updated' };
+    return res.status(httpStatus.OK).send({ message: 'data insert from file' });
   } catch (e) {
-    throw new Error('error from insertDataFromFile controller ', e.message);
+    throw new ApiError(httpStatus.BAD_REQUEST, `error from insertDataFromFile controller: ${e.message}`);
   }
-}
+});

@@ -48,8 +48,10 @@ const LenderProgramSchema = new mongoose.Schema(
      * */
     minLoanSize: {
       type: Number,
-      min: 0,
-      max: 100000,
+      min: 100000,
+      max: 1000000000,
+      required: false,
+      default: null,
     },
     minLoanTag: { type: Number, default: 1 },
 
