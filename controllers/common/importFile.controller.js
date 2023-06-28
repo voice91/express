@@ -459,7 +459,8 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           const doesNotTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 12);
           if (doesNotTag.value) {
             if (doesNotTag.value <= 1 || doesNotTag.value >= 5) {
-              throw new Error('doesNotTag must be an array containing numbers from 1 to 5');
+              console.log(`=== doesNotTag.value ====>`, doesNotTag.value);
+              // throw new Error('doesNotTag must be an array containing numbers from 1 to 5');
             }
           }
           program.doesNotLandOnArrTag = doesNotTag.value;
