@@ -98,14 +98,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
         if (typeof stateTag.value !== 'number') {
           if (stateTag.value) {
             program.statesArrTag = stateTag.value.split(', ').map((item) => {
-              if (item <= 1 || item >= 5) {
+              if (item < 1 || item > 5) {
                 throw new Error('stateTag must be an array containing numbers from 1 to 5');
               }
               return parseInt(item, 10);
             });
           }
         } else {
-          if (stateTag.value <= 1 || stateTag.value >= 5) {
+          if (stateTag.value < 1 || stateTag.value > 5) {
             throw new Error('stateTag must be an array containing numbers from 1 to 5');
           }
           program.statesArrTag = stateTag.value;
@@ -113,7 +113,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
         const min = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 7);
         if (min.value) {
-          if (min.value <= 100000 || min.value >= 1000000000) {
+          if (min.value < 100000 || min.value > 1000000000) {
             throw new Error('minLoanSize must be a containing from 100000 to 1000000000');
           }
           if (typeof min.value === 'number') {
@@ -125,7 +125,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
         const minTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
         if (minTag.value) {
-          if (minTag.value <= 1 || minTag.value >= 5) {
+          if (minTag.value < 1 || minTag.value > 5) {
             throw new Error('minLoanSizeTag must be a containing numbers from 1 to 5');
           }
         }
@@ -133,7 +133,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
         const max = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
         if (max.value) {
-          if (max.value <= 100000 || max.value >= 1000000000) {
+          if (max.value < 100000 || max.value > 1000000000) {
             throw new Error('maxLoanSize must be a containing from 100000 to 1000000000');
           }
           if (typeof max.value === 'number') {
@@ -145,7 +145,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
         const maxTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 10);
         if (maxTag.value) {
-          if (maxTag.value <= 1 || maxTag.value >= 5) {
+          if (maxTag.value < 1 || maxTag.value > 5) {
             throw new Error('maxLoanSizeTag must be a containing numbers from 1 to 5');
           }
         }
@@ -194,14 +194,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
         if (typeof propertyTag.value !== 'number') {
           if (propertyTag.value) {
             program.propTypeArrTag = propertyTag.value.split(', ').map((item) => {
-              if (item <= 1 || item >= 5) {
+              if (item < 1 || item > 5) {
                 throw new Error('propertyTypeArrTag must be an array containing numbers from 1 to 5');
               }
               return parseInt(item, 10);
             });
           }
         } else {
-          if (propertyTag.value <= 1 || propertyTag.value >= 5) {
+          if (propertyTag.value < 1 || propertyTag.value > 5) {
             throw new Error('propertyTypeArrTag must be an array containing numbers from 1 to 5');
           }
           program.propTypeArrTag = propertyTag.value;
@@ -215,9 +215,8 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
         const doesNotTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 14);
         if (doesNotTag.value) {
-          if (doesNotTag.value <= 1 || doesNotTag.value >= 5) {
-            console.log(`=== doesNotTag.value ====>`, doesNotTag.value);
-            // throw new Error('doesNotTag must be an array containing numbers from 1 to 5');
+          if (doesNotTag.value < 1 || doesNotTag.value > 5) {
+            throw new Error('doesNotTag must be an array containing numbers from 1 to 5');
           }
         }
         program.doesNotLandOnArrTag = doesNotTag.value;
@@ -235,14 +234,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
         if (typeof loanTypeTag.value !== 'number') {
           if (loanTypeTag.value) {
             program.loanTypeArrTag = loanTypeTag.value.split(',').map((item) => {
-              if (item <= 1 || item >= 5) {
+              if (item < 1 || item > 5) {
                 throw new Error('loanTypeTag must be an array containing numbers from 1 to 5');
               }
               return parseInt(item, 10);
             });
           }
         } else {
-          if (loanTypeTag.value <= 1 || loanTypeTag.value >= 5) {
+          if (loanTypeTag.value < 1 || loanTypeTag.value > 5) {
             throw new Error('loanTypeTag must be an array containing numbers from 1 to 5');
           }
           program.loanTypeArrTag = loanTypeTag.value;
@@ -311,7 +310,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           program.lenderProgramType = programName.value;
           const min = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 3);
           if (min.value) {
-            if (min.value <= 100000 || min.value >= 1000000000) {
+            if (min.value < 100000 || min.value > 1000000000) {
               throw new Error('minLoanSize must be a containing from 100000 to 1000000000');
             }
             if (typeof min.value === 'number') {
@@ -323,7 +322,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
           const minTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 4);
           if (minTag.value) {
-            if (minTag.value <= 1 || minTag.value >= 5) {
+            if (minTag.value < 1 || minTag.value > 5) {
               throw new Error('minLoanSizeTag must be a containing numbers from 1 to 5');
             }
           }
@@ -331,7 +330,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
           const max = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 5);
           if (max.value) {
-            if (max.value <= 100000 || max.value >= 1000000000) {
+            if (max.value < 100000 || max.value > 1000000000) {
               throw new Error('maxLoanSize must be a containing from 100000 to 1000000000');
             }
             if (typeof max.value === 'number') {
@@ -345,7 +344,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
           const maxTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 6);
           if (maxTag.value) {
-            if (maxTag.value <= 1 || maxTag.value >= 5) {
+            if (maxTag.value < 1 || maxTag.value > 5) {
               throw new Error('maxLoanSizeTag must be a containing numbers from 1 to 5');
             }
           }
@@ -382,14 +381,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           if (typeof stateTag.value !== 'number') {
             if (stateTag.value) {
               program.statesArrTag = stateTag.value.split(', ').map((item) => {
-                if (item <= 1 || item >= 5) {
+                if (item < 1 || item > 5) {
                   throw new Error('stateTag must be an array containing numbers from 1 to 5');
                 }
                 return parseInt(item, 10);
               });
             }
           } else {
-            if (stateTag.value <= 1 || stateTag.value >= 5) {
+            if (stateTag.value < 1 || stateTag.value > 5) {
               throw new Error('stateTag must be an array containing numbers from 1 to 5');
             }
             program.statesArrTag = stateTag.value;
@@ -436,14 +435,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           if (typeof propertyTag.value !== 'number') {
             if (propertyTag.value) {
               program.propTypeArrTag = propertyTag.value.split(', ').map((item) => {
-                if (item <= 1 || item >= 5) {
+                if (item < 1 || item > 5) {
                   throw new Error('propertyTypeArrTag must be an array containing numbers from 1 to 5');
                 }
                 return parseInt(item, 10);
               });
             }
           } else {
-            if (propertyTag.value <= 1 || propertyTag.value >= 5) {
+            if (propertyTag.value < 1 || propertyTag.value > 5) {
               throw new Error('propertyTypeArrTag must be an array containing numbers from 1 to 5');
             }
             program.propTypeArrTag = propertyTag.value;
@@ -458,7 +457,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
           const doesNotTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 12);
           if (doesNotTag.value) {
-            if (doesNotTag.value <= 1 || doesNotTag.value >= 5) {
+            if (doesNotTag.value < 1 || doesNotTag.value > 5) {
               console.log(`=== doesNotTag.value ====>`, doesNotTag.value);
               // throw new Error('doesNotTag must be an array containing numbers from 1 to 5');
             }
@@ -480,14 +479,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           if (typeof loanTypeTag.value !== 'number') {
             if (loanTypeTag.value) {
               program.loanTypeArrTag = loanTypeTag.value.split(',').map((item) => {
-                if (item <= 1 || item >= 5) {
+                if (item < 1 || item > 5) {
                   throw new Error('loanTypeTag must be an array containing numbers from 1 to 5');
                 }
                 return parseInt(item, 10);
               });
             }
           } else {
-            if (loanTypeTag.value <= 1 || loanTypeTag.value >= 5) {
+            if (loanTypeTag.value < 1 || loanTypeTag.value > 5) {
               throw new Error('loanTypeTag must be an array containing numbers from 1 to 5');
             }
             program.loanTypeArrTag = loanTypeTag.value;
@@ -572,7 +571,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
           const emailTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
           if (emailTag.value) {
-            if (emailTag.value <= 1 || emailTag.value >= 5) {
+            if (emailTag.value < 1 || emailTag.value > 5) {
               throw new Error('emailTag must be a containing numbers from 1 to 5');
             }
           }
@@ -580,7 +579,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
           const contactTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
           if (contactTag.value) {
-            if (contactTag.value <= 1 || contactTag.value >= 5) {
+            if (contactTag.value < 1 || contactTag.value > 5) {
               throw new Error('contactTag must be a containing numbers from 1 to 5');
             }
           }
@@ -674,7 +673,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
               const contactTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 12);
               if (contactTag.value) {
-                if (contactTag.value <= 1 || contactTag.value >= 5) {
+                if (contactTag.value < 1 || contactTag.value > 5) {
                   throw new Error('contactTag must be a containing numbers from 1 to 5');
                 }
               }
@@ -682,7 +681,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
               const emailTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 13);
               if (emailTag.value) {
-                if (emailTag.value <= 1 || emailTag.value >= 5) {
+                if (emailTag.value < 1 || emailTag.value > 5) {
                   throw new Error('emailTag must be a containing numbers from 1 to 5');
                 }
               }
