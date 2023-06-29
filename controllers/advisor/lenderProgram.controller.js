@@ -10,6 +10,15 @@ import { pick } from '../../utils/pick';
 import { LenderProgram, LendingInstitution } from '../../models';
 import ApiError from '../../utils/ApiError';
 
+const checkUniqueProgramNames = (body) => {
+  const programNames = body.lenderProgram.map((item) => item.lenderProgramType);
+  const uniqueProgramNames = [...new Set(programNames)];
+
+  if (programNames.length !== uniqueProgramNames.length) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Lender program name should be unique');
+  }
+};
+
 export const get = catchAsync(async (req, res) => {
   const { lenderProgramId } = req.params;
   const filter = {
@@ -86,6 +95,8 @@ export const addLender = catchAsync(async (req, res) => {
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
 
+  checkUniqueProgramNames(body);
+
   const getlenderInstitute = await LendingInstitution.findOne({ lenderNameVisible: body.lender.lenderNameVisible });
   let lenderInstitute;
   if (getlenderInstitute === null) {
@@ -143,6 +154,8 @@ export const editLender = catchAsync(async (req, res) => {
   const { lenderInstitute } = req.params;
   body.updatedBy = req.user;
 
+  checkUniqueProgramNames(body);
+
   const getlenderInstitute = await LendingInstitution.findOne({ _id: lenderInstitute });
 
   if (!getlenderInstitute) {
@@ -152,14 +165,6 @@ export const editLender = catchAsync(async (req, res) => {
 
   const lenderProgram = await Promise.all(
     body.lenderProgram.map(async (item) => {
-      const existingProgramName = await LenderProgram.find({
-        lenderInstitute,
-        lenderProgramType: item.lenderProgramType,
-      });
-
-      if (existingProgramName.length > 0) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Lender program with the same name already exists');
-      }
       if (!item.lenderInstitute) {
         // eslint-disable-next-line no-param-reassign
         item.lenderInstitute = lenderInstitute;
