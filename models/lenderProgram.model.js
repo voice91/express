@@ -52,13 +52,11 @@ const LenderProgramSchema = new mongoose.Schema(
       type: Number,
       min: 100000,
       max: 1000000000,
-      required: false,
     },
     minLoanTag: {
       type: Number,
       default: 1,
     },
-
     /**
      * The maximum loan amount for the given program
      * */
