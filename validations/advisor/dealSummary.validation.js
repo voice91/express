@@ -6,6 +6,11 @@ import Joi from 'joi';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
+const PhotosSchema = Joi.object().keys({
+  url: Joi.string().required(),
+  fileName: Joi.string().required(),
+});
+
 // eslint-disable-next-line import/prefer-default-export
 export const createDealSummary = {
   body: Joi.object().keys({
@@ -36,6 +41,7 @@ export const updateDealSummary = {
     dealHighLights: Joi.array().items(Joi.string()),
     marketSummary: Joi.string(),
     sponserOverview: Joi.string(),
+    photos: Joi.array().items(PhotosSchema),
   }),
   params: Joi.object().keys({
     dealSummaryId: Joi.objectId().required(),
