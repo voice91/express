@@ -8,6 +8,16 @@ import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import { toJSON, softDelete } from './plugins';
 
+const PhotosSchema = new mongoose.Schema({
+  url: {
+    type: String,
+    required: true,
+  },
+  fileName: {
+    type: String,
+    required: true,
+  },
+});
 const DealSummarySchema = new mongoose.Schema(
   {
     /**
@@ -70,6 +80,9 @@ const DealSummarySchema = new mongoose.Schema(
     },
     sponserOverview: {
       type: String,
+    },
+    photos: {
+      type: [PhotosSchema],
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
