@@ -111,7 +111,7 @@ export const addLender = catchAsync(async (req, res) => {
 
   const result = body.lenderProgram.map((item) => {
     if (item.minLoanSize && item.maxLoanSize) {
-      if (item.minLoanSize > item.maxLoanSize) {
+      if (item.minLoanSize >= item.maxLoanSize) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Minimum Loan Amount is Greater than Maximum Loan Amount..!!');
       }
     } else if (item.minLoanSize > 100000) {
@@ -165,6 +165,17 @@ export const editLender = catchAsync(async (req, res) => {
 
   const lenderProgram = await Promise.all(
     body.lenderProgram.map(async (item) => {
+      if (item.minLoanSize && item.maxLoanSize) {
+        if (item.minLoanSize >= item.maxLoanSize) {
+          throw new ApiError(httpStatus.BAD_REQUEST, 'Minimum Loan Amount is Greater than Maximum Loan Amount..!!');
+        }
+      } else if (item.minLoanSize > 100000) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'The minimum loan amount should be less than 100000');
+      } else if (item.minLoanSize && !item.maxLoanSize) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Maximum Loan Amount..!!');
+      } else if (!item.minLoanSize && item.maxLoanSize) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Minimum Loan Amount..!!');
+      }
       if (!item.lenderInstitute) {
         // eslint-disable-next-line no-param-reassign
         item.lenderInstitute = lenderInstitute;

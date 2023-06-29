@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import httpStatus from 'http-status';
 import _ from 'lodash';
-import { LenderContact, LenderProgram, LendingInstitution } from 'models';
+import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution } from 'models';
 import {
   CsvReverseLenderLoanTypeMapping,
   CsvReverseLenderPropertyTypeMapping,
@@ -26,22 +26,22 @@ export const exportToExcel = catchAsync(async (req, res) => {
   const LenderContactsheet = workbook.addWorksheet('CLEAN_CONTACTS');
 
   const fieldNamesofLenderContact = [
-    'Id',
     'Lender',
-    'LenderId',
     'First Name',
     'Last Name',
-    'Nick Name',
     'Program(s)',
+    'Nick Name',
     'Email',
-    'Email Tag',
-    'contactTag',
     'Main Phone',
     'Mobile Phone',
     'Office Phone',
     'Title',
     'City',
     'State',
+    'contactTag',
+    'Email Tag',
+    'ContactId',
+    'LenderId',
   ];
 
   // Write field names to Excel sheet
@@ -52,6 +52,7 @@ export const exportToExcel = catchAsync(async (req, res) => {
   });
 
   const lenderInstitution = await LendingInstitution.find().lean();
+  const lenderNotes = await LenderInstituteNotes.find().lean();
 
   const lenderContact = await LenderContact.find().lean();
 
@@ -59,51 +60,52 @@ export const exportToExcel = catchAsync(async (req, res) => {
     const lender = lenderInstitution.find((lenderItem) => lenderItem._id.toString() === item.lenderInstitute.toString());
 
     const rowValues = [];
-    rowValues[1] = `${item._id}`;
-    rowValues[2] = lender.lenderNameVisible;
-    rowValues[3] = `${lender._id}`;
-    rowValues[4] = item.firstName;
-    rowValues[5] = item.lastName;
-    rowValues[6] = item.nickName;
-    rowValues[7] = item.programs ? item.programs.join(', ') : item.programs;
-    rowValues[8] = item.email;
-    rowValues[9] = item.emailTag;
-    rowValues[10] = item.contactTag;
-    rowValues[11] = item.phoneNumberDirect;
-    rowValues[12] = item.phoneNumberCell;
-    rowValues[13] = item.phoneNumberOffice;
-    rowValues[14] = item.title;
-    rowValues[15] = item.city;
-    rowValues[16] = item.state;
-
+    rowValues[1] = lender.lenderNameVisible;
+    rowValues[2] = item.firstName;
+    rowValues[3] = item.lastName;
+    rowValues[4] = item.programs ? item.programs.join(', ') : item.programs;
+    rowValues[5] = item.nickName;
+    rowValues[6] = item.email;
+    rowValues[7] = item.phoneNumberDirect;
+    rowValues[8] = item.phoneNumberCell;
+    rowValues[9] = item.phoneNumberOffice;
+    rowValues[10] = item.title;
+    rowValues[11] = item.city;
+    rowValues[12] = item.state;
+    rowValues[13] = item.contactTag;
+    rowValues[14] = item.emailTag;
+    rowValues[15] = `${item._id}`;
+    rowValues[16] = `${lender._id}`;
     LenderContactsheet.addRow(rowValues);
   });
 
   const LenderProgramsheet = workbook.addWorksheet('CLEAN_LENDERS');
 
   const fieldNamesofLenderProgram = [
-    'Id',
     'Lender Name',
     'Lender Type',
-    'LenderInstituteId',
     'Program Name',
+    'Min',
+    'Min Tag',
+    'Max',
+    'Max Tag',
     'States Array',
-    'StatesArrTag',
-    'MinLoanSize',
-    'MinLoanTag',
-    'MaxLoanSize',
-    'MaxLoanTag',
-    'Property Type',
-    'PropTypeArrTag',
-    'DoesNotLandOn',
-    'DoesNotLandOnArrTag',
-    'Loan Type',
-    'LoanTypeArrTag',
+    'States Tag',
+    'Property Type Array',
+    'Property Type Tag',
+    'Does Not Do',
+    'Does Not Do Tag',
+    'Loan Type Array',
+    'Loan Type Tag',
     'Index Used',
     'Spread Estimate',
     'Counties',
     'Recourse Required',
     'Non-Recourse LTV',
+    'Notes',
+    'NotesId',
+    'ProgramId',
+    'LenderInstituteId',
   ];
 
   // Write field names to Excel sheet
@@ -117,7 +119,8 @@ export const exportToExcel = catchAsync(async (req, res) => {
 
   lenderProgram.forEach((item) => {
     const lender = lenderInstitution.find((lenderItem) => lenderItem._id.toString() === item.lenderInstitute.toString());
-
+    // eslint-disable-next-line no-shadow
+    const notes = lenderNotes.find((notes) => notes.lenderInstitute.toString() === lender._id.toString());
     let { statesArray } = item;
     const result = _.intersection(statesArray, CsvStatesArrayMapping.Nationwide);
     if (result.length >= CsvStatesArrayMapping.Nationwide.length) {
@@ -153,30 +156,33 @@ export const exportToExcel = catchAsync(async (req, res) => {
     } else {
       property = returnPropertyArrayAsExcelSheet(item.propertyType);
     }
-
     const rowValues = [];
-    rowValues[1] = `${item._id}`;
-    rowValues[2] = lender.lenderNameVisible;
-    rowValues[3] = CsvReverseLenderTypeMapping[lender.lenderType];
-    rowValues[4] = `${lender._id}`;
-    rowValues[5] = item.lenderProgramType;
-    rowValues[6] = statesArray.join(', ');
-    rowValues[7] = item.statesArrTag.join(', ');
-    rowValues[8] = `$${item.minLoanSize}`;
-    rowValues[9] = item.minLoanTag;
-    rowValues[10] = `$${item.maxLoanSize}`;
-    rowValues[11] = item.maxLoanTag;
-    rowValues[12] = property;
-    rowValues[13] = item.propTypeArrTag.join(', ');
-    rowValues[14] = item.doesNotLandOn.map((val) => CsvReverseLenderPropertyTypeMapping[val]).join(', ');
-    rowValues[15] = item.doesNotLandOnArrTag.join(', ');
-    rowValues[16] = item.loanType.map((val) => CsvReverseLenderLoanTypeMapping[val]).join(', ');
-    rowValues[17] = item.loanTypeArrTag.join(', ');
-    rowValues[18] = item.indexUsed;
-    rowValues[19] = item.spreadEstimate;
-    rowValues[20] = item.counties;
-    rowValues[21] = item.recourseRequired;
-    rowValues[22] = item.nonRecourseLTV;
+    rowValues[1] = lender.lenderNameVisible;
+    rowValues[2] = CsvReverseLenderTypeMapping[lender.lenderType];
+    rowValues[3] = item.lenderProgramType;
+    rowValues[4] = `$${item.minLoanSize}`;
+    rowValues[5] = item.minLoanTag;
+    rowValues[6] = `$${item.maxLoanSize}`;
+    rowValues[7] = item.maxLoanTag;
+    rowValues[8] = statesArray.join(', ');
+    rowValues[9] = item.statesArrTag.join(', ');
+    rowValues[10] = property;
+    rowValues[11] = item.propTypeArrTag.join(', ');
+    rowValues[12] = item.doesNotLandOn.map((val) => CsvReverseLenderPropertyTypeMapping[val]).join(', ');
+    rowValues[13] = item.doesNotLandOnArrTag.join(', ');
+    rowValues[14] = item.loanType.map((val) => CsvReverseLenderLoanTypeMapping[val]).join(', ');
+    rowValues[15] = item.loanTypeArrTag.join(', ');
+    rowValues[16] = item.indexUsed;
+    rowValues[17] = item.spreadEstimate;
+    rowValues[18] = item.counties;
+    rowValues[19] = item.recourseRequired;
+    rowValues[20] = item.nonRecourseLTV;
+    if (notes) {
+      rowValues[21] = notes.content;
+      rowValues[22] = `${notes._id}`;
+    }
+    rowValues[23] = `${item._id}`;
+    rowValues[24] = `${lender._id}`;
 
     LenderProgramsheet.addRow(rowValues);
   });
