@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import _ from 'lodash';
 import enumModel from '../models/enum.model';
 import { emailService, notificationService } from './index';
+import config from '../config/config';
 
 export async function getDealById(id, options = {}) {
   const deal = await Deal.findById(id, options.projection, options);
@@ -166,7 +167,23 @@ export async function createDeal(body) {
     }
   }
 
-  return Deal.create({ ...body, ...deal });
+  const dealCreate = await Deal.create({ ...body, ...deal });
+
+  const { defaultAdvisorToAddDeal } = config;
+  await Promise.all(
+    defaultAdvisorToAddDeal.map(async (item) => {
+      const user = await User.findOne({ email: item });
+      // eslint-disable-next-line no-shadow
+      const body = {
+        deal: dealCreate._id,
+        email: [item],
+      };
+      const { role } = user;
+      // eslint-disable-next-line no-use-before-define
+      await InviteToDeal(body, role, userName, dealCreate);
+    })
+  );
+  return dealCreate;
 }
 export async function updateDeal(filter, body, options = {}) {
   if (body.involvedUsers && body.involvedUsers.advisors) {

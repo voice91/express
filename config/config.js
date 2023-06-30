@@ -31,6 +31,9 @@ const envVarsSchema = Joi.object()
     CAPTCHA_SECRET_KEY: Joi.string().required().description('Google Captcha Secret Key required'),
     ACTIVITY_SYSTEM_USER: Joi.string(),
     ADMIN_EMAILS: Joi.string().required().default(['richardjsutt@gmail.com', 'richard@parallelcre.com']),
+    DEFAULT_ADVISORS_TO_ADD_DEAL: Joi.string()
+      .required()
+      .default(['max@parallelcre.com', 'ag@parallelcre.com', 'richard@parallelcre.com']),
     // 1 hr = 3600000
     DISABLED_TIME_FOR_NOTES: Joi.number().default(3600000),
     JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: Joi.number()
@@ -59,6 +62,7 @@ export default {
   postmarkAPIToken: envVars.POSTMARK_API_TOKEN,
   postmarkInboundDomain: envVars.POSTMARK_INBOUND_DOMAIN,
   adminEmails: JSON.parse(envVars.ADMIN_EMAILS),
+  defaultAdvisorToAddDeal: JSON.parse(envVars.DEFAULT_ADVISORS_TO_ADD_DEAL),
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {
