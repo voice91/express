@@ -22,6 +22,7 @@ export const register = {
       .valid(...Object.values(enumFields.EnumStatesOfDeal))
       .required(),
     zipcode: Joi.number().integer().min(100).max(999999).required(),
+    emailPresentingPostmark: Joi.bool().default(false),
   }),
 };
 

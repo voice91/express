@@ -35,6 +35,7 @@ export const createUser = {
     zipcode: Joi.number().integer().min(100).max(999999),
     lastSignIn: Joi.date(),
     profilePhoto: Joi.string(),
+    emailPresentingPostmark: Joi.bool().default(false),
   }),
 };
 
@@ -56,6 +57,7 @@ export const updateUser = {
     zipcode: Joi.number().integer().min(100).max(999999),
     lastSignIn: Joi.date(),
     profilePhoto: Joi.string(),
+    emailPresentingPostmark: Joi.bool().default(false),
   }),
   params: Joi.object().keys({
     userId: Joi.objectId().required(),
