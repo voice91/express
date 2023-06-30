@@ -182,6 +182,10 @@ const UserSchema = new mongoose.Schema(
     profilePhoto: {
       type: String,
     },
+    emailPresentingPostmark: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

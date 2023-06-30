@@ -249,13 +249,13 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.user = req.user._id;
   let { role } = body;
   const userName = req.user.firstName;
-
+  const fromEmail = req.user.email;
   if (role === enumModel.EnumRoleOfUser.ADVISOR) {
     role = enumModel.EnumRoleOfUser.ADVISOR;
   } else {
     role = enumModel.EnumRoleOfUser.USER;
   }
   const deal = await Deal.findById({ _id: body.deal });
-  await dealService.InviteToDeal(body, role, userName, deal);
+  await dealService.InviteToDeal(fromEmail, body, role, userName, deal);
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
 });

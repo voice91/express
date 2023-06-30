@@ -134,8 +134,9 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.user = req.user._id;
   const { role } = body;
   const userName = req.user.firstName;
+  const fromEmail = req.user.email;
 
   const deal = await Deal.findById({ _id: body.deal });
-  await dealService.InviteToDeal(body, role, userName, deal);
+  await dealService.InviteToDeal(fromEmail, body, role, userName, deal);
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
 });

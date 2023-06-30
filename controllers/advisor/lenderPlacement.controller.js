@@ -19,7 +19,7 @@ import { asyncForEach, encodeUrl } from 'utils/common';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
-import { Deal, EmailTemplate, LenderPlacement } from '../../models';
+import { Deal, EmailTemplate, LenderPlacement, User } from '../../models';
 import { sendDealTemplate1Text } from '../../utils/emailContent';
 import enumModel, {
   EnumOfActivityType,
@@ -535,7 +535,8 @@ export const sendEmail = catchAsync(async (req, res) => {
   const filter = {
     _id: emailTemplateId,
   };
-
+  const getUser = await User.findOne({ _id: req.user._id });
+  const { emailPresentingPostmark } = getUser;
   const emailTemplate = await EmailTemplate.findOne(filter).lean().populate('deal');
 
   if (!emailTemplate) {
@@ -622,7 +623,7 @@ export const sendEmail = catchAsync(async (req, res) => {
     await emailService.sendEmail({
       to: req.user.email,
       subject: `TEST - ${getEmailTemplate.subject}`,
-      from: req.user.email,
+      ...(emailPresentingPostmark && { from: req.user.email }),
       text: isAdvisor,
       attachments: emailAttachments,
       isHtml: true,
@@ -648,7 +649,7 @@ export const sendEmail = catchAsync(async (req, res) => {
         cc: ccList,
         bcc: bccList,
         subject: getEmailTemplate.subject,
-        from: getEmailTemplate.from,
+        ...(emailPresentingPostmark && { from: req.user.email }),
         text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from),
         // eslint-disable-next-line no-shadow
         attachments: getEmailTemplate.emailAttachments.map((item) => {

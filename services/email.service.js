@@ -29,13 +29,13 @@ export const transport = new postmark.ServerClient(config.postmarkAPIToken);
  * @param emailParams
  */
 export const sendEmail = async (emailParams) => {
-  const { to, cc, bcc, subject, text, isHtml, attachments, headers } = emailParams;
-  const msg = { from: config.email.from, to, cc, bcc, subject, text, attachments, headers };
+  const { to, cc, bcc, from, subject, text, isHtml, attachments, headers } = emailParams;
+
+  const msg = { from: from || config.email.from, to, cc, bcc, subject, text, attachments, headers };
   if (isHtml) {
     msg.HtmlBody = text;
     delete msg.text;
   }
-
   // we have cc and bcc type is array and postmark allow only string for this so, we did this thing
   if (cc) {
     msg.cc = msg.cc.join(',');
@@ -73,7 +73,6 @@ export const sendEmail = async (emailParams) => {
 
   const messageId = response.MessageID;
 
-  // await LenderPlacement.findOne({ _id: placement[0] });
   await LenderPlacement.findOneAndUpdate(
     { _id: placement[0] },
     { $addToSet: { postmarkMessageId: messageId } },
@@ -164,7 +163,15 @@ text-align: center
 `;
   await sendEmail({ to, subject, text, isHtml: true });
 };
-export const sendInvitationEmail = async ({ user, dealName, userName, isDealCreated, link }) => {
+export const sendInvitationEmail = async ({
+  emailPresentingPostmark,
+  fromEmail,
+  user,
+  dealName,
+  userName,
+  isDealCreated,
+  link,
+}) => {
   const invitee = user.split('@')[0];
   const to = user;
   const subject = `Parallel: ${isDealCreated ? 'New Deal Created' : 'Added to Deal'} - ${dealName}`;
@@ -212,7 +219,13 @@ text-align: center
   </body>
   </html>
 `;
-  await sendEmail({ to, subject, text, isHtml: true });
+  await sendEmail({
+    ...(emailPresentingPostmark && { from: fromEmail }),
+    to,
+    subject,
+    text,
+    isHtml: true,
+  });
 };
 
 export const FAQTemplate = async (user) => {
