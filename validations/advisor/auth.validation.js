@@ -10,10 +10,11 @@ export const register = {
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
-    name: Joi.string().required(),
+    name: Joi.string(),
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     role: Joi.string(),
+    emailPresentingPostmark: Joi.bool().default(false),
   }),
 };
 

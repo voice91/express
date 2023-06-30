@@ -18,5 +18,6 @@ export const addUser = {
     zipcode: Joi.number().integer().min(100).max(999999),
     lastSignIn: Joi.date(),
     profilePhoto: Joi.string(),
+    emailPresentingPostmark: Joi.bool().default(false),
   }),
 };
