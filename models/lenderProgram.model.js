@@ -105,7 +105,7 @@ const LenderProgramSchema = new mongoose.Schema(
       type: Number,
     },
     counties: {
-      type: String,
+      type: [String],
     },
     recourseRequired: {
       type: String,
