@@ -211,7 +211,6 @@ export const CsvLenderPropertyTypeMapping = {
 
 export const CsvReverseLenderLoanTypeMapping = {
   [EnumLoanTypeOfDeal.CONSTRUCTION]: 'Construction',
-  [EnumLoanTypeOfDeal.STABILIZED]: 'Permanent',
   [EnumLoanTypeOfDeal.PRE_DEVELOPMENT_LAND]: 'Land',
   [EnumLoanTypeOfDeal.LIGHT_TRANSITIONAL]: 'Light Transitional',
   [EnumLoanTypeOfDeal.HEAVY_TRANSITIONAL]: 'Heavy Transitional',
