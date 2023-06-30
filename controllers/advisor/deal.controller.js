@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import enumModel, { EnumOfActivityType, EnumStageOfDeal } from '../../models/enum.model';
-import { Deal, Invitation, LenderPlacement } from '../../models';
+import { Deal, Invitation, LenderPlacement, User } from '../../models';
 // eslint-disable-next-line import/named
 import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
 import config from '../../config/config';
@@ -249,13 +249,15 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.user = req.user._id;
   let { role } = body;
   const userName = req.user.firstName;
-
+  const fromEmail = req.user.email;
+  const getUser = await User.findOne({ _id: req.user._id });
+  const { emailPresentingPostmark } = getUser;
   if (role === enumModel.EnumRoleOfUser.ADVISOR) {
     role = enumModel.EnumRoleOfUser.ADVISOR;
   } else {
     role = enumModel.EnumRoleOfUser.USER;
   }
   const deal = await Deal.findById({ _id: body.deal });
-  await dealService.InviteToDeal(body, role, userName, deal);
+  await dealService.InviteToDeal(fromEmail, body, role, userName, deal, emailPresentingPostmark);
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
 });

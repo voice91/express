@@ -34,6 +34,8 @@ export async function getDealListWithPagination(filter, options = {}) {
 export async function createDeal(body) {
   const getUser = await User.findOne({ _id: body.user });
   const userName = getUser.firstName;
+  const fromEmail = getUser.email;
+  const { emailPresentingPostmark } = getUser;
   if (body.involvedUsers && body.involvedUsers.advisors) {
     const advisor = body.involvedUsers.advisors;
     const advisors = await User.find({ _id: { $in: advisor } });
@@ -78,7 +80,15 @@ export async function createDeal(body) {
         await Promise.allSettled(
           userEmailNotExists.map(async (user) => {
             return emailService
-              .sendInvitationEmail({ user, userName, dealName: body.dealName, isDealCreated: false, link: 'register' })
+              .sendInvitationEmail({
+                emailPresentingPostmark,
+                fromEmail,
+                user,
+                userName,
+                dealName: body.dealName,
+                isDealCreated: false,
+                link: 'register',
+              })
               .then()
               .catch();
           })
@@ -107,6 +117,8 @@ export async function createDeal(body) {
       existingUsers.map(async (item) => {
         const user = item.email;
         return emailService.sendInvitationEmail({
+          emailPresentingPostmark,
+          fromEmail,
           user,
           userName,
           dealName: body.dealName,
@@ -140,7 +152,15 @@ export async function createDeal(body) {
       await Promise.allSettled(
         body.dealMembers.map(async (user) => {
           return emailService
-            .sendInvitationEmail({ user, userName, dealName: body.dealName, isDealCreated: false, link: 'register' })
+            .sendInvitationEmail({
+              emailPresentingPostmark,
+              fromEmail,
+              user,
+              userName,
+              dealName: body.dealName,
+              isDealCreated: false,
+              link: 'register',
+            })
             .then()
             .catch();
         })
@@ -179,8 +199,10 @@ export async function createDeal(body) {
         email: [item],
       };
       const { role } = user;
-      // eslint-disable-next-line no-use-before-define
-      await InviteToDeal(body, role, userName, dealCreate);
+      if (!dealCreate.involvedUsers.advisors.includes(user._id)) {
+        // eslint-disable-next-line no-use-before-define
+        await InviteToDeal(fromEmail, body, role, userName, dealCreate, emailPresentingPostmark);
+      }
     })
   );
   return dealCreate;
@@ -226,7 +248,7 @@ export async function removeManyDeal(filter) {
   return deal;
 }
 
-export async function InviteToDeal(body, role, userName, deal) {
+export async function InviteToDeal(fromEmail, body, role, userName, deal, emailPresentingPostmark) {
   const dealId = { _id: body.deal };
   const { email } = body;
 
@@ -269,7 +291,15 @@ export async function InviteToDeal(body, role, userName, deal) {
         await Promise.allSettled(
           userEmailNotExists.map(async (user) => {
             return emailService
-              .sendInvitationEmail({ user, userName, dealName: deal.dealName, isDealCreated: false, link: 'register' })
+              .sendInvitationEmail({
+                emailPresentingPostmark,
+                fromEmail,
+                user,
+                userName,
+                dealName: deal.dealName,
+                isDealCreated: false,
+                link: 'register',
+              })
               .then()
               .catch();
           })
@@ -297,6 +327,8 @@ export async function InviteToDeal(body, role, userName, deal) {
       existingUsers.map(async (item) => {
         const user = item.email;
         return emailService.sendInvitationEmail({
+          emailPresentingPostmark,
+          fromEmail,
           user,
           userName,
           dealName: deal.dealName,
@@ -328,7 +360,15 @@ export async function InviteToDeal(body, role, userName, deal) {
       await Promise.allSettled(
         email.map(async (user) => {
           return emailService
-            .sendInvitationEmail({ user, userName, dealName: deal.dealName, isDealCreated: false, link: 'register' })
+            .sendInvitationEmail({
+              emailPresentingPostmark,
+              fromEmail,
+              user,
+              userName,
+              dealName: deal.dealName,
+              isDealCreated: false,
+              link: 'register',
+            })
             .then()
             .catch();
         })
