@@ -108,8 +108,8 @@ export const paginate = catchAsync(async (req, res) => {
       createdAt: lendingInstitutionObject.createdAt,
       ...lendingInstitutionObject.toJSON(),
       lenderProgram: {
-        minLoanSize: Math.min(...programs.map((program) => program.minLoanSize)),
-        maxLoanSize: Math.max(...programs.map((program) => program.maxLoanSize)),
+        minLoanSize: Math.min(...programs.map((program) => program.minLoanSize).filter(Boolean)),
+        maxLoanSize: Math.max(...programs.map((program) => program.maxLoanSize).filter(Boolean)),
         propertyTypes: [...new Set(programs.flatMap((program) => program.propertyType))],
         loanTypes: [...new Set(programs.flatMap((program) => program.loanType))],
         statesArray: [...new Set(programs.flatMap((program) => program.statesArray))],
