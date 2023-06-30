@@ -118,8 +118,6 @@ export const addLender = catchAsync(async (req, res) => {
       throw new ApiError(httpStatus.BAD_REQUEST, 'The minimum loan amount should be less than 100000');
     } else if (item.minLoanSize && !item.maxLoanSize) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Maximum Loan Amount..!!');
-    } else if (!item.minLoanSize && item.maxLoanSize) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Minimum Loan Amount..!!');
     }
     return {
       createdBy: req.user._id,
@@ -173,8 +171,6 @@ export const editLender = catchAsync(async (req, res) => {
         throw new ApiError(httpStatus.BAD_REQUEST, 'The minimum loan amount should be less than 100000');
       } else if (item.minLoanSize && !item.maxLoanSize) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Maximum Loan Amount..!!');
-      } else if (!item.minLoanSize && item.maxLoanSize) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Please, Add Minimum Loan Amount..!!');
       }
       if (!item.lenderInstitute) {
         // eslint-disable-next-line no-param-reassign
