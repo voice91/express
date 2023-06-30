@@ -119,7 +119,6 @@ const EnumLoanTypeOfDeal = {
   LIGHT_TRANSITIONAL: 'lightTransitional',
   HEAVY_TRANSITIONAL: 'heavyTransitional',
   CONSTRUCTION: 'construction',
-  PERMANENT: 'permanent',
   TRANSITIONAL: 'transitional',
   PRE_DEVELOPMENT_LAND: 'preDevelopment/land',
 };
