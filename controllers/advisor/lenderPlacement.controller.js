@@ -353,10 +353,6 @@ export const sendDeal = catchAsync(async (req, res) => {
     lenderName = lenderContact.lenderPlacement.lendingInstitution.lenderNameVisible;
   }
 
-  if (_.isEmpty(lenderContact.lenderContact)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `can not find lenderContact with this id: ${lenderInstitute}`);
-  }
-
   let totalLoanAmount = 0;
   const { docIds } = lenderContact;
   const createTemplates = [];
