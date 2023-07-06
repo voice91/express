@@ -37,10 +37,7 @@ const DealSummarySchema = new mongoose.Schema(
     propertySummary: {
       type: Object,
     },
-    propertyInformation: {
-      type: Object,
-    },
-    loanMetrics: {
+    dealMetrics: {
       type: Object,
     },
     financingRequest: {
@@ -58,7 +55,7 @@ const DealSummarySchema = new mongoose.Schema(
       type: Array,
     },
     financialSummary: {
-      type: Object,
+      type: Array,
     },
     deal: {
       type: mongoose.Schema.Types.ObjectId,
@@ -67,7 +64,6 @@ const DealSummarySchema = new mongoose.Schema(
     },
     url: {
       type: String,
-      required: true,
     },
     executiveSummary: {
       type: String,
@@ -81,9 +77,42 @@ const DealSummarySchema = new mongoose.Schema(
     sponserOverview: {
       type: String,
     },
-    photos: {
+    mainPhoto: {
+      type: PhotosSchema,
+    },
+    otherPhotos: {
       type: [PhotosSchema],
     },
+    map: {
+      latitude: {
+        type: Number,
+      },
+      longitude: {
+        type: Number,
+      },
+    },
+    // TODO : Need to implement this for custom Field
+    // dynamicField: [
+    //   {
+    //     name: String,
+    //     type: {
+    //       type: String,
+    //       enum: Object.values(enumModel.EnumOfDynamicFieldType),
+    //     },
+    //     options: [
+    //       {
+    //         name: String,
+    //         value: Schema.Types.Mixed,
+    //       },
+    //     ],
+    //   },
+    // ],
+    // dynamicResponseField: [
+    //   {
+    //     dynamicFieldId: mongoose.Schema.Types.ObjectId,
+    //     response: Schema.Types.Mixed,
+    //   },
+    // ],
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );

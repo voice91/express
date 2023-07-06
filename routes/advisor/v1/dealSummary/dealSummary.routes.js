@@ -9,6 +9,16 @@ const router = express();
 router
   .route('/')
   /**
+   * importFileForDealSummary
+   * */
+  .post(
+    auth('advisor'),
+    validate(dealSummaryValidation.importFileForDealSummary),
+    dealSummaryController.importFileForDealSummary
+  );
+router
+  .route('/create')
+  /**
    * createDealSummary
    * */
   .post(auth('advisor'), validate(dealSummaryValidation.createDealSummary), dealSummaryController.create);

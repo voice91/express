@@ -12,7 +12,7 @@ const PhotosSchema = Joi.object().keys({
 });
 
 // eslint-disable-next-line import/prefer-default-export
-export const createDealSummary = {
+export const importFileForDealSummary = {
   body: Joi.object().keys({
     url: Joi.string().required(),
     deal: Joi.objectId().required(),
@@ -25,23 +25,70 @@ export const getDealSummaryById = {
   }),
 };
 
+export const createDealSummary = {
+  body: Joi.object().keys({
+    propertySummary: Joi.object(),
+    dealMetrics: Joi.object(),
+    financingRequest: Joi.object(),
+    sourcesAndUses: Joi.object().keys({
+      sources: Joi.array(),
+      uses: Joi.array(),
+    }),
+    financialSummary: Joi.array(),
+    executiveSummary: Joi.string(),
+    dealHighLights: Joi.array().items(Joi.string()),
+    marketSummary: Joi.string(),
+    sponserOverview: Joi.string(),
+    deal: Joi.objectId().required(),
+    mainPhoto: PhotosSchema,
+    otherPhotos: Joi.array().items(PhotosSchema),
+    map: Joi.object().keys({
+      latitude: Joi.number(),
+      longitude: Joi.number(),
+    }),
+  }),
+};
+
 export const updateDealSummary = {
   body: Joi.object().keys({
     propertySummary: Joi.object(),
-    propertyInformation: Joi.object(),
-    loanMetrics: Joi.object(),
+    dealMetrics: Joi.object(),
     financingRequest: Joi.object(),
     sourcesAndUses: Joi.object().keys({
       sources: Joi.array(),
       uses: Joi.array(),
     }),
     rentRollSummary: Joi.array(),
-    financialSummary: Joi.object(),
+    financialSummary: Joi.array(),
     executiveSummary: Joi.string(),
     dealHighLights: Joi.array().items(Joi.string()),
     marketSummary: Joi.string(),
     sponserOverview: Joi.string(),
-    photos: Joi.array().items(PhotosSchema),
+    mainPhoto: PhotosSchema,
+    otherPhotos: Joi.array().items(PhotosSchema),
+    map: Joi.object().keys({
+      latitude: Joi.number(),
+      longitude: Joi.number(),
+    }),
+    // TODO: Need to implement this for custom field
+    // dynamicField: Joi.array().items(
+    //   Joi.object().keys({
+    //     name: Joi.string(),
+    //     type: Joi.string().valid(...Object.values(enumFields.EnumOfDynamicFieldType)),
+    //     options: Joi.array().items(
+    //       Joi.object().keys({
+    //         name: Joi.string(),
+    //         value: Joi.any(),
+    //       })
+    //     ),
+    //   })
+    // ),
+    // dynamicResponseField: Joi.array().items(
+    //   Joi.object().keys({
+    //     dynamicFieldId: Joi.objectId(),
+    //     response: Joi.any(),
+    //   })
+    // ),
   }),
   params: Joi.object().keys({
     dealSummaryId: Joi.objectId().required(),
