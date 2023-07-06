@@ -1,6 +1,6 @@
 import express from 'express';
-import { dealSummaryController } from 'controllers/advisor';
-import { dealSummaryValidation } from 'validations/advisor';
+import { dealSummaryController } from 'controllers/user';
+import { dealSummaryValidation } from 'validations/user';
 import auth from 'middlewares/auth';
 import validate from 'middlewares/validate';
 
@@ -12,7 +12,7 @@ router
    * importFileForDealSummary
    * */
   .post(
-    auth('advisor'),
+    auth('user'),
     validate(dealSummaryValidation.importFileForDealSummary),
     dealSummaryController.importFileForDealSummary
   );
@@ -21,15 +21,15 @@ router
   /**
    * createDealSummary
    * */
-  .post(auth('advisor'), validate(dealSummaryValidation.createDealSummary), dealSummaryController.create);
+  .post(auth('user'), validate(dealSummaryValidation.createDealSummary), dealSummaryController.create);
 router
   .route('/:dealSummaryId')
   /**
    * getDealSummaryById
    * */
-  .get(auth('advisor'), validate(dealSummaryValidation.getDealSummaryById), dealSummaryController.get)
+  .get(auth('user'), validate(dealSummaryValidation.getDealSummaryById), dealSummaryController.get)
   /**
    * updateDealSummary
    * */
-  .put(auth('advisor'), validate(dealSummaryValidation.updateDealSummary), dealSummaryController.update);
+  .put(auth('user'), validate(dealSummaryValidation.updateDealSummary), dealSummaryController.update);
 module.exports = router;

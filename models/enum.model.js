@@ -252,6 +252,13 @@ const EnumOfActivityType = {
   ACTIVITY: 'activity',
 };
 
+const EnumOfDynamicFieldType = {
+  BULLET: 'bullet',
+  TEXT: 'text',
+  BULLET_TEXT: 'bulletText',
+  FILE: 'file',
+};
+
 module.exports = {
   EnumPrePaymentTypeOfTerms,
   EnumContentType,
@@ -279,4 +286,5 @@ module.exports = {
   EnumStatesOfDeal,
   EnumOfRecourse,
   defaulAssetTypeOfDeal,
+  EnumOfDynamicFieldType,
 };

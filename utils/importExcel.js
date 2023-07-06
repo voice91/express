@@ -63,41 +63,26 @@ export const importExcelFile = async (url) => {
       }
     }
 
-    // PropertyInformation
-    const PropertyInformationValue = Object.entries(workbookSheet).find(([, value]) => value.v === 'Property Information');
-    const propertyInformation = {};
-    if (PropertyInformationValue) {
-      let currentCell = worksheet.getCell(PropertyInformationValue[0]);
+    // dealMetrics
+    const dealMetricsValue = Object.entries(workbookSheet).find(([, value]) => value.v === 'Deal Metrics');
+    const dealMetrics = {};
+    if (dealMetricsValue) {
+      let currentCell = worksheet.getCell(dealMetricsValue[0]);
       while (true) {
         const key = worksheet.getCell(currentCell.row + 1, currentCell.col);
         // eslint-disable-next-line no-shadow
         const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
-
-        const result = formatMathFormulaFormValue(value.value);
-        if (key.value) {
-          propertyInformation[key.value] = result;
+        let result = formatMathFormulaFormValue(value.value);
+        if (value.numFmt) {
+          if (value.numFmt.includes('$')) {
+            result = `$${result}`;
+          } else if (value.numFmt.includes('%')) {
+            result *= 100;
+            result = `${result}%`;
+          }
         }
-
-        currentCell = worksheet.getCell(currentCell.row + 1, currentCell.col);
-        if (!key.value || !value.value || key.value === null || value.value === null) {
-          break;
-        }
-      }
-    }
-
-    // loanMetrics
-    const loanMetricsValue = Object.entries(workbookSheet).find(([, value]) => value.v === 'Loan Metrics');
-    const loanMetrics = {};
-    if (loanMetricsValue) {
-      let currentCell = worksheet.getCell(loanMetricsValue[0]);
-      while (true) {
-        const key = worksheet.getCell(currentCell.row + 1, currentCell.col);
-        // eslint-disable-next-line no-shadow
-        const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
-
-        const result = formatMathFormulaFormValue(value.value);
         if (key.value) {
-          loanMetrics[key.value] = result;
+          dealMetrics[key.value] = result;
         }
 
         currentCell = worksheet.getCell(currentCell.row + 1, currentCell.col);
@@ -116,8 +101,15 @@ export const importExcelFile = async (url) => {
         const key = worksheet.getCell(currentCell.row + 1, currentCell.col);
         // eslint-disable-next-line no-shadow
         const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
-
-        const result = formatMathFormulaFormValue(value.value);
+        let result = formatMathFormulaFormValue(value.value);
+        if (value.numFmt && typeof result === 'number') {
+          if (value.numFmt.includes('$')) {
+            result = `$${result}`;
+          } else if (value.numFmt.includes('%')) {
+            result *= 100;
+            result = `${result}%`;
+          }
+        }
         if (key.value) {
           financingRequest[key.value] = result;
         }
@@ -140,16 +132,21 @@ export const importExcelFile = async (url) => {
         const sourceObj = {};
         const key = worksheet.getCell(currentCell.row + 1, currentCell.col);
         const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
-        const valueResult = formatMathFormulaFormValue(value.value);
+        let valueResult = formatMathFormulaFormValue(value.value);
+
+        if (value.numFmt) {
+          if (value.numFmt.includes('$')) {
+            valueResult = `$${valueResult}`;
+          } else if (value.numFmt.includes('%')) {
+            valueResult *= 100;
+            valueResult = `${valueResult}%`;
+          }
+        }
+
         if (key.value) {
           if (key.value !== 'Sources') {
             sourceObj.Amount = valueResult;
             sourceObj.Sources = key.value;
-          }
-          const secondValue = worksheet.getCell(currentCell.row + 1, currentCell.col + 2);
-          const secondValueResult = formatMathFormulaFormValue(secondValue.value);
-          if (key.value !== 'Sources') {
-            sourceObj.percentage = secondValueResult;
           }
         }
 
@@ -174,16 +171,20 @@ export const importExcelFile = async (url) => {
           const key = worksheet.getCell(currentCellForUses.row + 1, currentCellForUses.col);
 
           const value = worksheet.getCell(currentCellForUses.row + 1, currentCellForUses.col + 1);
+          let valueResult = formatMathFormulaFormValue(value.value);
+
+          if (value.numFmt) {
+            if (value.numFmt.includes('$')) {
+              valueResult = `$${valueResult}`;
+            } else if (value.numFmt.includes('%')) {
+              valueResult *= 100;
+              valueResult = `${valueResult}%`;
+            }
+          }
           if (key.value) {
-            const valueResult = formatMathFormulaFormValue(value.value);
             if (key.value !== 'Sources') {
               usesObj.Amount = valueResult;
-              usesObj.Sources = key.value;
-            }
-            const secondValue = worksheet.getCell(currentCellForUses.row + 1, currentCellForUses.col + 2);
-            const secondValueResult = formatMathFormulaFormValue(secondValue.value);
-            if (key.value !== 'Sources') {
-              usesObj.percentage = secondValueResult;
+              usesObj.Uses = key.value;
             }
           }
 
@@ -208,48 +209,54 @@ export const importExcelFile = async (url) => {
     const rentRollSummary = [];
     if (rentRollSummaryValue) {
       let currentCell = sheet.getCell(rentRollSummaryValue[0]);
+      const columnHeaders = [];
+      const columnHeaderRow = currentCell.row + 1;
+
+      // Retrieve column headers dynamically
       while (true) {
-        const objValueOfRentRollSummary = {};
-        const type = sheet.getCell(currentCell.row + 1, currentCell.col);
-        const typeResult = formatMathFormulaFormValue(type.value);
-        if (typeResult !== 'Type') {
-          objValueOfRentRollSummary.Type = typeResult;
+        const columnHeaderCell = sheet.getCell(columnHeaderRow, currentCell.col);
+        if (!columnHeaderCell.value) break;
+        columnHeaders.push(columnHeaderCell.value);
+        currentCell = sheet.getCell(currentCell.row, currentCell.col + 1);
+      }
+
+      currentCell = sheet.getCell(rentRollSummaryValue[0]);
+      let dataRow = columnHeaderRow + 1;
+
+      // Process data rows dynamically
+      while (true) {
+        const rowData = {};
+        let hasData = false;
+
+        // Iterate through each column dynamically
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < columnHeaders.length; i++) {
+          const columnValueCell = sheet.getCell(dataRow, currentCell.col + i);
+          let columnValue = formatMathFormulaFormValue(columnValueCell.value);
+          if (columnValueCell.numFmt) {
+            if (columnValueCell.numFmt.includes('$')) {
+              columnValue = `$${columnValue}`;
+            } else if (columnValueCell.numFmt.includes('%')) {
+              columnValue *= 100;
+              columnValue = `${columnValue}%`;
+            }
+          }
+          if (columnValue !== 'Type' && columnValue !== null) {
+            rowData[columnHeaders[i]] = columnValue;
+            hasData = true;
+          }
         }
-        const count = sheet.getCell(currentCell.row + 1, currentCell.col + 1);
-        const countResult = formatMathFormulaFormValue(count.value);
-        if (typeResult !== 'Type') {
-          objValueOfRentRollSummary.unitCount = countResult;
+
+        if (hasData) {
+          rentRollSummary.push(rowData);
         }
-        const totalSF = sheet.getCell(currentCell.row + 1, currentCell.col + 2);
-        const totalSfResult = formatMathFormulaFormValue(totalSF.value);
-        if (typeResult !== 'Type') {
-          objValueOfRentRollSummary.totalSF = totalSfResult;
-        }
-        const avgSF = sheet.getCell(currentCell.row + 1, currentCell.col + 3);
-        const avgSFResult = formatMathFormulaFormValue(avgSF.value);
-        if (typeResult !== 'Type') {
-          objValueOfRentRollSummary.avgSF = avgSFResult;
-        }
-        const annualRent = sheet.getCell(currentCell.row + 1, currentCell.col + 4);
-        const annualRentSFResult = formatMathFormulaFormValue(annualRent.value);
-        if (typeResult !== 'Type') {
-          objValueOfRentRollSummary.totalAnnualRent = annualRentSFResult;
-        }
-        const monthlyRent = sheet.getCell(currentCell.row + 1, currentCell.col + 5);
-        const monthlyRentResult = formatMathFormulaFormValue(monthlyRent.value);
-        if (typeResult !== 'Type') {
-          objValueOfRentRollSummary.monthlyRent = monthlyRentResult;
-        }
-        const psf = sheet.getCell(currentCell.row + 1, currentCell.col + 6);
-        const psfResult = formatMathFormulaFormValue(psf.value);
-        if (typeResult !== 'Type') {
-          objValueOfRentRollSummary.psf = psfResult;
-        }
-        if (typeResult !== 'Type' && typeResult !== null) {
-          rentRollSummary.push(objValueOfRentRollSummary);
-        }
-        currentCell = sheet.getCell(currentCell.row + 1, currentCell.col);
-        if (!type.value || !count.value || type.value === null || count.value === null) {
+
+        // eslint-disable-next-line no-plusplus
+        dataRow++;
+        const checkEmptyCell = sheet.getCell(dataRow, currentCell.col);
+
+        // Break the loop if the row is empty
+        if (!checkEmptyCell.value) {
           break;
         }
       }
@@ -263,53 +270,154 @@ export const importExcelFile = async (url) => {
     const financialSummary = {};
     if (financialSummaryValue) {
       let currentCell = secondSheet.getCell(financialSummaryValue[0]);
-      const totalRevenue = {};
+      const totalRevenue = [];
+      const baseHeader = secondSheet.getCell(currentCell.row + 1, currentCell.col);
+      const headerOne = secondSheet.getCell(currentCell.row + 1, currentCell.col + 1);
+      const headerTwo = secondSheet.getCell(currentCell.row + 1, currentCell.col + 2);
+
       while (true) {
+        // eslint-disable-next-line no-shadow
+        const data = {};
         const key = secondSheet.getCell(currentCell.row + 1, currentCell.col);
-        const value = secondSheet.getCell(currentCell.row + 1, currentCell.col + 2);
-        const result = formatMathFormulaFormValue(value.value);
-        if (key.value) {
-          totalRevenue[key.value] = result;
+        const value = secondSheet.getCell(currentCell.row + 1, currentCell.col + 1);
+        let result = formatMathFormulaFormValue(value.value);
+        if (value.numFmt) {
+          if (value.numFmt.includes('$')) {
+            result = `$${result}`;
+          } else if (value.numFmt.includes('%')) {
+            result *= 100;
+            result = `${result}%`;
+          }
+        }
+
+        if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
+          data[baseHeader.value] = key.value;
+          data[headerOne.value] = result;
+          if (headerTwo.value) {
+            const valueOfSecond = secondSheet.getCell(currentCell.row + 1, currentCell.col + 2);
+            data[headerTwo.value] = formatMathFormulaFormValue(valueOfSecond.value);
+            if (valueOfSecond.numFmt) {
+              if (valueOfSecond.numFmt.includes('$')) {
+                data[headerTwo.value] = `$${data[headerTwo.value]}`;
+              } else if (valueOfSecond.numFmt.includes('%')) {
+                data[headerTwo.value] *= 100;
+                data[headerTwo.value] = `${data[headerTwo.value]}%`;
+              }
+            }
+          }
         }
         currentCell = secondSheet.getCell(currentCell.row + 1, currentCell.col);
 
         if (!key.value || key.value === null) {
           break;
         }
+        if (Object.keys(data).length) {
+          totalRevenue.push(data);
+        }
       }
       financialSummary.totalRevenue = totalRevenue;
-
       const startingCell = secondSheet.getCell(currentCell.row + 1, currentCell.col);
 
       const expensesValue = Object.entries(testSheet2).find(([, value]) => value.v === 'Expenses');
       if (expensesValue) {
-        const expenses = {};
-        let currentCellforExpense = secondSheet.getCell(expensesValue[0]);
+        const expenses = [];
+        let currentCellForExpense = secondSheet.getCell(expensesValue[0]);
 
-        while (currentCellforExpense.address !== startingCell.address) {
-          currentCellforExpense = secondSheet.getCell(currentCellforExpense.row + 1, currentCellforExpense.col);
+        while (currentCellForExpense.address !== startingCell.address) {
+          currentCellForExpense = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
         }
 
+        const baseHeaderForExpenses = secondSheet.getCell(currentCellForExpense.row, currentCellForExpense.col);
         while (true) {
-          const key = secondSheet.getCell(currentCellforExpense.row + 1, currentCellforExpense.col);
-          const value = secondSheet.getCell(currentCellforExpense.row + 1, currentCellforExpense.col + 2);
-          const result = formatMathFormulaFormValue(value.value);
-          if (key.value) {
-            expenses[key.value] = result;
+          const expenseData = {};
+          const key = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
+          const value = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 1);
+          let result = formatMathFormulaFormValue(value.value);
+          if (value.numFmt) {
+            if (value.numFmt.includes('$')) {
+              result = `$${result}`;
+            } else if (value.numFmt.includes('%')) {
+              result *= 100;
+              result = `${result}%`;
+            }
           }
-          currentCellforExpense = secondSheet.getCell(currentCellforExpense.row + 1, currentCellforExpense.col);
+          if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
+            expenseData[baseHeaderForExpenses.value] = key.value;
+            expenseData[headerOne.value] = result;
+            if (headerTwo.value) {
+              const valueOfSecond = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
+              expenseData[headerTwo.value] = formatMathFormulaFormValue(valueOfSecond.value);
+
+              if (valueOfSecond.numFmt) {
+                if (valueOfSecond.numFmt.includes('$')) {
+                  expenseData[headerTwo.value] = `$${expenseData[headerTwo.value]}`;
+                } else if (valueOfSecond.numFmt.includes('%')) {
+                  expenseData[headerTwo.value] *= 100;
+                  expenseData[headerTwo.value] = `${expenseData[headerTwo.value]}%`;
+                }
+              }
+            }
+          }
+          currentCellForExpense = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
 
           if (!key.value || key.value === null) {
             break;
           }
+          if (Object.keys(expenseData).length) {
+            expenses.push(expenseData);
+          }
         }
         financialSummary.expenses = expenses;
-        financialSummary.netOperatingIncome = totalRevenue['Effective Gross Income'] - expenses['Total Operating Expneses'];
+
+        const effectiveGrossIncomeInPlace = totalRevenue.find(
+          (revenue) => revenue[baseHeader.value] === 'Effective Gross Income'
+        )['In-Place'];
+        const effectiveGrossIncomeStabilized = totalRevenue.find(
+          (revenue) => revenue[baseHeader.value] === 'Effective Gross Income'
+        ).Stabilized;
+        let effectiveGrossIncomeInPlaceValue;
+        if (effectiveGrossIncomeInPlace) {
+          effectiveGrossIncomeInPlaceValue = parseFloat(effectiveGrossIncomeInPlace.replace(/\$/g, ''));
+        }
+
+        let effectiveGrossIncomeStabilizedValue;
+        if (effectiveGrossIncomeStabilized) {
+          effectiveGrossIncomeStabilizedValue = parseFloat(effectiveGrossIncomeStabilized.replace(/\$/g, ''));
+        }
+
+        const totalOperatingExpensesInPlace = expenses.find(
+          (expense) => expense[baseHeaderForExpenses.value] === 'Total Operating Expneses'
+        )['In-Place'];
+
+        const totalOperatingExpensesStabilized = expenses.find(
+          (expense) => expense[baseHeaderForExpenses.value] === 'Total Operating Expneses'
+        ).Stabilized;
+        let totalOperatingExpensesInPlaceValue;
+        if (totalOperatingExpensesInPlace) {
+          totalOperatingExpensesInPlaceValue = parseFloat(totalOperatingExpensesInPlace.replace(/\$/g, ''));
+        }
+        let totalOperatingExpensesStabilizedValue;
+        if (totalOperatingExpensesStabilized) {
+          totalOperatingExpensesStabilizedValue = parseFloat(totalOperatingExpensesStabilized.replace(/\$/g, ''));
+        }
+
+        // eslint-disable-next-line no-restricted-globals
+        if (!isNaN(effectiveGrossIncomeInPlaceValue) && !isNaN(totalOperatingExpensesInPlaceValue)) {
+          financialSummary.netOperatingIncome = {
+            'In-Place': `$${effectiveGrossIncomeInPlaceValue - totalOperatingExpensesInPlaceValue}`,
+          };
+        }
+        // eslint-disable-next-line no-restricted-globals
+        if (!isNaN(effectiveGrossIncomeStabilizedValue) && !isNaN(totalOperatingExpensesStabilizedValue)) {
+          financialSummary.netOperatingIncome = {
+            ...financialSummary.netOperatingIncome,
+            Stabilized: `$${effectiveGrossIncomeStabilizedValue - totalOperatingExpensesStabilizedValue}`,
+          };
+        }
       }
     }
     data.propertySummary = propertySummary;
-    data.propertyInformation = propertyInformation;
-    data.loanMetrics = loanMetrics;
+    data.dealMetrics = dealMetrics;
     data.financingRequest = financingRequest;
     data.sourcesAndUses = sourcesAndUses;
     data.rentRollSummary = rentRollSummary;
