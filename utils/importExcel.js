@@ -375,9 +375,15 @@ export const importExcelFile = async (url) => {
         const effectiveGrossIncomeStabilized = totalRevenue.find(
           (revenue) => revenue[baseHeader.value] === 'Effective Gross Income'
         ).Stabilized;
+        let effectiveGrossIncomeInPlaceValue;
+        if (effectiveGrossIncomeInPlace) {
+          effectiveGrossIncomeInPlaceValue = parseFloat(effectiveGrossIncomeInPlace.replace(/\$/g, ''));
+        }
 
-        const effectiveGrossIncomeInPlaceValue = parseFloat(effectiveGrossIncomeInPlace.replace(/\$/g, ''));
-        const effectiveGrossIncomeStabilizedValue = parseFloat(effectiveGrossIncomeStabilized.replace(/\$/g, ''));
+        let effectiveGrossIncomeStabilizedValue;
+        if (effectiveGrossIncomeStabilized) {
+          effectiveGrossIncomeStabilizedValue = parseFloat(effectiveGrossIncomeStabilized.replace(/\$/g, ''));
+        }
 
         const totalOperatingExpensesInPlace = expenses.find(
           (expense) => expense[baseHeaderForExpenses.value] === 'Total Operating Expneses'
@@ -386,8 +392,14 @@ export const importExcelFile = async (url) => {
         const totalOperatingExpensesStabilized = expenses.find(
           (expense) => expense[baseHeaderForExpenses.value] === 'Total Operating Expneses'
         ).Stabilized;
-        const totalOperatingExpensesInPlaceValue = parseFloat(totalOperatingExpensesInPlace.replace(/\$/g, ''));
-        const totalOperatingExpensesStabilizedValue = parseFloat(totalOperatingExpensesStabilized.replace(/\$/g, ''));
+        let totalOperatingExpensesInPlaceValue;
+        if (totalOperatingExpensesInPlace) {
+          totalOperatingExpensesInPlaceValue = parseFloat(totalOperatingExpensesInPlace.replace(/\$/g, ''));
+        }
+        let totalOperatingExpensesStabilizedValue;
+        if (totalOperatingExpensesStabilized) {
+          totalOperatingExpensesStabilizedValue = parseFloat(totalOperatingExpensesStabilized.replace(/\$/g, ''));
+        }
 
         // eslint-disable-next-line no-restricted-globals
         if (!isNaN(effectiveGrossIncomeInPlaceValue) && !isNaN(totalOperatingExpensesInPlaceValue)) {
