@@ -4,9 +4,10 @@
  * select your project then select model and click on + icon to add new fields.
  * For more checkout the docs at "docs.appinvento.io/product-guides/create-a-new-collection-field"
  */
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import { toJSON, softDelete } from './plugins';
+import enumModel from './enum.model';
 
 const PhotosSchema = new mongoose.Schema({
   url: {
@@ -34,28 +35,129 @@ const DealSummarySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    propertySummary: {
-      type: Object,
-    },
-    dealMetrics: {
-      type: Object,
-    },
-    financingRequest: {
-      type: Object,
-    },
+    propertySummary: [
+      {
+        name: {
+          type: String,
+        },
+        value: {
+          type: Schema.Types.Mixed,
+        },
+        type: {
+          type: String,
+          enum: Object.values(enumModel.EnumOfTypeOfValue),
+        },
+      },
+    ],
+    dealMetrics: [
+      {
+        name: {
+          type: String,
+        },
+        value: {
+          type: Schema.Types.Mixed,
+        },
+        type: {
+          type: String,
+          enum: Object.values(enumModel.EnumOfTypeOfValue),
+        },
+      },
+    ],
+    financingRequest: [
+      {
+        name: {
+          type: String,
+        },
+        value: {
+          type: Schema.Types.Mixed,
+        },
+        type: {
+          type: String,
+          enum: Object.values(enumModel.EnumOfTypeOfValue),
+        },
+      },
+    ],
     sourcesAndUses: {
-      sources: {
-        type: Array,
-      },
-      uses: {
-        type: Array,
-      },
+      sources: [
+        {
+          sourceName: {
+            type: String,
+          },
+          amount: {
+            type: String,
+          },
+          type: {
+            type: String,
+            enum: Object.values(enumModel.EnumOfTypeOfValue),
+          },
+        },
+      ],
+      uses: [
+        {
+          useName: {
+            type: String,
+          },
+          amount: {
+            type: String,
+          },
+          type: {
+            type: String,
+            enum: Object.values(enumModel.EnumOfTypeOfValue),
+          },
+        },
+      ],
     },
-    rentRollSummary: {
-      type: Array,
-    },
+    rentRollSummary: [
+      [
+        {
+          name: {
+            type: String,
+          },
+          value: {
+            type: Schema.Types.Mixed,
+          },
+          type: {
+            type: String,
+            enum: Object.values(enumModel.EnumOfTypeOfValue),
+          },
+        },
+      ],
+    ],
     financialSummary: {
-      type: Array,
+      revenue: [
+        {
+          revenueName: String,
+          stabilizedValue: String,
+          inPlaceValue: String,
+          stabilizedType: {
+            type: String,
+            enum: Object.values(enumModel.EnumOfTypeOfValue),
+          },
+          inPlaceType: {
+            type: String,
+            enum: Object.values(enumModel.EnumOfTypeOfValue),
+          },
+        },
+      ],
+      expenses: [
+        {
+          expenseName: String,
+          stabilizedValue: String,
+          inPlaceValue: String,
+          stabilizedType: {
+            type: String,
+            enum: Object.values(enumModel.EnumOfTypeOfValue),
+          },
+          inPlaceType: {
+            type: String,
+            enum: Object.values(enumModel.EnumOfTypeOfValue),
+          },
+        },
+      ],
+      netOperatingIncome: {
+        stabilizedValue: String,
+        inPlaceValue: String,
+      },
     },
     deal: {
       type: mongoose.Schema.Types.ObjectId,
