@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
 import { logger } from '../config/logger';
+import { EnumOfTypeOfValue } from '../models/enum.model';
 
 const axios = require('axios');
 const ExcelJS = require('exceljs');
@@ -26,6 +27,21 @@ function formatMathFormulaFormValue(val) {
   return val;
 }
 
+function typeOfValue(val, valueFromExcel) {
+  if (typeof val === 'number') {
+    if (valueFromExcel.includes('$')) {
+      return EnumOfTypeOfValue.CURRENCY;
+    }
+    if (valueFromExcel.includes('%')) {
+      return EnumOfTypeOfValue.PERCENTAGE;
+    }
+    return EnumOfTypeOfValue.NUMBER;
+  }
+  if (typeof val === 'string') {
+    return EnumOfTypeOfValue.STRING;
+  }
+}
+
 // eslint-disable-next-line import/prefer-default-export
 export const importExcelFile = async (url) => {
   try {
@@ -43,81 +59,91 @@ export const importExcelFile = async (url) => {
 
     // PropertySummary
     const PropertySummaryValue = Object.entries(workbookSheet).find(([, value]) => value.v === 'Property Summary');
-    const propertySummary = {};
+    const propertySummary = [];
     if (PropertySummaryValue) {
       let currentCell = worksheet.getCell(PropertySummaryValue[0]);
       while (true) {
+        const property = {};
         const key = worksheet.getCell(currentCell.row + 1, currentCell.col);
         // eslint-disable-next-line no-shadow
         const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
-
         const result = formatMathFormulaFormValue(value.value);
+        if (result) {
+          property.type = typeOfValue(result, '');
+        }
         if (key.value) {
-          propertySummary[key.value] = result;
+          property.name = key.value;
+          property.value = result;
         }
 
         currentCell = worksheet.getCell(currentCell.row + 1, currentCell.col);
         if (!key.value || !value.value || key.value === null || value.value === null) {
           break;
         }
+        propertySummary.push(property);
       }
     }
-
     // dealMetrics
     const dealMetricsValue = Object.entries(workbookSheet).find(([, value]) => value.v === 'Deal Metrics');
-    const dealMetrics = {};
+    const dealMetrics = [];
     if (dealMetricsValue) {
       let currentCell = worksheet.getCell(dealMetricsValue[0]);
       while (true) {
+        const metrics = {};
         const key = worksheet.getCell(currentCell.row + 1, currentCell.col);
         // eslint-disable-next-line no-shadow
         const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
         let result = formatMathFormulaFormValue(value.value);
+        if (result) {
+          metrics.type = typeOfValue(result, value.numFmt);
+        }
         if (value.numFmt) {
-          if (value.numFmt.includes('$')) {
-            result = `$${result}`;
-          } else if (value.numFmt.includes('%')) {
+          if (value.numFmt.includes('%')) {
             result *= 100;
-            result = `${result}%`;
           }
         }
         if (key.value) {
-          dealMetrics[key.value] = result;
+          metrics.name = key.value;
+          metrics.value = result;
         }
 
         currentCell = worksheet.getCell(currentCell.row + 1, currentCell.col);
         if (!key.value || !value.value || key.value === null || value.value === null) {
           break;
         }
+        dealMetrics.push(metrics);
       }
     }
 
     // financingRequest
     const financingRequestValue = Object.entries(workbookSheet).find(([, value]) => value.v === 'Financing Request');
-    const financingRequest = {};
+    const financingRequest = [];
     if (financingRequestValue) {
       let currentCell = worksheet.getCell(financingRequestValue[0]);
       while (true) {
+        const financeRequest = {};
         const key = worksheet.getCell(currentCell.row + 1, currentCell.col);
         // eslint-disable-next-line no-shadow
         const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
         let result = formatMathFormulaFormValue(value.value);
-        if (value.numFmt && typeof result === 'number') {
-          if (value.numFmt.includes('$')) {
-            result = `$${result}`;
-          } else if (value.numFmt.includes('%')) {
+        if (result) {
+          financeRequest.type = typeOfValue(result, value.numFmt);
+        }
+        if (value.numFmt) {
+          if (typeof result === 'number' && value.numFmt.includes('%')) {
             result *= 100;
-            result = `${result}%`;
           }
         }
         if (key.value) {
-          financingRequest[key.value] = result;
+          financeRequest.name = key.value;
+          financeRequest.value = result;
         }
 
         currentCell = worksheet.getCell(currentCell.row + 1, currentCell.col);
         if (!key.value || !value.value || key.value === null || value.value === null) {
           break;
         }
+        financingRequest.push(financeRequest);
       }
     }
 
@@ -134,19 +160,18 @@ export const importExcelFile = async (url) => {
         const value = worksheet.getCell(currentCell.row + 1, currentCell.col + 1);
         let valueResult = formatMathFormulaFormValue(value.value);
 
-        if (value.numFmt) {
-          if (value.numFmt.includes('$')) {
-            valueResult = `$${valueResult}`;
-          } else if (value.numFmt.includes('%')) {
-            valueResult *= 100;
-            valueResult = `${valueResult}%`;
-          }
-        }
-
         if (key.value) {
           if (key.value !== 'Sources') {
-            sourceObj.Amount = valueResult;
-            sourceObj.Sources = key.value;
+            sourceObj.sourceName = key.value;
+            sourceObj.amount = valueResult;
+            if (valueResult) {
+              sourceObj.type = typeOfValue(valueResult, value.numFmt);
+            }
+            if (value.numFmt) {
+              if (value.numFmt.includes('%')) {
+                valueResult *= 100;
+              }
+            }
           }
         }
 
@@ -173,18 +198,18 @@ export const importExcelFile = async (url) => {
           const value = worksheet.getCell(currentCellForUses.row + 1, currentCellForUses.col + 1);
           let valueResult = formatMathFormulaFormValue(value.value);
 
+          if (valueResult) {
+            usesObj.type = typeOfValue(valueResult, value.numFmt);
+          }
           if (value.numFmt) {
-            if (value.numFmt.includes('$')) {
-              valueResult = `$${valueResult}`;
-            } else if (value.numFmt.includes('%')) {
+            if (value.numFmt.includes('%')) {
               valueResult *= 100;
-              valueResult = `${valueResult}%`;
             }
           }
           if (key.value) {
             if (key.value !== 'Sources') {
-              usesObj.Amount = valueResult;
-              usesObj.Uses = key.value;
+              usesObj.useName = key.value;
+              usesObj.amount = valueResult;
             }
           }
 
@@ -225,24 +250,28 @@ export const importExcelFile = async (url) => {
 
       // Process data rows dynamically
       while (true) {
-        const rowData = {};
+        const rowData = [];
         let hasData = false;
 
         // Iterate through each column dynamically
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < columnHeaders.length; i++) {
+          const rentRollData = {};
           const columnValueCell = sheet.getCell(dataRow, currentCell.col + i);
           let columnValue = formatMathFormulaFormValue(columnValueCell.value);
-          if (columnValueCell.numFmt) {
-            if (columnValueCell.numFmt.includes('$')) {
-              columnValue = `$${columnValue}`;
-            } else if (columnValueCell.numFmt.includes('%')) {
-              columnValue *= 100;
-              columnValue = `${columnValue}%`;
-            }
-          }
           if (columnValue !== 'Type' && columnValue !== null) {
             rowData[columnHeaders[i]] = columnValue;
+            rentRollData.name = columnHeaders[i];
+            rentRollData.value = columnValue;
+            if (columnValue) {
+              rentRollData.type = typeOfValue(columnValue, columnValueCell.numFmt ? columnValueCell.numFmt : '');
+            }
+            if (columnValueCell.numFmt) {
+              if (columnValueCell.numFmt.includes('%')) {
+                columnValue *= 100;
+              }
+            }
+            rowData.push(rentRollData);
             hasData = true;
           }
         }
@@ -250,7 +279,6 @@ export const importExcelFile = async (url) => {
         if (hasData) {
           rentRollSummary.push(rowData);
         }
-
         // eslint-disable-next-line no-plusplus
         dataRow++;
         const checkEmptyCell = sheet.getCell(dataRow, currentCell.col);
@@ -271,7 +299,6 @@ export const importExcelFile = async (url) => {
     if (financialSummaryValue) {
       let currentCell = secondSheet.getCell(financialSummaryValue[0]);
       const totalRevenue = [];
-      const baseHeader = secondSheet.getCell(currentCell.row + 1, currentCell.col);
       const headerOne = secondSheet.getCell(currentCell.row + 1, currentCell.col + 1);
       const headerTwo = secondSheet.getCell(currentCell.row + 1, currentCell.col + 2);
 
@@ -281,27 +308,50 @@ export const importExcelFile = async (url) => {
         const key = secondSheet.getCell(currentCell.row + 1, currentCell.col);
         const value = secondSheet.getCell(currentCell.row + 1, currentCell.col + 1);
         let result = formatMathFormulaFormValue(value.value);
-        if (value.numFmt) {
-          if (value.numFmt.includes('$')) {
-            result = `$${result}`;
-          } else if (value.numFmt.includes('%')) {
-            result *= 100;
-            result = `${result}%`;
-          }
-        }
 
         if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
-          data[baseHeader.value] = key.value;
-          data[headerOne.value] = result;
-          if (headerTwo.value) {
+          data.revenueName = key.value;
+          if (headerOne.value === 'In-Place') {
+            if (result) {
+              data.inPlaceType = typeOfValue(result, value.numFmt);
+            }
+            if (value.numFmt) {
+              if (value.numFmt.includes('%')) {
+                result *= 100;
+              }
+            }
+            data.inPlaceValue = result;
+          } else if (headerOne.value === 'Stabilized') {
+            if (result) {
+              data.stabilizedType = typeOfValue(result, value.numFmt);
+            }
+            if (value.numFmt) {
+              if (value.numFmt.includes('%')) {
+                result *= 100;
+              }
+            }
+            data.stabilizedValue = result;
+          }
+          if (headerTwo.value && headerTwo.value === 'Stabilized') {
             const valueOfSecond = secondSheet.getCell(currentCell.row + 1, currentCell.col + 2);
-            data[headerTwo.value] = formatMathFormulaFormValue(valueOfSecond.value);
+            data.stabilizedValue = formatMathFormulaFormValue(valueOfSecond.value);
             if (valueOfSecond.numFmt) {
-              if (valueOfSecond.numFmt.includes('$')) {
-                data[headerTwo.value] = `$${data[headerTwo.value]}`;
-              } else if (valueOfSecond.numFmt.includes('%')) {
-                data[headerTwo.value] *= 100;
-                data[headerTwo.value] = `${data[headerTwo.value]}%`;
+              if (data.stabilizedValue) {
+                data.stabilizedType = typeOfValue(data.stabilizedValue, valueOfSecond.numFmt);
+              }
+              if (valueOfSecond.numFmt.includes('%')) {
+                data.stabilizedValue *= 100;
+              }
+            }
+          } else if (headerTwo.value && headerTwo.value === 'In-Place') {
+            const valueOfSecond = secondSheet.getCell(currentCell.row + 1, currentCell.col + 2);
+            data.inPlaceValue = formatMathFormulaFormValue(valueOfSecond.value);
+            if (valueOfSecond.numFmt) {
+              if (data.inPlaceValue) {
+                data.inPlaceType = typeOfValue(data.inPlaceValue, valueOfSecond.numFmt);
+              }
+              if (valueOfSecond.numFmt.includes('%')) {
+                data.inPlaceValue *= 100;
               }
             }
           }
@@ -315,7 +365,7 @@ export const importExcelFile = async (url) => {
           totalRevenue.push(data);
         }
       }
-      financialSummary.totalRevenue = totalRevenue;
+      financialSummary.revenue = totalRevenue;
       const startingCell = secondSheet.getCell(currentCell.row + 1, currentCell.col);
 
       const expensesValue = Object.entries(testSheet2).find(([, value]) => value.v === 'Expenses');
@@ -327,33 +377,56 @@ export const importExcelFile = async (url) => {
           currentCellForExpense = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
         }
 
-        const baseHeaderForExpenses = secondSheet.getCell(currentCellForExpense.row, currentCellForExpense.col);
         while (true) {
           const expenseData = {};
           const key = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
           const value = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 1);
           let result = formatMathFormulaFormValue(value.value);
-          if (value.numFmt) {
-            if (value.numFmt.includes('$')) {
-              result = `$${result}`;
-            } else if (value.numFmt.includes('%')) {
-              result *= 100;
-              result = `${result}%`;
-            }
-          }
+
           if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
-            expenseData[baseHeaderForExpenses.value] = key.value;
-            expenseData[headerOne.value] = result;
-            if (headerTwo.value) {
+            expenseData.expenseName = key.value;
+            if (headerOne.value === 'In-Place') {
+              if (result) {
+                expenseData.inPlaceType = typeOfValue(result, value.numFmt);
+              }
+              if (value.numFmt) {
+                if (value.numFmt.includes('%')) {
+                  result *= 100;
+                }
+              }
+              expenseData.inPlaceValue = result;
+            } else if (headerOne.value === 'Stabilized') {
+              if (result) {
+                data.stabilizedType = typeOfValue(result, value.numFmt);
+              }
+              if (value.numFmt) {
+                if (value.numFmt.includes('%')) {
+                  result *= 100;
+                }
+              }
+              expenseData.stabilizedValue = result;
+            }
+            if (headerTwo.value && headerTwo.value === 'Stabilized') {
               const valueOfSecond = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
-              expenseData[headerTwo.value] = formatMathFormulaFormValue(valueOfSecond.value);
+              expenseData.stabilizedValue = formatMathFormulaFormValue(valueOfSecond.value);
 
               if (valueOfSecond.numFmt) {
-                if (valueOfSecond.numFmt.includes('$')) {
-                  expenseData[headerTwo.value] = `$${expenseData[headerTwo.value]}`;
-                } else if (valueOfSecond.numFmt.includes('%')) {
-                  expenseData[headerTwo.value] *= 100;
-                  expenseData[headerTwo.value] = `${expenseData[headerTwo.value]}%`;
+                if (expenseData.stabilizedValue) {
+                  expenseData.stabilizedType = typeOfValue(expenseData.stabilizedValue, valueOfSecond.numFmt);
+                }
+                if (valueOfSecond.numFmt.includes('%')) {
+                  expenseData.stabilizedValue *= 100;
+                }
+              }
+            } else if (headerTwo.value && headerTwo.value === 'In-Place') {
+              const valueOfSecond = secondSheet.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
+              expenseData.inPlaceValue = formatMathFormulaFormValue(valueOfSecond.value);
+              if (valueOfSecond.numFmt) {
+                if (expenseData.inPlaceValue) {
+                  expenseData.inPlaceType = typeOfValue(expenseData.inPlaceValue, valueOfSecond.numFmt);
+                }
+                if (valueOfSecond.numFmt.includes('%')) {
+                  expenseData.inPlaceValue *= 100;
                 }
               }
             }
@@ -368,50 +441,32 @@ export const importExcelFile = async (url) => {
           }
         }
         financialSummary.expenses = expenses;
-
         const effectiveGrossIncomeInPlace = totalRevenue.find(
-          (revenue) => revenue[baseHeader.value] === 'Effective Gross Income'
-        )['In-Place'];
+          (revenue) => revenue.revenueName === 'Effective Gross Income'
+        ).inPlaceValue;
         const effectiveGrossIncomeStabilized = totalRevenue.find(
-          (revenue) => revenue[baseHeader.value] === 'Effective Gross Income'
-        ).Stabilized;
-        let effectiveGrossIncomeInPlaceValue;
-        if (effectiveGrossIncomeInPlace) {
-          effectiveGrossIncomeInPlaceValue = parseFloat(effectiveGrossIncomeInPlace.replace(/\$/g, ''));
-        }
-
-        let effectiveGrossIncomeStabilizedValue;
-        if (effectiveGrossIncomeStabilized) {
-          effectiveGrossIncomeStabilizedValue = parseFloat(effectiveGrossIncomeStabilized.replace(/\$/g, ''));
-        }
+          (revenue) => revenue.revenueName === 'Effective Gross Income'
+        ).stabilizedValue;
 
         const totalOperatingExpensesInPlace = expenses.find(
-          (expense) => expense[baseHeaderForExpenses.value] === 'Total Operating Expneses'
-        )['In-Place'];
+          (expense) => expense.expenseName === 'Total Operating Expneses'
+        ).inPlaceValue;
 
         const totalOperatingExpensesStabilized = expenses.find(
-          (expense) => expense[baseHeaderForExpenses.value] === 'Total Operating Expneses'
-        ).Stabilized;
-        let totalOperatingExpensesInPlaceValue;
-        if (totalOperatingExpensesInPlace) {
-          totalOperatingExpensesInPlaceValue = parseFloat(totalOperatingExpensesInPlace.replace(/\$/g, ''));
-        }
-        let totalOperatingExpensesStabilizedValue;
-        if (totalOperatingExpensesStabilized) {
-          totalOperatingExpensesStabilizedValue = parseFloat(totalOperatingExpensesStabilized.replace(/\$/g, ''));
-        }
+          (expense) => expense.expenseName === 'Total Operating Expneses'
+        ).stabilizedValue;
 
         // eslint-disable-next-line no-restricted-globals
-        if (!isNaN(effectiveGrossIncomeInPlaceValue) && !isNaN(totalOperatingExpensesInPlaceValue)) {
+        if (!isNaN(effectiveGrossIncomeInPlace) && !isNaN(totalOperatingExpensesInPlace)) {
           financialSummary.netOperatingIncome = {
-            'In-Place': `$${effectiveGrossIncomeInPlaceValue - totalOperatingExpensesInPlaceValue}`,
+            inPlaceValue: `$${effectiveGrossIncomeInPlace - totalOperatingExpensesInPlace}`,
           };
         }
         // eslint-disable-next-line no-restricted-globals
-        if (!isNaN(effectiveGrossIncomeStabilizedValue) && !isNaN(totalOperatingExpensesStabilizedValue)) {
+        if (!isNaN(effectiveGrossIncomeStabilized) && !isNaN(totalOperatingExpensesStabilized)) {
           financialSummary.netOperatingIncome = {
             ...financialSummary.netOperatingIncome,
-            Stabilized: `$${effectiveGrossIncomeStabilizedValue - totalOperatingExpensesStabilizedValue}`,
+            stabilizedValue: `$${effectiveGrossIncomeStabilized - totalOperatingExpensesStabilized}`,
           };
         }
       }

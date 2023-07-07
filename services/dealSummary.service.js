@@ -32,6 +32,26 @@ export async function getDealSummaryById(query, options = {}) {
 }
 
 export async function updateDealSummary(filter, body, options = {}) {
+  // Loop through each key in the body
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in body) {
+    // Check if the key exists in the body and its value is an empty string
+    // eslint-disable-next-line no-prototype-builtins
+    if (body.hasOwnProperty(key) && body[key] === '') {
+      // If the $unset operator object doesn't exist, initialize it
+      if (!body.$unset) {
+        // eslint-disable-next-line no-param-reassign
+        body.$unset = {};
+      }
+      // Add the key to the $unset operator object with a value of 1
+      // eslint-disable-next-line no-param-reassign
+      body.$unset[key] = 1;
+      // Remove the key from the body object
+      // eslint-disable-next-line no-param-reassign
+      delete body[key];
+    }
+  }
+
   const dealSummary = await DealSummary.findOneAndUpdate(filter, body, options);
   return dealSummary;
 }

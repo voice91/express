@@ -259,6 +259,13 @@ const EnumOfDynamicFieldType = {
   FILE: 'file',
 };
 
+const EnumOfTypeOfValue = {
+  STRING: 'string',
+  NUMBER: 'number',
+  CURRENCY: 'currency',
+  PERCENTAGE: 'percentage',
+};
+
 module.exports = {
   EnumPrePaymentTypeOfTerms,
   EnumContentType,
@@ -287,4 +294,5 @@ module.exports = {
   EnumOfRecourse,
   defaulAssetTypeOfDeal,
   EnumOfDynamicFieldType,
+  EnumOfTypeOfValue,
 };

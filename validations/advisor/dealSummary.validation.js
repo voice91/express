@@ -3,6 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
+import enumFields from '../../models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
@@ -27,14 +28,72 @@ export const getDealSummaryById = {
 
 export const createDealSummary = {
   body: Joi.object().keys({
-    propertySummary: Joi.object(),
-    dealMetrics: Joi.object(),
-    financingRequest: Joi.object(),
+    propertySummary: Joi.array().items(
+      Joi.object().keys({
+        name: Joi.string(),
+        value: Joi.any(),
+        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+      })
+    ),
+    dealMetrics: Joi.array().items(
+      Joi.object().keys({
+        name: Joi.string(),
+        value: Joi.any(),
+        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+      })
+    ),
+    financingRequest: Joi.array().items(
+      Joi.object().keys({
+        name: Joi.string(),
+        value: Joi.any(),
+        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+      })
+    ),
     sourcesAndUses: Joi.object().keys({
-      sources: Joi.array(),
-      uses: Joi.array(),
+      sources: Joi.array().items(
+        Joi.object().keys({
+          sourceName: Joi.string(),
+          amount: Joi.string(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+      uses: Joi.array().items(
+        Joi.object().keys({
+          useName: Joi.string(),
+          amount: Joi.string(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
     }),
-    financialSummary: Joi.array(),
+    rentRollSummary: Joi.array().items(
+      Joi.array().items(
+        Joi.object().keys({
+          name: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      )
+    ),
+    financialSummary: Joi.object().keys({
+      revenue: Joi.array().items(
+        Joi.object().keys({
+          revenueName: Joi.string(),
+          stabilizedValue: Joi.string(),
+          inPlaceValue: Joi.string(),
+          stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+      expenses: Joi.array().items(
+        Joi.object().keys({
+          expenseName: Joi.string(),
+          stabilizedValue: Joi.string(),
+          inPlaceValue: Joi.string(),
+          stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+    }),
     executiveSummary: Joi.string(),
     dealHighLights: Joi.array().items(Joi.string()),
     marketSummary: Joi.string(),
@@ -51,18 +110,87 @@ export const createDealSummary = {
 
 export const updateDealSummary = {
   body: Joi.object().keys({
-    propertySummary: Joi.object(),
-    dealMetrics: Joi.object(),
-    financingRequest: Joi.object(),
-    sourcesAndUses: Joi.object().keys({
-      sources: Joi.array(),
-      uses: Joi.array(),
-    }),
-    rentRollSummary: Joi.array(),
-    financialSummary: Joi.array(),
-    executiveSummary: Joi.string(),
-    dealHighLights: Joi.array().items(Joi.string()),
-    marketSummary: Joi.string(),
+    propertySummary: Joi.array()
+      .items(
+        Joi.object().keys({
+          name: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      )
+      .allow(''),
+    dealMetrics: Joi.array()
+      .items(
+        Joi.object().keys({
+          name: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      )
+      .allow(''),
+    financingRequest: Joi.array()
+      .items(
+        Joi.object().keys({
+          name: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      )
+      .allow(''),
+    sourcesAndUses: Joi.object()
+      .keys({
+        sources: Joi.array().items(
+          Joi.object().keys({
+            sourceName: Joi.string(),
+            amount: Joi.string(),
+            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        ),
+        uses: Joi.array().items(
+          Joi.object().keys({
+            useName: Joi.string(),
+            amount: Joi.string(),
+            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        ),
+      })
+      .allow(''),
+    rentRollSummary: Joi.array()
+      .items(
+        Joi.array().items(
+          Joi.object().keys({
+            name: Joi.string(),
+            value: Joi.any(),
+            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        )
+      )
+      .allow(''),
+    financialSummary: Joi.object()
+      .keys({
+        revenue: Joi.array().items(
+          Joi.object().keys({
+            revenueName: Joi.string(),
+            stabilizedValue: Joi.string(),
+            inPlaceValue: Joi.string(),
+            stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+            inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        ),
+        expenses: Joi.array().items(
+          Joi.object().keys({
+            expenseName: Joi.string(),
+            stabilizedValue: Joi.string(),
+            inPlaceValue: Joi.string(),
+            stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+            inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        ),
+      })
+      .allow(''),
+    executiveSummary: Joi.string().allow(''),
+    dealHighLights: Joi.array().items(Joi.string()).allow(''),
+    marketSummary: Joi.string().allow(''),
     sponserOverview: Joi.string(),
     mainPhoto: PhotosSchema,
     otherPhotos: Joi.array().items(PhotosSchema),
