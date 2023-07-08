@@ -193,6 +193,9 @@ const DealSummarySchema = new mongoose.Schema(
         type: Number,
       },
     },
+    documents: {
+      type: [PhotosSchema],
+    },
     // TODO : Need to implement this for custom Field
     // dynamicField: [
     //   {
