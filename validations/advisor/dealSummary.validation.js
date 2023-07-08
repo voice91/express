@@ -105,6 +105,7 @@ export const createDealSummary = {
       latitude: Joi.number(),
       longitude: Joi.number(),
     }),
+    documents: Joi.array().items(PhotosSchema),
   }),
 };
 
@@ -198,6 +199,7 @@ export const updateDealSummary = {
       latitude: Joi.number(),
       longitude: Joi.number(),
     }),
+    documents: Joi.array().items(PhotosSchema),
     // TODO: Need to implement this for custom field
     // dynamicField: Joi.array().items(
     //   Joi.object().keys({
