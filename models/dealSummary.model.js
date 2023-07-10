@@ -12,11 +12,9 @@ import enumModel from './enum.model';
 const PhotosSchema = new mongoose.Schema({
   url: {
     type: String,
-    required: true,
   },
   fileName: {
     type: String,
-    required: true,
   },
 });
 const DealSummarySchema = new mongoose.Schema(
