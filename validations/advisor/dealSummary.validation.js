@@ -8,8 +8,8 @@ import enumFields from '../../models/enum.model';
 Joi.objectId = require('joi-objectid')(Joi);
 
 const PhotosSchema = Joi.object().keys({
-  url: Joi.string().required(),
-  fileName: Joi.string().required(),
+  url: Joi.string(),
+  fileName: Joi.string(),
 });
 
 // eslint-disable-next-line import/prefer-default-export
@@ -17,6 +17,13 @@ export const importFileForDealSummary = {
   body: Joi.object().keys({
     url: Joi.string().required(),
     deal: Joi.objectId().required(),
+  }),
+};
+
+export const exportFileForDealSummary = {
+  body: Joi.object().keys({
+    url: Joi.string().required(),
+    dealSummary: Joi.objectId().required(),
   }),
 };
 
