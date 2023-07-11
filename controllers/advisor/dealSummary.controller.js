@@ -53,6 +53,15 @@ export const importFileForDealSummary = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send({ results: dealSummary });
 });
 
+export const exportFileForDealSummary = catchAsync(async (req, res) => {
+  const { body } = req;
+  const { dealSummaryId } = req.params;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
+  const outPath = await dealSummaryService.updateExcelFromDealSummery(body, dealSummaryId);
+  res.status(httpStatus.OK).sendFile(outPath);
+});
+
 export const get = catchAsync(async (req, res) => {
   const { dealSummaryId } = req.params;
   const filter = {
