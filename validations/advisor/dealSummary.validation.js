@@ -14,7 +14,7 @@ const PhotosSchema = Joi.object().keys({
 
 // eslint-disable-next-line import/prefer-default-export
 export const importFileForDealSummary = {
-  body: Joi.object().keys({
+  query: Joi.object().keys({
     url: Joi.string().required(),
     deal: Joi.objectId().required(),
   }),
@@ -88,7 +88,7 @@ export const createDealSummary = {
         Joi.object().keys({
           key: Joi.string(),
           stabilizedValue: Joi.string(),
-          inPlaceValue: Joi.string(),
+          inPlaceValue: Joi.alternatives().try(Joi.string(), Joi.number()),
           stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
           inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
@@ -97,15 +97,19 @@ export const createDealSummary = {
         Joi.object().keys({
           key: Joi.string(),
           stabilizedValue: Joi.string(),
-          inPlaceValue: Joi.string(),
+          inPlaceValue: Joi.alternatives().try(Joi.string(), Joi.number()),
           stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
           inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
       ),
+      netOperatingIncome: Joi.object().keys({
+        inPlaceValue: Joi.alternatives().try(Joi.string(), Joi.number()),
+      }),
     }),
     executiveSummary: Joi.string(),
     dealHighLights: Joi.array().items(Joi.string()),
     marketSummary: Joi.string(),
+    url: Joi.string(),
     sponserOverview: Joi.string(),
     deal: Joi.objectId().required(),
     mainPhoto: PhotosSchema,

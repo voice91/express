@@ -46,10 +46,11 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
   });
 };
 export const importFileForDealSummary = catchAsync(async (req, res) => {
-  const { body } = req;
-  body.createdBy = req.user._id;
-  body.updatedBy = req.user._id;
-  const dealSummary = await dealSummaryService.importFileForDealSummary(body);
+  const { url, deal } = req.query;
+  const dealSummary = await dealSummaryService.importFileForDealSummary({
+    url,
+    deal,
+  });
   res.status(httpStatus.OK).send({ results: dealSummary });
 });
 
