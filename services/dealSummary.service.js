@@ -43,19 +43,10 @@ export function dealSummeryDto(dealSummary) {
     dealSummary.sourcesAndUses.sources = dealSummary.sourcesAndUses.sources.map((item) =>
       changeData(item, 2, 'type', 'value')
     );
-    const updatedSources = dealSummary.sourcesAndUses.sources.map((item) => {
-      const updateData = { sources: item.key, _id: item._id, value: item.value, type: item.type };
-      return updateData;
-    });
-    Object.assign(dealSummary.sourcesAndUses.sources, updatedSources);
   }
   if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.uses) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.sourcesAndUses.uses = dealSummary.sourcesAndUses.uses.map((item) => changeData(item, 2, 'type', 'value'));
-    const updatedUses = dealSummary.sourcesAndUses.uses.map((item) => {
-      return { uses: item.key, _id: item._id, value: item.value, type: item.type };
-    });
-    Object.assign(dealSummary.sourcesAndUses.uses, updatedUses);
   }
   if (dealSummary.rentRollSummary) {
     // eslint-disable-next-line no-param-reassign
