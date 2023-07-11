@@ -15,8 +15,10 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
     }
-    // eslint-disable-next-line no-param-reassign
-    data[keyToAssign] = `$${data[keyToAssign]}`;
+    if (!data[keyToAssign].includes('$')) {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = `$${data[keyToAssign]}`;
+    }
   }
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.PERCENTAGE) {
     // eslint-disable-next-line no-param-reassign
