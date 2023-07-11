@@ -35,7 +35,7 @@ const DealSummarySchema = new mongoose.Schema(
     },
     propertySummary: [
       {
-        name: {
+        key: {
           type: String,
         },
         value: {
@@ -49,7 +49,7 @@ const DealSummarySchema = new mongoose.Schema(
     ],
     dealMetrics: [
       {
-        name: {
+        key: {
           type: String,
         },
         value: {
@@ -63,7 +63,7 @@ const DealSummarySchema = new mongoose.Schema(
     ],
     financingRequest: [
       {
-        name: {
+        key: {
           type: String,
         },
         value: {
@@ -78,10 +78,10 @@ const DealSummarySchema = new mongoose.Schema(
     sourcesAndUses: {
       sources: [
         {
-          sourceName: {
+          key: {
             type: String,
           },
-          amount: {
+          value: {
             type: String,
           },
           type: {
@@ -92,10 +92,10 @@ const DealSummarySchema = new mongoose.Schema(
       ],
       uses: [
         {
-          useName: {
+          key: {
             type: String,
           },
-          amount: {
+          value: {
             type: String,
           },
           type: {
@@ -108,7 +108,7 @@ const DealSummarySchema = new mongoose.Schema(
     rentRollSummary: [
       [
         {
-          name: {
+          key: {
             type: String,
           },
           value: {
@@ -124,7 +124,7 @@ const DealSummarySchema = new mongoose.Schema(
     financialSummary: {
       revenue: [
         {
-          revenueName: String,
+          key: String,
           stabilizedValue: String,
           inPlaceValue: String,
           stabilizedType: {
@@ -139,7 +139,7 @@ const DealSummarySchema = new mongoose.Schema(
       ],
       expenses: [
         {
-          expenseName: String,
+          key: String,
           stabilizedValue: String,
           inPlaceValue: String,
           stabilizedType: {

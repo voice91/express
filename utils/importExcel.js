@@ -72,7 +72,7 @@ export const importExcelFile = async (url) => {
           property.type = typeOfValue(result, '');
         }
         if (key.value) {
-          property.name = key.value;
+          property.key = key.value;
           property.value = result;
         }
 
@@ -103,7 +103,7 @@ export const importExcelFile = async (url) => {
           }
         }
         if (key.value) {
-          metrics.name = key.value;
+          metrics.key = key.value;
           metrics.value = result;
         }
 
@@ -135,7 +135,7 @@ export const importExcelFile = async (url) => {
           }
         }
         if (key.value) {
-          financeRequest.name = key.value;
+          financeRequest.key = key.value;
           financeRequest.value = result;
         }
 
@@ -162,8 +162,8 @@ export const importExcelFile = async (url) => {
 
         if (key.value) {
           if (key.value !== 'Sources') {
-            sourceObj.sourceName = key.value;
-            sourceObj.amount = valueResult;
+            sourceObj.key = key.value;
+            sourceObj.value = valueResult;
             if (valueResult) {
               sourceObj.type = typeOfValue(valueResult, value.numFmt);
             }
@@ -208,8 +208,8 @@ export const importExcelFile = async (url) => {
           }
           if (key.value) {
             if (key.value !== 'Sources') {
-              usesObj.useName = key.value;
-              usesObj.amount = valueResult;
+              usesObj.key = key.value;
+              usesObj.value = valueResult;
             }
           }
 
@@ -261,7 +261,7 @@ export const importExcelFile = async (url) => {
           let columnValue = formatMathFormulaFormValue(columnValueCell.value);
           if (columnValue !== 'Type' && columnValue !== null) {
             rowData[columnHeaders[i]] = columnValue;
-            rentRollData.name = columnHeaders[i];
+            rentRollData.key = columnHeaders[i];
             rentRollData.value = columnValue;
             if (columnValue) {
               rentRollData.type = typeOfValue(columnValue, columnValueCell.numFmt ? columnValueCell.numFmt : '');
@@ -310,7 +310,7 @@ export const importExcelFile = async (url) => {
         let result = formatMathFormulaFormValue(value.value);
 
         if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
-          data.revenueName = key.value;
+          data.key = key.value;
           if (headerOne.value === 'In-Place') {
             if (result) {
               data.inPlaceType = typeOfValue(result, value.numFmt);
@@ -384,7 +384,7 @@ export const importExcelFile = async (url) => {
           let result = formatMathFormulaFormValue(value.value);
 
           if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
-            expenseData.expenseName = key.value;
+            expenseData.key = key.value;
             if (headerOne.value === 'In-Place') {
               if (result) {
                 expenseData.inPlaceType = typeOfValue(result, value.numFmt);
@@ -442,18 +442,18 @@ export const importExcelFile = async (url) => {
         }
         financialSummary.expenses = expenses;
         const effectiveGrossIncomeInPlace = totalRevenue.find(
-          (revenue) => revenue.revenueName === 'Effective Gross Income'
+          (revenue) => revenue.key === 'Effective Gross Income'
         ).inPlaceValue;
         const effectiveGrossIncomeStabilized = totalRevenue.find(
-          (revenue) => revenue.revenueName === 'Effective Gross Income'
+          (revenue) => revenue.key === 'Effective Gross Income'
         ).stabilizedValue;
 
         const totalOperatingExpensesInPlace = expenses.find(
-          (expense) => expense.expenseName === 'Total Operating Expneses'
+          (expense) => expense.key === 'Total Operating Expneses'
         ).inPlaceValue;
 
         const totalOperatingExpensesStabilized = expenses.find(
-          (expense) => expense.expenseName === 'Total Operating Expneses'
+          (expense) => expense.key === 'Total Operating Expneses'
         ).stabilizedValue;
 
         // eslint-disable-next-line no-restricted-globals

@@ -37,21 +37,21 @@ export const createDealSummary = {
   body: Joi.object().keys({
     propertySummary: Joi.array().items(
       Joi.object().keys({
-        name: Joi.string(),
+        key: Joi.string(),
         value: Joi.any(),
         type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
       })
     ),
     dealMetrics: Joi.array().items(
       Joi.object().keys({
-        name: Joi.string(),
+        key: Joi.string(),
         value: Joi.any(),
         type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
       })
     ),
     financingRequest: Joi.array().items(
       Joi.object().keys({
-        name: Joi.string(),
+        key: Joi.string(),
         value: Joi.any(),
         type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
       })
@@ -59,15 +59,15 @@ export const createDealSummary = {
     sourcesAndUses: Joi.object().keys({
       sources: Joi.array().items(
         Joi.object().keys({
-          sourceName: Joi.string(),
-          amount: Joi.string(),
+          key: Joi.string(),
+          value: Joi.string(),
           type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
       ),
       uses: Joi.array().items(
         Joi.object().keys({
-          useName: Joi.string(),
-          amount: Joi.string(),
+          key: Joi.string(),
+          value: Joi.string(),
           type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
       ),
@@ -75,7 +75,7 @@ export const createDealSummary = {
     rentRollSummary: Joi.array().items(
       Joi.array().items(
         Joi.object().keys({
-          name: Joi.string(),
+          key: Joi.string(),
           value: Joi.any(),
           type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
@@ -84,7 +84,7 @@ export const createDealSummary = {
     financialSummary: Joi.object().keys({
       revenue: Joi.array().items(
         Joi.object().keys({
-          revenueName: Joi.string(),
+          key: Joi.string(),
           stabilizedValue: Joi.string(),
           inPlaceValue: Joi.string(),
           stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
@@ -93,7 +93,7 @@ export const createDealSummary = {
       ),
       expenses: Joi.array().items(
         Joi.object().keys({
-          expenseName: Joi.string(),
+          key: Joi.string(),
           stabilizedValue: Joi.string(),
           inPlaceValue: Joi.string(),
           stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
@@ -121,7 +121,7 @@ export const updateDealSummary = {
     propertySummary: Joi.array()
       .items(
         Joi.object().keys({
-          name: Joi.string(),
+          key: Joi.string(),
           value: Joi.any(),
           type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
@@ -130,7 +130,7 @@ export const updateDealSummary = {
     dealMetrics: Joi.array()
       .items(
         Joi.object().keys({
-          name: Joi.string(),
+          key: Joi.string(),
           value: Joi.any(),
           type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
@@ -139,7 +139,7 @@ export const updateDealSummary = {
     financingRequest: Joi.array()
       .items(
         Joi.object().keys({
-          name: Joi.string(),
+          key: Joi.string(),
           value: Joi.any(),
           type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
@@ -149,15 +149,15 @@ export const updateDealSummary = {
       .keys({
         sources: Joi.array().items(
           Joi.object().keys({
-            sourceName: Joi.string(),
-            amount: Joi.string(),
+            key: Joi.string(),
+            value: Joi.string(),
             type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
           })
         ),
         uses: Joi.array().items(
           Joi.object().keys({
-            useName: Joi.string(),
-            amount: Joi.string(),
+            key: Joi.string(),
+            value: Joi.string(),
             type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
           })
         ),
@@ -167,7 +167,7 @@ export const updateDealSummary = {
       .items(
         Joi.array().items(
           Joi.object().keys({
-            name: Joi.string(),
+            key: Joi.string(),
             value: Joi.any(),
             type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
           })
@@ -178,7 +178,7 @@ export const updateDealSummary = {
       .keys({
         revenue: Joi.array().items(
           Joi.object().keys({
-            revenueName: Joi.string(),
+            key: Joi.string(),
             stabilizedValue: Joi.string(),
             inPlaceValue: Joi.string(),
             stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
@@ -187,7 +187,7 @@ export const updateDealSummary = {
         ),
         expenses: Joi.array().items(
           Joi.object().keys({
-            expenseName: Joi.string(),
+            key: Joi.string(),
             stabilizedValue: Joi.string(),
             inPlaceValue: Joi.string(),
             stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),

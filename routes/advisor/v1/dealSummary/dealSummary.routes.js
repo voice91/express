@@ -23,6 +23,16 @@ router
    * */
   .post(auth('advisor'), validate(dealSummaryValidation.createDealSummary), dealSummaryController.create);
 router
+  .route('/:dealSummaryId/update-and-download')
+  /**
+   * update-and-download DealSummary
+   * */
+  .post(
+    auth('advisor'),
+    validate(dealSummaryValidation.exportFileForDealSummary),
+    dealSummaryController.exportFileForDealSummary
+  );
+router
   .route('/:dealSummaryId')
   /**
    * getDealSummaryById
