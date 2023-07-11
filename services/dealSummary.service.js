@@ -11,7 +11,7 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
     data.value = data.value.toFixed(decimalPoint);
   }
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.CURRENCY) {
-    if (typeof data[keyToAssign] === 'string') {
+    if (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$')) {
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
     }
