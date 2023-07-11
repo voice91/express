@@ -14,7 +14,7 @@ const PhotosSchema = Joi.object().keys({
 
 // eslint-disable-next-line import/prefer-default-export
 export const importFileForDealSummary = {
-  body: Joi.object().keys({
+  query: Joi.object().keys({
     url: Joi.string().required(),
     deal: Joi.objectId().required(),
   }),

@@ -7,11 +7,11 @@ import validate from 'middlewares/validate';
 const router = express();
 
 router
-  .route('/')
+  .route('/read-data-from-excel-sheet')
   /**
    * importFileForDealSummary
    * */
-  .post(
+  .get(
     auth('advisor'),
     validate(dealSummaryValidation.importFileForDealSummary),
     dealSummaryController.importFileForDealSummary

@@ -79,17 +79,12 @@ export function dealSummeryDto(dealSummary) {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export async function importFileForDealSummary(body) {
-  const record = await importExcelFile(body.url);
+export async function importFileForDealSummary(options) {
+  const record = await importExcelFile(options.url);
 
-  record.deal = body.deal;
-  record.url = body.url;
-  record.createdBy = body.createdBy;
-  record.updatedBy = body.updatedBy;
-
-  const dealSummary = await DealSummary.create(record);
-  await Deal.findOneAndUpdate({ _id: dealSummary.deal }, { dealSummary: dealSummary._id }, { new: true });
-  return dealSummary;
+  record.url = options.url;
+  record.deal = options.deal;
+  return dealSummeryDto(record);
 }
 
 export async function updateExcelFromDealSummery(body, dealSummaryId) {
@@ -102,7 +97,9 @@ export async function createDealSummary(body) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Deal does not Exist..');
   }
   const dealSummary = await DealSummary.create(body);
-  return dealSummary;
+  await Deal.findOneAndUpdate({ _id: body.deal }, { dealSummary: dealSummary._id }, { new: true });
+
+  return dealSummeryDto(dealSummary);
 }
 
 export async function getDealSummaryById(query, options = {}) {
