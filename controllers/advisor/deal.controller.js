@@ -15,6 +15,7 @@ import config from '../../config/config';
 import ApiError from '../../utils/ApiError';
 import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
 import { detailsInDeal } from '../../utils/detailsInDeal';
+import { dealSummeryDto } from '../../services/dealSummary.service';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -68,6 +69,10 @@ export const get = catchAsync(async (req, res) => {
       updatedAt: invitation ? invitation.updatedAt : deal.createdAt,
     };
   });
+
+  if (deal.dealSummary) {
+    deal.dealSummary = dealSummeryDto(deal.dealSummary);
+  }
 
   return res.status(httpStatus.OK).send({ results: deal });
 });

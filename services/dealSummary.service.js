@@ -25,6 +25,68 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
   return data;
 }
 
+export function dealSummeryDto(dealSummary) {
+  if (dealSummary.dealMetrics) {
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.dealMetrics = dealSummary.dealMetrics.map((item) => changeData(item, 2, 'type', 'value'));
+  }
+  if (dealSummary.financingRequest) {
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.financingRequest = dealSummary.financingRequest.map((item) => changeData(item, 2, 'type', 'value'));
+  }
+  if (dealSummary.propertySummary) {
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.propertySummary = dealSummary.propertySummary.map((item) => changeData(item, 2, 'type', 'value'));
+  }
+  if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.sources) {
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.sourcesAndUses.sources = dealSummary.sourcesAndUses.sources.map((item) =>
+      changeData(item, 2, 'type', 'value')
+    );
+    const updatedSources = dealSummary.sourcesAndUses.sources.map((item) => {
+      const updateData = { sources: item.key, _id: item._id, value: item.value, type: item.type };
+      return updateData;
+    });
+    Object.assign(dealSummary.sourcesAndUses.sources, updatedSources);
+  }
+  if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.uses) {
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.sourcesAndUses.uses = dealSummary.sourcesAndUses.uses.map((item) => changeData(item, 2, 'type', 'value'));
+    const updatedUses = dealSummary.sourcesAndUses.uses.map((item) => {
+      return { uses: item.key, _id: item._id, value: item.value, type: item.type };
+    });
+    Object.assign(dealSummary.sourcesAndUses.uses, updatedUses);
+  }
+  if (dealSummary.rentRollSummary) {
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.rentRollSummary = dealSummary.rentRollSummary.map((item) =>
+      item.map((data) => changeData(data, 2, 'type', 'value'))
+    );
+  }
+  if (dealSummary.financialSummary && dealSummary.financialSummary.revenue) {
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue.map((item) =>
+      changeData(item, 2, 'inPlaceType', 'inPlaceValue')
+    );
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue.map((item) =>
+      changeData(item, 2, 'stabilizedType', 'stabilizedValue')
+    );
+  }
+  if (dealSummary.financialSummary && dealSummary.financialSummary.revenue) {
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses.map((item) =>
+      changeData(item, 2, 'inPlaceType', 'inPlaceValue')
+    );
+    // eslint-disable-next-line no-param-reassign
+    dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses.map((item) =>
+      changeData(item, 2, 'stabilizedType', 'stabilizedValue')
+    );
+  }
+
+  return dealSummary;
+}
+
 // eslint-disable-next-line import/prefer-default-export
 export async function importFileForDealSummary(body) {
   const record = await importExcelFile(body.url);
@@ -54,43 +116,10 @@ export async function createDealSummary(body) {
 
 export async function getDealSummaryById(query, options = {}) {
   const dealSummary = await DealSummary.findOne(query, options.projection, options);
-  // here we create dto. we have to move this dto to function, so we can use that at multiple places.
-  dealSummary.dealMetrics = dealSummary.dealMetrics.map((item) => changeData(item, 2, 'type', 'value'));
-  dealSummary.financingRequest = dealSummary.financingRequest.map((item) => changeData(item, 2, 'type', 'value'));
-  dealSummary.propertySummary = dealSummary.propertySummary.map((item) => changeData(item, 2, 'type', 'value'));
-
-  dealSummary.sourcesAndUses.sources = dealSummary.sourcesAndUses.sources.map((item) =>
-    changeData(item, 2, 'type', 'value')
-  );
-  const updatedSources = dealSummary.sourcesAndUses.sources.map((item) => {
-    const updateData = { sources: item.key, _id: item._id, value: item.value, type: item.type };
-    return updateData;
-  });
-  Object.assign(dealSummary.sourcesAndUses.sources, updatedSources);
-
-  dealSummary.sourcesAndUses.uses = dealSummary.sourcesAndUses.uses.map((item) => changeData(item, 2, 'type', 'value'));
-  const updatedUses = dealSummary.sourcesAndUses.uses.map((item) => {
-    return { uses: item.key, _id: item._id, value: item.value, type: item.type };
-  });
-  Object.assign(dealSummary.sourcesAndUses.uses, updatedUses);
-
-  dealSummary.rentRollSummary = dealSummary.rentRollSummary.map((item) =>
-    item.map((data) => changeData(data, 2, 'type', 'value'))
-  );
-  dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue.map((item) =>
-    changeData(item, 2, 'inPlaceType', 'inPlaceValue')
-  );
-  dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue.map((item) =>
-    changeData(item, 2, 'stabilizedType', 'stabilizedValue')
-  );
-  dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses.map((item) =>
-    changeData(item, 2, 'inPlaceType', 'inPlaceValue')
-  );
-  dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses.map((item) =>
-    changeData(item, 2, 'stabilizedType', 'stabilizedValue')
-  );
-
-  return dealSummary;
+  if (!dealSummary) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'No such Deal Summary');
+  }
+  return dealSummeryDto(dealSummary);
 }
 
 export async function updateDealSummary(filter, body, options = {}) {
