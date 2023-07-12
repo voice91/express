@@ -115,8 +115,8 @@ export const createDealSummary = {
     mainPhoto: PhotosSchema,
     otherPhotos: Joi.array().items(PhotosSchema),
     map: Joi.object().keys({
-      latitude: Joi.number(),
-      longitude: Joi.number(),
+      lat: Joi.number(),
+      lng: Joi.number(),
     }),
     documents: Joi.array().items(PhotosSchema),
   }),
@@ -209,8 +209,8 @@ export const updateDealSummary = {
     mainPhoto: PhotosSchema,
     otherPhotos: Joi.array().items(PhotosSchema),
     map: Joi.object().keys({
-      latitude: Joi.number(),
-      longitude: Joi.number(),
+      lat: Joi.number(),
+      lng: Joi.number(),
     }),
     documents: Joi.array().items(PhotosSchema),
     // TODO: Need to implement this for custom field
