@@ -183,11 +183,12 @@ const DealSummarySchema = new mongoose.Schema(
     otherPhotos: {
       type: [PhotosSchema],
     },
+    // map has two fields : lat=latitude, lng=longitude
     map: {
-      latitude: {
+      lat: {
         type: Number,
       },
-      longitude: {
+      lng: {
         type: Number,
       },
     },
