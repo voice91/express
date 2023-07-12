@@ -11,18 +11,33 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
     data.value = data.value.toFixed(decimalPoint);
   }
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.CURRENCY) {
+    // if data is in string and data not include $ than we have to convert it in num and fixed decimal point
     if (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$')) {
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
     }
-    // if (!data[keyToAssign].includes('$')) {
-    // eslint-disable-next-line no-param-reassign
-    data[keyToAssign] = `$${data[keyToAssign]}`;
-    // }
+    if (
+      typeof data[keyToAssign] !== 'string' ||
+      (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$'))
+    ) {
+      if (typeof data[keyToAssign] !== 'number' && data[keyToAssign] < 0) {
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = `$(${Math.abs(data[keyToAssign])})`;
+      } else {
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = `$${data[keyToAssign]}`;
+      }
+    }
   }
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.PERCENTAGE) {
-    // eslint-disable-next-line no-param-reassign
-    data[keyToAssign] = `${data[keyToAssign]}%`;
+    if (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('%')) {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = `${data[keyToAssign]}%`;
+    }
+    if (typeof data[keyToAssign] !== 'string') {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = `${data[keyToAssign]}%`;
+    }
   }
   return data;
 }
