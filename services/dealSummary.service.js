@@ -113,6 +113,25 @@ export async function createDealSummary(body) {
   if (!deal) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Deal does not Exist..');
   }
+  if (body.url) {
+    body.documents.push({
+      url: body.url,
+      fileName: decodeURIComponent(body.url.split('/').pop()),
+    });
+  }
+
+  if (body.documents.length) {
+    // eslint-disable-next-line no-param-reassign
+    body.documents = body.documents.map((item) => {
+      if (item.url && !item.fileName) {
+        // eslint-disable-next-line no-param-reassign
+        item.fileName = decodeURIComponent(body.url.split('/').pop());
+        return item;
+      }
+      return item;
+    });
+  }
+
   const dealSummary = await DealSummary.create(body);
   await Deal.findOneAndUpdate({ _id: body.deal }, { dealSummary: dealSummary._id }, { new: true });
 
@@ -148,6 +167,17 @@ export async function updateDealSummary(filter, body, options = {}) {
     }
   }
 
+  if (body.documents.length) {
+    // eslint-disable-next-line no-param-reassign
+    body.documents = body.documents.map((item) => {
+      if (item.url && !item.fileName) {
+        // eslint-disable-next-line no-param-reassign
+        item.fileName = decodeURIComponent(body.url.split('/').pop());
+        return item;
+      }
+      return item;
+    });
+  }
   const dealSummary = await DealSummary.findOneAndUpdate(filter, body, options);
   return dealSummary;
 }

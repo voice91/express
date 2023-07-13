@@ -102,6 +102,7 @@ export const createDealSummary = {
       ),
     }),
     executiveSummary: Joi.string(),
+    url: Joi.string(),
     dealHighLights: Joi.array().items(Joi.string()),
     marketSummary: Joi.string(),
     sponserOverview: Joi.string(),
@@ -200,6 +201,7 @@ export const updateDealSummary = {
     dealHighLights: Joi.array().items(Joi.string()).allow(''),
     marketSummary: Joi.string().allow(''),
     sponserOverview: Joi.string(),
+    url: Joi.string(),
     mainPhoto: PhotosSchema,
     otherPhotos: Joi.array().items(PhotosSchema),
     map: Joi.object().keys({
