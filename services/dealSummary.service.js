@@ -57,13 +57,15 @@ export function dealSummeryDto(dealSummary) {
   }
   if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.sources) {
     // eslint-disable-next-line no-param-reassign
-    dealSummary.sourcesAndUses.sources = dealSummary.sourcesAndUses.sources.map((item) =>
-      changeData(item, 2, 'type', 'value')
-    );
+    dealSummary.sourcesAndUses.sources = dealSummary.sourcesAndUses.sources
+      .map((item) => changeData(item, 2, 'type', 'value'))
+      .filter((item) => item.key !== 'Total Sources');
   }
   if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.uses) {
     // eslint-disable-next-line no-param-reassign
-    dealSummary.sourcesAndUses.uses = dealSummary.sourcesAndUses.uses.map((item) => changeData(item, 2, 'type', 'value'));
+    dealSummary.sourcesAndUses.uses = dealSummary.sourcesAndUses.uses
+      .map((item) => changeData(item, 2, 'type', 'value'))
+      .filter((item) => item.key !== 'Total Uses');
   }
   if (dealSummary.rentRollSummary) {
     // eslint-disable-next-line no-param-reassign
