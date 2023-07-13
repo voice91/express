@@ -6,7 +6,7 @@ import { updateExcelFromDealSummeryServices } from '../utils/updateExcelFromDeal
 import { EnumOfTypeOfValue } from '../models/enum.model';
 
 function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
-  if (data[keyToCheckType] === EnumOfTypeOfValue.NUMBER) {
+  if (typeof data[keyToAssign] === 'number') {
     if (data[keyToAssign]) {
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
@@ -39,11 +39,11 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.PERCENTAGE) {
     if (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('%')) {
       // eslint-disable-next-line no-param-reassign
-      data[keyToAssign] = `${data[keyToAssign]}%`;
+      data[keyToAssign] = `${(data[keyToAssign] * 1).toFixed(decimalPoint)}%`;
     }
     if (typeof data[keyToAssign] !== 'string') {
       // eslint-disable-next-line no-param-reassign
-      data[keyToAssign] = `${data[keyToAssign]}%`;
+      data[keyToAssign] = `${data[keyToAssign].toFixed(decimalPoint)}%`;
     }
   }
   return data;
