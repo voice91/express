@@ -6,13 +6,20 @@ import { updateExcelFromDealSummeryServices } from '../utils/updateExcelFromDeal
 import { EnumOfTypeOfValue } from '../models/enum.model';
 
 function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
-  if (decimalPoint && typeof data.value === 'number') {
-    // eslint-disable-next-line no-param-reassign
-    data.value = data.value.toFixed(decimalPoint);
+  if (data[keyToCheckType] === EnumOfTypeOfValue.NUMBER) {
+    if (data[keyToAssign]) {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
+    }
   }
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.CURRENCY) {
     // if data is in string and data not include $ than we have to convert it in num and fixed decimal point
-    if (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$')) {
+    if (typeof data[keyToAssign] === 'string') {
+      // eslint-disable-next-line no-param-reassign
+      if (data[keyToAssign].includes('$')) {
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = data[keyToAssign].split('$').pop();
+      }
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
     }
