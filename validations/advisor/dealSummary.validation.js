@@ -203,6 +203,7 @@ export const updateDealSummary = {
       })
       .allow(''),
     executiveSummary: Joi.string().allow(''),
+    url: Joi.string(),
     dealHighLights: Joi.array().items(Joi.string()).allow(''),
     marketSummary: Joi.string().allow(''),
     sponserOverview: Joi.string(),
