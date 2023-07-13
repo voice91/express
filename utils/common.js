@@ -285,3 +285,39 @@ export const CsvStatesArrayMapping = {
   WY: EnumStatesOfDeal.WYOMING,
   Nationwide: Object.values(EnumStatesOfDeal),
 };
+
+export const removeFalsyValueFromDealSummery = (body) => {
+  if (body.propertySummary) {
+    // eslint-disable-next-line no-param-reassign
+    body.propertySummary = body.propertySummary.filter((item) => item.value);
+  }
+  if (body.dealMetrics) {
+    // eslint-disable-next-line no-param-reassign
+    body.dealMetrics = body.dealMetrics.filter((item) => item.value);
+  }
+  if (body.financingRequest) {
+    // eslint-disable-next-line no-param-reassign
+    body.financingRequest = body.financingRequest.filter((item) => item.value);
+  }
+  if (body.sourcesAndUses && body.sourcesAndUses.sources) {
+    // eslint-disable-next-line no-param-reassign
+    body.sourcesAndUses.sources = body.sourcesAndUses.sources.filter((item) => item.value);
+  }
+  if (body.sourcesAndUses && body.sourcesAndUses.uses) {
+    // eslint-disable-next-line no-param-reassign
+    body.sourcesAndUses.uses = body.sourcesAndUses.uses.filter((item) => item.value);
+  }
+  if (body.financialSummary && body.financialSummary.revenue) {
+    // eslint-disable-next-line no-param-reassign
+    body.financialSummary.revenue = body.financialSummary.revenue.filter(
+      (item) => item.inPlaceValue || item.stabilizedValue
+    );
+  }
+  if (body.financialSummary && body.financialSummary.expenses) {
+    // eslint-disable-next-line no-param-reassign
+    body.financialSummary.expenses = body.financialSummary.expenses.filter(
+      (item) => item.inPlaceValue || item.stabilizedValue
+    );
+  }
+  return body;
+};

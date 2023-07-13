@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { dealSummaryService, s3Service } from '../../services';
 import { catchAsync } from '../../utils/catchAsync';
 import TempS3 from '../../models/tempS3.model';
-import { asyncForEach, encodeUrl } from '../../utils/common';
+import { asyncForEach, encodeUrl, removeFalsyValueFromDealSummery } from '../../utils/common';
 import FileFieldValidationEnum from '../../models/fileFieldValidation.model';
 
 // eslint-disable-next-line import/prefer-default-export
@@ -65,11 +65,13 @@ export const get = catchAsync(async (req, res) => {
 });
 
 export const create = catchAsync(async (req, res) => {
-  const { body } = req;
+  let { body } = req;
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
   body.user = req.user._id;
   const options = {};
+
+  body = removeFalsyValueFromDealSummery(body);
 
   const dealSummary = await dealSummaryService.createDealSummary(body, options);
 
@@ -77,7 +79,7 @@ export const create = catchAsync(async (req, res) => {
 });
 
 export const update = catchAsync(async (req, res) => {
-  const { body } = req;
+  let { body } = req;
   const { otherPhotos } = body;
   body.updatedBy = req.user;
   const { dealSummaryId } = req.params;
@@ -98,6 +100,9 @@ export const update = catchAsync(async (req, res) => {
   }
 
   const options = { new: true };
+
+  // if we have not value inside body fields than no need to create that field in db.
+  body = removeFalsyValueFromDealSummery(body);
 
   const dealSummary = await dealSummaryService.updateDealSummary(filter, body, options);
   // tempS3
