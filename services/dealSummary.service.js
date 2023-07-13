@@ -20,7 +20,7 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
       typeof data[keyToAssign] !== 'string' ||
       (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$'))
     ) {
-      if (typeof data[keyToAssign] !== 'number' && data[keyToAssign] < 0) {
+      if (typeof data[keyToAssign] === 'number' && data[keyToAssign] < 0) {
         // eslint-disable-next-line no-param-reassign
         data[keyToAssign] = `$(${Math.abs(data[keyToAssign])})`;
       } else {
