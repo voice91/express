@@ -14,7 +14,8 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
   }
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.CURRENCY) {
     // if data is in string and data not include $ than we have to convert it in num and fixed decimal point
-    if (typeof data[keyToAssign] === 'string') {
+    // todo: fix below condition in more efficient way in future
+    if (typeof data[keyToAssign] === 'string' && !(data[keyToAssign].includes('(') && data[keyToAssign].includes(')'))) {
       // eslint-disable-next-line no-param-reassign
       if (data[keyToAssign].includes('$')) {
         // eslint-disable-next-line no-param-reassign
