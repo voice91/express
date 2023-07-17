@@ -5,6 +5,10 @@ import ApiError from '../utils/ApiError';
 import { updateExcelFromDealSummeryServices } from '../utils/updateExcelFromDealSummeryServices';
 import { EnumOfTypeOfValue } from '../models/enum.model';
 
+function addCommaSeparators(value) {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
   if (typeof data[keyToAssign] === 'number') {
     if (data[keyToAssign]) {
@@ -13,9 +17,13 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
     }
   }
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.CURRENCY) {
+    if (typeof data[keyToAssign] === 'string' && data[keyToAssign].includes(',')) {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = data[keyToAssign].replace(/,/g, '');
+    }
     // if data is in string and data not include $ than we have to convert it in num and fixed decimal point
     // todo: fix below condition in more efficient way in future
-    if (typeof data[keyToAssign] === 'string' && !(data[keyToAssign].includes('(') && data[keyToAssign].includes(')'))) {
+    if (typeof data[keyToAssign] === 'string' && !/[,()]/.test(data[keyToAssign])) {
       // eslint-disable-next-line no-param-reassign
       if (data[keyToAssign].includes('$')) {
         // eslint-disable-next-line no-param-reassign
@@ -24,9 +32,14 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
     }
+    // Check if the value of data[keyToAssign] is not a string
+    // OR
+    // Check if the value of data[keyToAssign] is a string, but it does not contain a '$' character
+    // AND
+    // Check if the value of data[keyToAssign] is not one of the following: '(', ',', '('
     if (
       typeof data[keyToAssign] !== 'string' ||
-      (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$'))
+      (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$') && !/[%,$()]/.test(data[keyToAssign]))
     ) {
       // eslint-disable-next-line no-param-reassign,operator-assignment
       data[keyToAssign] = data[keyToAssign] * 1;
@@ -40,7 +53,15 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
     }
   }
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.PERCENTAGE) {
-    if (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('%')) {
+    if (typeof data[keyToAssign] === 'string' && data[keyToAssign].includes(',')) {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = data[keyToAssign].replace(/,/g, '');
+    }
+    if (typeof data[keyToAssign] === 'string' && !/[,()]/.test(data[keyToAssign])) {
+      if (data[keyToAssign].includes('%')) {
+        // eslint-disable-next-line no-param-reassign,prefer-destructuring
+        data[keyToAssign] = data[keyToAssign].split('%')[0];
+      }
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = `${(data[keyToAssign] * 1).toFixed(decimalPoint)}%`;
     }
@@ -49,59 +70,109 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
       data[keyToAssign] = `${data[keyToAssign].toFixed(decimalPoint)}%`;
     }
   }
+
+  // adding comma separator at the end in all ammount section
+  if (data[keyToCheckType] !== EnumOfTypeOfValue.STRING) {
+    if (typeof data[keyToAssign] === 'string') {
+      if (data[keyToAssign].includes('$') && !/[,()%]/.test(data[keyToAssign])) {
+        // Removing the dollar sign, if present
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = data[keyToAssign].replace('$', '');
+        // Parsing the value as a number
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = parseFloat(data[keyToAssign]).toFixed(decimalPoint);
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+
+        // Adding the dollar sign back
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = `$${data[keyToAssign]}`;
+      } else if (data[keyToAssign].includes('%') && !/[,()%]/.test(data[keyToAssign])) {
+        // Removing the dollar sign, if present
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = data[keyToAssign].replace('%', '');
+        // Parsing the value as a number
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = parseFloat(data[keyToAssign]).toFixed(decimalPoint);
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+
+        // Adding the dollar sign back
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = `${data[keyToAssign]}%`;
+      } else {
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+      }
+    }
+  }
+
   return data;
 }
 
 export function dealSummeryDto(dealSummary) {
   if (dealSummary.dealMetrics) {
     // eslint-disable-next-line no-param-reassign
-    dealSummary.dealMetrics = dealSummary.dealMetrics.map((item) => changeData(item, 2, 'type', 'value'));
+    dealSummary.dealMetrics = dealSummary.dealMetrics.map((item) => {
+      if (['Stabilized DY', 'Estimated LTV'].includes(item.key)) {
+        return changeData(item, 1, 'type', 'value');
+      }
+      if (['Stabilized DSCR'].includes(item.key)) {
+        if (typeof item.value === 'string' && item.value.includes('x')) {
+          return item;
+        }
+        const convertedData = changeData(item, 2, 'type', 'value');
+        convertedData.value = `${convertedData.value}x`;
+        return convertedData;
+      }
+      return changeData(item, 0, 'type', 'value');
+    });
   }
   if (dealSummary.financingRequest) {
     // eslint-disable-next-line no-param-reassign
-    dealSummary.financingRequest = dealSummary.financingRequest.map((item) => changeData(item, 2, 'type', 'value'));
+    dealSummary.financingRequest = dealSummary.financingRequest.map((item) => changeData(item, 0, 'type', 'value'));
   }
   if (dealSummary.propertySummary) {
     // eslint-disable-next-line no-param-reassign
-    dealSummary.propertySummary = dealSummary.propertySummary.map((item) => changeData(item, 2, 'type', 'value'));
+    dealSummary.propertySummary = dealSummary.propertySummary.map((item) => changeData(item, 0, 'type', 'value'));
   }
   if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.sources) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.sourcesAndUses.sources = dealSummary.sourcesAndUses.sources
-      .map((item) => changeData(item, 2, 'type', 'value'))
+      .map((item) => changeData(item, 0, 'type', 'value'))
       .filter((item) => item.key !== 'Total Sources');
   }
   if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.uses) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.sourcesAndUses.uses = dealSummary.sourcesAndUses.uses
-      .map((item) => changeData(item, 2, 'type', 'value'))
+      .map((item) => changeData(item, 0, 'type', 'value'))
       .filter((item) => item.key !== 'Total Uses');
   }
   if (dealSummary.rentRollSummary) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.rentRollSummary = dealSummary.rentRollSummary.map((item) =>
-      item.map((data) => changeData(data, 2, 'type', 'value'))
+      item.map((data) => changeData(data, 0, 'type', 'value'))
     );
   }
   if (dealSummary.financialSummary && dealSummary.financialSummary.revenue) {
     // eslint-disable-next-line no-param-reassign
-    dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue.map((item) =>
-      changeData(item, 2, 'inPlaceType', 'inPlaceValue')
-    );
+    dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue
+      .map((item) => changeData(item, 0, 'inPlaceType', 'inPlaceValue'))
+      .filter((data) => data.key !== 'Effective Gross Income');
     // eslint-disable-next-line no-param-reassign
-    dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue.map((item) =>
-      changeData(item, 2, 'stabilizedType', 'stabilizedValue')
-    );
+    dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue
+      .map((item) => changeData(item, 0, 'stabilizedType', 'stabilizedValue'))
+      .filter((data) => data.key !== 'Effective Gross Income');
   }
-  if (dealSummary.financialSummary && dealSummary.financialSummary.revenue) {
+  if (dealSummary.financialSummary && dealSummary.financialSummary.expenses) {
     // eslint-disable-next-line no-param-reassign
-    dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses.map((item) =>
-      changeData(item, 2, 'inPlaceType', 'inPlaceValue')
-    );
+    dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses
+      .map((item) => changeData(item, 0, 'inPlaceType', 'inPlaceValue'))
+      .filter((data) => data.key !== 'Total Operating Expneses');
     // eslint-disable-next-line no-param-reassign
-    dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses.map((item) =>
-      changeData(item, 2, 'stabilizedType', 'stabilizedValue')
-    );
+    dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses
+      .map((item) => changeData(item, 0, 'stabilizedType', 'stabilizedValue'))
+      .filter((data) => data.key !== 'Total Operating Expneses');
   }
 
   return dealSummary;
