@@ -501,7 +501,7 @@ export const importExcelFile = async (url) => {
     data.sourcesAndUses = sourcesAndUses;
     data.rentRollSummary = rentRollSummary;
     data.financialSummary = financialSummary;
-    // checks for the amount of Loan for sources ,
+    // Validates the consistency of the requested loan amount across Sources, Deal Metrics and Financing Request
     validateLoanAmount(data);
     return data;
   } catch (error) {

@@ -84,6 +84,7 @@ export const create = catchAsync(async (req, res) => {
 
   // if we have not value inside body fields than no need to create that field in db.
   body = removeFalsyValueFromDealSummery(body);
+  // Validates the consistency of the requested loan amount across Sources, Deal Metrics and Financing Request
   validateLoanAmount(body);
   const dealSummary = await dealSummaryService.createDealSummary(body, options);
 
@@ -96,6 +97,7 @@ export const update = catchAsync(async (req, res) => {
   body.updatedBy = req.user;
   const { dealSummaryId } = req.params;
   const { user } = req;
+  // Validates the consistency of the requested loan amount across Sources, Deal Metrics and Financing Request
   validateLoanAmount(body);
   const moveFileObj = {
     ...(body.otherPhotos && { otherPhotos: body.otherPhotos.map((item) => item.url) }),
