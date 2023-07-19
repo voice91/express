@@ -326,6 +326,12 @@ function findValueFromGivenTableForPArticularKey(table, key) {
   return result ? result.value : false;
 }
 
+// when key is not fixed , so we are passing keys array contains possible values of key
+function findValueFromSourcesForParticularKey(table, keys) {
+  const result = table.find((item) => item.key && keys.includes(item.key));
+  return result ? result.value : false;
+}
+
 /**
  * Validates the consistency of the requested loan amount across different parts of the data.
  * @param {object} data - The data object containing financingRequest, dealMetrics, and sourcesAndUses properties.
@@ -350,7 +356,10 @@ export const validateLoanAmount = (data) => {
       'Requested Loan Amount'
     );
 
-    const seniorLoanAmount = findValueFromGivenTableForPArticularKey(data.sourcesAndUses.sources, 'Senior Loan');
+    const seniorLoanAmount = findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
+      'Senior Loan',
+      'Loan Amount',
+    ]);
 
     if (
       (requestLoanAmountInFinancingRequest &&
@@ -359,7 +368,7 @@ export const validateLoanAmount = (data) => {
       (requestLoanAmountInFinancingRequest && seniorLoanAmount && requestLoanAmountInFinancingRequest !== seniorLoanAmount)
     ) {
       throw new Error(
-        "'Requested Loan Amount' of deal metrics or financing request values are not the same with 'Senior Loan'."
+        'Requested Loan Amount value in the deal metrics or financing request do not match the Loan Amount specified in the source.'
       );
     }
   } else if (data.financingRequest.length && data.dealMetrics.length) {
@@ -393,14 +402,17 @@ export const validateLoanAmount = (data) => {
       'Requested Loan Amount'
     );
 
-    const seniorLoanAmount = findValueFromGivenTableForPArticularKey(data.sourcesAndUses.sources, 'Senior Loan');
+    const seniorLoanAmount = findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
+      'Senior Loan',
+      'Loan Amount',
+    ]);
 
     if (
       requestLoanAmountInFinancingRequest &&
       seniorLoanAmount &&
       requestLoanAmountInFinancingRequest !== seniorLoanAmount
     ) {
-      throw new Error("'Requested Loan Amount' are not the same with 'Senior Loan'.");
+      throw new Error("The 'Requested Loan Amount' differs from the Loan Amount provided in the source.");
     }
   } else if (
     data.dealMetrics.length &&
@@ -412,9 +424,12 @@ export const validateLoanAmount = (data) => {
       data.dealMetrics,
       'Requested Loan Amount'
     );
-    const seniorLoanAmount = findValueFromGivenTableForPArticularKey(data.sourcesAndUses.sources, 'Senior Loan');
+    const seniorLoanAmount = findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
+      'Senior Loan',
+      'Loan Amount',
+    ]);
     if (requestLoanAmountInDealMetrics && seniorLoanAmount && requestLoanAmountInDealMetrics !== seniorLoanAmount) {
-      throw new Error('Requested Loan Amount of deal metrics are not the same with Senior Loan.');
+      throw new Error('Requested Loan Amount of deal metrics is not the same with Loan Amount in source.');
     }
   }
 };
