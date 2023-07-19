@@ -321,3 +321,100 @@ export const removeFalsyValueFromDealSummery = (body) => {
   }
   return body;
 };
+function findValueFromGivenTableForPArticularKey(table, key) {
+  const result = table.find((item) => item.key && item.key === key);
+  return result ? result.value : false;
+}
+
+/**
+ * Validates the consistency of the requested loan amount across different parts of the data.
+ * @param {object} data - The data object containing financingRequest, dealMetrics, and sourcesAndUses properties.
+ * @throws {Error} Throws an error if the requested loan amount values are inconsistent.
+ */
+export const validateLoanAmount = (data) => {
+  if (
+    data.financingRequest.length &&
+    data.dealMetrics.length &&
+    Object.keys(data.sourcesAndUses).length &&
+    data.sourcesAndUses.sources &&
+    data.sourcesAndUses.sources.length
+  ) {
+    // check key is available in given table if not. if available that we are assign in variables that is outside comments
+    const requestLoanAmountInFinancingRequest = findValueFromGivenTableForPArticularKey(
+      data.financingRequest,
+      'Requested Loan Amount'
+    );
+
+    const requestLoanAmountInDealMetrics = findValueFromGivenTableForPArticularKey(
+      data.dealMetrics,
+      'Requested Loan Amount'
+    );
+
+    const seniorLoanAmount = findValueFromGivenTableForPArticularKey(data.sourcesAndUses.sources, 'Senior Loan');
+
+    if (
+      (requestLoanAmountInFinancingRequest &&
+        requestLoanAmountInDealMetrics &&
+        requestLoanAmountInFinancingRequest !== requestLoanAmountInDealMetrics) ||
+      (requestLoanAmountInFinancingRequest && seniorLoanAmount && requestLoanAmountInFinancingRequest !== seniorLoanAmount)
+    ) {
+      throw new Error(
+        "'Requested Loan Amount' of deal metrics or financing request values are not the same with 'Senior Loan'."
+      );
+    }
+  } else if (data.financingRequest.length && data.dealMetrics.length) {
+    // check key is available in given table if not. if available that we are assign in variables that is outside comments
+    const requestLoanAmountInFinancingRequest = findValueFromGivenTableForPArticularKey(
+      data.financingRequest,
+      'Requested Loan Amount'
+    );
+
+    const requestLoanAmountInDealMetrics = findValueFromGivenTableForPArticularKey(
+      data.dealMetrics,
+      'Requested Loan Amount'
+    );
+
+    if (
+      requestLoanAmountInFinancingRequest &&
+      requestLoanAmountInDealMetrics &&
+      requestLoanAmountInFinancingRequest !== requestLoanAmountInDealMetrics
+    ) {
+      throw new Error("'Requested Loan Amount' of financing request values are not the same ");
+    }
+  } else if (
+    data.financingRequest.length &&
+    Object.keys(data.sourcesAndUses).length &&
+    data.sourcesAndUses.sources &&
+    data.sourcesAndUses.sources.length
+  ) {
+    // check key is available in given table if not. if available that we are assign in variables that is outside comments
+    const requestLoanAmountInFinancingRequest = findValueFromGivenTableForPArticularKey(
+      data.financingRequest,
+      'Requested Loan Amount'
+    );
+
+    const seniorLoanAmount = findValueFromGivenTableForPArticularKey(data.sourcesAndUses.sources, 'Senior Loan');
+
+    if (
+      requestLoanAmountInFinancingRequest &&
+      seniorLoanAmount &&
+      requestLoanAmountInFinancingRequest !== seniorLoanAmount
+    ) {
+      throw new Error("'Requested Loan Amount' are not the same with 'Senior Loan'.");
+    }
+  } else if (
+    data.dealMetrics.length &&
+    Object.keys(data.sourcesAndUses).length &&
+    data.sourcesAndUses.sources &&
+    data.sourcesAndUses.sources.length
+  ) {
+    const requestLoanAmountInDealMetrics = findValueFromGivenTableForPArticularKey(
+      data.dealMetrics,
+      'Requested Loan Amount'
+    );
+    const seniorLoanAmount = findValueFromGivenTableForPArticularKey(data.sourcesAndUses.sources, 'Senior Loan');
+    if (requestLoanAmountInDealMetrics && seniorLoanAmount && requestLoanAmountInDealMetrics !== seniorLoanAmount) {
+      throw new Error('Requested Loan Amount of deal metrics are not the same with Senior Loan.');
+    }
+  }
+};

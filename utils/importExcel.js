@@ -2,6 +2,7 @@ import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
 import { logger } from '../config/logger';
 import { EnumOfTypeOfValue } from '../models/enum.model';
+import { validateLoanAmount } from './common';
 
 const axios = require('axios');
 const ExcelJS = require('exceljs');
@@ -11,9 +12,12 @@ const math = require('mathjs');
 
 const workbook = new ExcelJS.Workbook();
 
-function formatMathFormulaFormValue(val) {
+function formatMathFormulaFormValue({ val, key, tableName }) {
   if (val && typeof val === 'object') {
     if (val.formula) {
+      if (val.result && val.result.error) {
+        throw new Error(`Error in dataSheet in table "${tableName}" in key "${key}" : ${val.result.error}`);
+      }
       const expression = val.formula.replace(val.formula, val.result);
       return math.evaluate(expression);
     }
@@ -73,7 +77,7 @@ export const importExcelFile = async (url) => {
             const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
             // eslint-disable-next-line no-shadow
             const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            const result = formatMathFormulaFormValue(value.value);
+            const result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Property Summary' });
             if (result) {
               property.type = typeOfValue(result, '');
             }
@@ -99,7 +103,7 @@ export const importExcelFile = async (url) => {
             const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
             // eslint-disable-next-line no-shadow
             const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            let result = formatMathFormulaFormValue(value.value);
+            let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Deal Metrics' });
             if (result) {
               metrics.type = typeOfValue(result, value.numFmt);
             }
@@ -130,7 +134,7 @@ export const importExcelFile = async (url) => {
             const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
             // eslint-disable-next-line no-shadow
             const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            let result = formatMathFormulaFormValue(value.value);
+            let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Financing Request' });
             if (result) {
               financeRequest.type = typeOfValue(result, value.numFmt);
             }
@@ -162,7 +166,11 @@ export const importExcelFile = async (url) => {
             const sourceObj = {};
             const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
             const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            let valueResult = formatMathFormulaFormValue(value.value);
+            let valueResult = formatMathFormulaFormValue({
+              val: value.value,
+              key: key.value,
+              tableName: 'Sources and Uses',
+            });
 
             if (key.value) {
               if (key.value !== 'Sources') {
@@ -200,7 +208,7 @@ export const importExcelFile = async (url) => {
               const key = excelSheetData.getCell(currentCellForUses.row + 1, currentCellForUses.col);
 
               const value = excelSheetData.getCell(currentCellForUses.row + 1, currentCellForUses.col + 1);
-              let valueResult = formatMathFormulaFormValue(value.value);
+              let valueResult = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Uses' });
 
               if (valueResult) {
                 usesObj.type = typeOfValue(valueResult, value.numFmt);
@@ -247,7 +255,7 @@ export const importExcelFile = async (url) => {
             const data = {};
             const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
             const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            let result = formatMathFormulaFormValue(value.value);
+            let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Financial Summary' });
 
             if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
               data.key = key.value;
@@ -321,7 +329,7 @@ export const importExcelFile = async (url) => {
               const expenseData = {};
               const key = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
               const value = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 1);
-              let result = formatMathFormulaFormValue(value.value);
+              let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Expenses' });
 
               if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
                 expenseData.key = key.value;
@@ -348,7 +356,11 @@ export const importExcelFile = async (url) => {
                 }
                 if (headerTwo.value && headerTwo.value === 'Stabilized') {
                   const valueOfSecond = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
-                  expenseData.stabilizedValue = formatMathFormulaFormValue(valueOfSecond.value);
+                  expenseData.stabilizedValue = formatMathFormulaFormValue({
+                    val: valueOfSecond.value,
+                    key: key.value,
+                    tableName: 'Stabilized',
+                  });
 
                   if (valueOfSecond.numFmt) {
                     if (expenseData.stabilizedValue) {
@@ -360,7 +372,11 @@ export const importExcelFile = async (url) => {
                   }
                 } else if (headerTwo.value && headerTwo.value === 'In-Place') {
                   const valueOfSecond = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
-                  expenseData.inPlaceValue = formatMathFormulaFormValue(valueOfSecond.value);
+                  expenseData.inPlaceValue = formatMathFormulaFormValue({
+                    val: valueOfSecond.value,
+                    key: key.value,
+                    tableName: 'In-Place',
+                  });
                   if (valueOfSecond.numFmt) {
                     if (expenseData.inPlaceValue) {
                       expenseData.inPlaceType = typeOfValue(expenseData.inPlaceValue, valueOfSecond.numFmt);
@@ -441,7 +457,11 @@ export const importExcelFile = async (url) => {
             for (let i = 0; i < columnHeaders.length; i++) {
               const rentRollData = {};
               const columnValueCell = excelSheetData.getCell(dataRow, currentCell.col + i);
-              let columnValue = formatMathFormulaFormValue(columnValueCell.value);
+              let columnValue = formatMathFormulaFormValue({
+                val: columnValueCell.value,
+                key: 'Rent Roll',
+                tableName: 'Rent Roll',
+              });
               if (columnValue !== 'Type' && columnValue !== null) {
                 rowData[columnHeaders[i]] = columnValue;
                 rentRollData.key = columnHeaders[i];
@@ -481,9 +501,11 @@ export const importExcelFile = async (url) => {
     data.sourcesAndUses = sourcesAndUses;
     data.rentRollSummary = rentRollSummary;
     data.financialSummary = financialSummary;
+    // checks for the amount of Loan for sources ,
+    validateLoanAmount(data);
     return data;
   } catch (error) {
-    logger.error(error);
-    throw new ApiError(httpStatus.BAD_REQUEST, `Failed to read XLSheet ${error}`);
+    logger.error(error.message);
+    throw new ApiError(httpStatus.BAD_REQUEST, `Failed to read XLSheet: ${error.message}`);
   }
 };
