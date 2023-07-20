@@ -339,8 +339,11 @@ function findValueFromSourcesForParticularKey(table, keys) {
  */
 export const validateLoanAmount = (data) => {
   if (
+    data.financingRequest &&
     data.financingRequest.length &&
+    data.dealMetrics &&
     data.dealMetrics.length &&
+    data.sourcesAndUses &&
     Object.keys(data.sourcesAndUses).length &&
     data.sourcesAndUses.sources &&
     data.sourcesAndUses.sources.length
@@ -371,7 +374,7 @@ export const validateLoanAmount = (data) => {
         'Requested Loan Amount value in the deal metrics or financing request do not match the Loan Amount specified in the source.'
       );
     }
-  } else if (data.financingRequest.length && data.dealMetrics.length) {
+  } else if (data.financingRequest && data.financingRequest.length && data.dealMetrics && data.dealMetrics.length) {
     // check key is available in given table if not. if available that we are assign in variables that is outside comments
     const requestLoanAmountInFinancingRequest = findValueFromGivenTableForPArticularKey(
       data.financingRequest,
@@ -391,7 +394,9 @@ export const validateLoanAmount = (data) => {
       throw new Error("'Requested Loan Amount' of financing request values are not the same ");
     }
   } else if (
+    data.financingRequest &&
     data.financingRequest.length &&
+    data.sourcesAndUses &&
     Object.keys(data.sourcesAndUses).length &&
     data.sourcesAndUses.sources &&
     data.sourcesAndUses.sources.length
@@ -415,7 +420,9 @@ export const validateLoanAmount = (data) => {
       throw new Error("The 'Requested Loan Amount' differs from the Loan Amount provided in the source.");
     }
   } else if (
+    data.dealMetrics &&
     data.dealMetrics.length &&
+    data.sourcesAndUses &&
     Object.keys(data.sourcesAndUses).length &&
     data.sourcesAndUses.sources &&
     data.sourcesAndUses.sources.length
