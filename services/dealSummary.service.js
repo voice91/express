@@ -203,7 +203,7 @@ export async function createDealSummary(body) {
     });
   }
 
-  if (body.documents.length) {
+  if (body.documents && body.documents.length) {
     // eslint-disable-next-line no-param-reassign
     body.documents = body.documents.map((item) => {
       if (item.url && !item.fileName) {

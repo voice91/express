@@ -119,6 +119,53 @@ export const createDealSummary = {
       lng: Joi.number(),
     }),
     documents: Joi.array().items(PhotosSchema),
+    /**
+     * if type is bullet then in the response bulletPoints is required ,
+     * if type is text then in the response text is required ,
+     * if type is bulletText then in the response bulletPoints and text are required ,
+     * if type is file then in the response fileUrl and fileName are required ,
+     */
+    dynamicField: Joi.array().items(
+      Joi.object().keys({
+        name: Joi.string().required(),
+        type: Joi.string()
+          .valid(...Object.values(enumFields.EnumOfDynamicFieldType))
+          .required(),
+        response: Joi.object()
+          .when('type', {
+            is: enumFields.EnumOfDynamicFieldType.BULLET,
+            then: Joi.object({
+              bulletPoints: Joi.array().items(Joi.string()).min(1).required(),
+            }).required(),
+            otherwise: Joi.object().when('type', {
+              is: enumFields.EnumOfDynamicFieldType.TEXT,
+              then: Joi.object({
+                bulletPoints: Joi.optional(),
+                text: Joi.string().required(),
+              }).required(),
+              otherwise: Joi.object().when('type', {
+                is: enumFields.EnumOfDynamicFieldType.BULLET_TEXT,
+                then: Joi.object({
+                  bulletPoints: Joi.array().items(Joi.string()).min(1).required(),
+                  text: Joi.string().required(),
+                }).required(),
+                otherwise: Joi.object().when('type', {
+                  is: enumFields.EnumOfDynamicFieldType.FILE,
+                  then: Joi.object({
+                    bulletPoints: Joi.optional(),
+                    fileUrl: Joi.string().uri().required(),
+                    fileName: Joi.string().required(),
+                  }).required(),
+                }),
+              }),
+            }),
+          })
+          .required(),
+        sectionName: Joi.string().valid(...Object.values(enumFields.EnumOfSectionName)),
+        index: Joi.number(),
+      })
+    ),
+    isDealSummaryAddedFromDeal: Joi.boolean(),
   }),
 };
 
@@ -214,25 +261,53 @@ export const updateDealSummary = {
       lng: Joi.number(),
     }),
     documents: Joi.array().items(PhotosSchema),
-    // TODO: Need to implement this for custom field
-    // dynamicField: Joi.array().items(
-    //   Joi.object().keys({
-    //     name: Joi.string(),
-    //     type: Joi.string().valid(...Object.values(enumFields.EnumOfDynamicFieldType)),
-    //     options: Joi.array().items(
-    //       Joi.object().keys({
-    //         name: Joi.string(),
-    //         value: Joi.any(),
-    //       })
-    //     ),
-    //   })
-    // ),
-    // dynamicResponseField: Joi.array().items(
-    //   Joi.object().keys({
-    //     dynamicFieldId: Joi.objectId(),
-    //     response: Joi.any(),
-    //   })
-    // ),
+    /**
+     * if type is bullet then in the response bulletPoints is required ,
+     * if type is text then in the response text is required ,
+     * if type is bulletText then in the response bulletPoints and text are required ,
+     * if type is file then in the response fileUrl and fileName are required ,
+     */
+    dynamicField: Joi.array().items(
+      Joi.object().keys({
+        name: Joi.string().required(),
+        type: Joi.string()
+          .valid(...Object.values(enumFields.EnumOfDynamicFieldType))
+          .required(),
+        response: Joi.object()
+          .when('type', {
+            is: enumFields.EnumOfDynamicFieldType.BULLET,
+            then: Joi.object({
+              bulletPoints: Joi.array().items(Joi.string()).min(1).required(),
+            }).required(),
+            otherwise: Joi.object().when('type', {
+              is: enumFields.EnumOfDynamicFieldType.TEXT,
+              then: Joi.object({
+                bulletPoints: Joi.optional(),
+                text: Joi.string().required(),
+              }).required(),
+              otherwise: Joi.object().when('type', {
+                is: enumFields.EnumOfDynamicFieldType.BULLET_TEXT,
+                then: Joi.object({
+                  bulletPoints: Joi.array().items(Joi.string()).min(1).required(),
+                  text: Joi.string().required(),
+                }).required(),
+                otherwise: Joi.object().when('type', {
+                  is: enumFields.EnumOfDynamicFieldType.FILE,
+                  then: Joi.object({
+                    bulletPoints: Joi.optional(),
+                    fileUrl: Joi.string().uri().required(),
+                    fileName: Joi.string().required(),
+                  }).required(),
+                }),
+              }),
+            }),
+          })
+          .required(),
+        sectionName: Joi.string().valid(...Object.values(enumFields.EnumOfSectionName)),
+        index: Joi.number(),
+      })
+    ),
+    isDealSummaryAddedFromDeal: Joi.boolean(),
   }),
   params: Joi.object().keys({
     dealSummaryId: Joi.objectId().required(),

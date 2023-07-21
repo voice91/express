@@ -195,28 +195,36 @@ const DealSummarySchema = new mongoose.Schema(
     documents: {
       type: [PhotosSchema],
     },
-    // TODO : Need to implement this for custom Field
-    // dynamicField: [
-    //   {
-    //     name: String,
-    //     type: {
-    //       type: String,
-    //       enum: Object.values(enumModel.EnumOfDynamicFieldType),
-    //     },
-    //     options: [
-    //       {
-    //         name: String,
-    //         value: Schema.Types.Mixed,
-    //       },
-    //     ],
-    //   },
-    // ],
-    // dynamicResponseField: [
-    //   {
-    //     dynamicFieldId: mongoose.Schema.Types.ObjectId,
-    //     response: Schema.Types.Mixed,
-    //   },
-    // ],
+    dynamicField: [
+      {
+        name: String,
+        type: {
+          type: String,
+          enum: Object.values(enumModel.EnumOfDynamicFieldType),
+        },
+        response: {
+          bulletPoints: [String],
+          text: String,
+          fileUrl: String,
+          fileName: String,
+        },
+        // 'sectionName' property is a string representing the name of the section at below dynamicField added.
+        sectionName: {
+          type: String,
+          enum: Object.values(enumModel.EnumOfSectionName),
+        },
+        // 'index' property is a number representing the index of the dynamic field from above section.
+        // index is used to get the orders of the dynamic fields from the particular section , if same sectionName come then index will be increase by one.
+        index: {
+          type: Number,
+        },
+      },
+    ],
+    // this is used to indicate dealSummary is created along with deal or not.
+    isDealSummaryAddedFromDeal: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
