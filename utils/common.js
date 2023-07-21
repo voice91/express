@@ -440,3 +440,25 @@ export const validateLoanAmount = (data) => {
     }
   }
 };
+
+/**
+ * Add an index to each entry in the customBlocks array and organize them based on their sectionName.
+ * checks for index, if sectionName not available in the indexMap then it starts from 0 , else increase index by 1
+ * @param {Array} customBlocks - An array of objects representing dynamic fields.
+ * @returns {Array} - An array of objects with added index.
+ */
+export const addIndexForCustomBlocks = (customBlocks) => {
+  const indexMap = {};
+  const customBlocksWithIndex = [];
+
+  customBlocks.forEach((block) => {
+    const { sectionName } = block;
+    // here checks for index, if sectionName not available in the indexMap then it starts from 0 , else increase index by 1.
+    if (!indexMap[sectionName]) {
+      indexMap[sectionName] = 0;
+    }
+    customBlocksWithIndex.push({ ...block, index: indexMap[sectionName] });
+    indexMap[sectionName] += 1;
+  });
+  return customBlocksWithIndex;
+};

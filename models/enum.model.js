@@ -265,6 +265,15 @@ const EnumOfTypeOfValue = {
   CURRENCY: 'currency',
   PERCENTAGE: 'percentage',
 };
+const EnumOfSectionName = {
+  PROPERTY_SUMMARY: 'propertySummary',
+  DEAL_METRICS: 'dealMetrics',
+  FINANCING_REQUEST: 'financingRequest',
+  SOURCES_AND_USES: 'sourcesAndUses',
+  RENT_ROLL_SUMMARY: 'rentRollSummary',
+  FINANCIAL_SUMMARY: 'financialSummary',
+  DOCUMENTS: 'documents',
+};
 
 module.exports = {
   EnumPrePaymentTypeOfTerms,
@@ -295,4 +304,5 @@ module.exports = {
   defaulAssetTypeOfDeal,
   EnumOfDynamicFieldType,
   EnumOfTypeOfValue,
+  EnumOfSectionName,
 };
