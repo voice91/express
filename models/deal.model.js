@@ -188,6 +188,15 @@ const DealSchema = new mongoose.Schema(
       max: enumModel.EnumStageOfDeal.length,
       default: 5,
     },
+    squareFootage: {
+      type: Number,
+    },
+    unitCount: {
+      type: Number,
+    },
+    occupancy: {
+      type: Number,
+    },
     details: {
       type: String,
       default: 'Waiting on initial information needed from borrower',

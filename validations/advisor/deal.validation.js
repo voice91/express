@@ -16,6 +16,10 @@ const involvedUsersEmbed = Joi.object().keys({
   borrowers: Joi.array().items(Joi.objectId()),
   advisors: Joi.array().items(Joi.objectId()),
 });
+const photoSchema = Joi.object().keys({
+  url: Joi.string(),
+  fileName: Joi.string(),
+});
 export const createDeal = {
   body: Joi.object().keys({
     dealName: Joi.string().required(),
@@ -45,6 +49,33 @@ export const createDeal = {
     lenderPlacement: Joi.array().items(Joi.objectId()),
     documents: Joi.array().items(Joi.objectId()),
     dealSummary: Joi.objectId(),
+    squareFootage: Joi.number(),
+    unitCount: Joi.number(),
+    occupancy: Joi.number(),
+    dealSummaryBody: Joi.object({
+      mainPhoto: photoSchema,
+      propertySummary: Joi.array().items(
+        Joi.object({
+          key: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+      financingRequest: Joi.array().items(
+        Joi.object({
+          key: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+      dealMetrics: Joi.array().items(
+        Joi.object({
+          key: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+    }),
   }),
 };
 
@@ -69,6 +100,9 @@ export const updateDeal = {
     dealNotes: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.array().items(Joi.objectId()),
     documents: Joi.array().items(Joi.objectId()),
+    squareFootage: Joi.number(),
+    unitCount: Joi.number(),
+    occupancy: Joi.number(),
   }),
   params: Joi.object().keys({
     dealId: Joi.objectId().required(),

@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { activityLogService, dealService } from 'services';
+import { activityLogService, dealService, dealSummaryService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
@@ -150,13 +150,23 @@ export const create = catchAsync(async (req, res) => {
     dealName: body.dealName,
   };
   const options = {};
-
+  const { dealSummaryBody } = body;
+  delete body.dealSummary;
   const dealName = await Deal.findOne(filter);
   if (dealName) {
     throw new ApiError(httpStatus.BAD_REQUEST, `DealName Already Exists..!!`);
   }
   const deal = await dealService.createDeal(body, options);
 
+  if (dealSummaryBody) {
+    Object.assign(dealSummaryBody, {
+      deal: deal._id,
+      isDealSummaryAddedFromDeal: true,
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+    });
+    await dealSummaryService.createDealSummary(dealSummaryBody);
+  }
   // here we create activity logs
   // with deal id , and other data as user is this
   const createActivityLogbody = {

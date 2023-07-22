@@ -196,12 +196,13 @@ export async function createDealSummary(body) {
   if (!deal) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Deal does not Exist..');
   }
-  if (body.url) {
-    body.documents.push({
-      url: body.url,
-      fileName: decodeURIComponent(body.url.split('/').pop()),
-    });
-  }
+  // todo: below code commented as per FE requirements as of now, because already passing url and fileName in documents Array
+  // if (body.url) {
+  //   body.documents.push({
+  //     url: body.url,
+  //     fileName: decodeURIComponent(body.url.split('/').pop()),
+  //   });
+  // }
 
   if (body.documents && body.documents.length) {
     // eslint-disable-next-line no-param-reassign
