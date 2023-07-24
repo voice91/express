@@ -51,7 +51,7 @@ export const createDeal = {
     dealSummary: Joi.objectId(),
     squareFootage: Joi.number(),
     unitCount: Joi.number(),
-    occupancy: Joi.number(),
+    occupancy: Joi.string(),
     dealSummaryBody: Joi.object({
       mainPhoto: photoSchema,
       propertySummary: Joi.array().items(
@@ -102,7 +102,7 @@ export const updateDeal = {
     documents: Joi.array().items(Joi.objectId()),
     squareFootage: Joi.number(),
     unitCount: Joi.number(),
-    occupancy: Joi.number(),
+    occupancy: Joi.string(),
   }),
   params: Joi.object().keys({
     dealId: Joi.objectId().required(),

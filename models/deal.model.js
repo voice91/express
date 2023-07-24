@@ -195,7 +195,7 @@ const DealSchema = new mongoose.Schema(
       type: Number,
     },
     occupancy: {
-      type: Number,
+      type: String,
     },
     details: {
       type: String,
