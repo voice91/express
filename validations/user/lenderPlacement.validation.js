@@ -25,20 +25,39 @@ const termsEmbed = Joi.object().keys({
   extensionOptionTwo: Joi.string(),
   LTC: Joi.string(),
 });
+
+const TermSheetSchema = Joi.object().keys({
+  url: Joi.string(),
+  fileName: Joi.string(),
+});
+
 export const createLenderPlacement = {
   body: Joi.object().keys({
-    lendingInstitution: Joi.objectId().required(),
-    lenderContact: Joi.objectId().required(),
-    notes: Joi.array().items(Joi.string()),
-    stage: Joi.string()
-      .valid(...Object.values(enumFields.EnumStageOfLenderPlacement))
-      .required(),
-    terms: termsEmbed,
-    termSheet: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|xls|xlsx|pptx)$)`
+    lendingDetails: Joi.array()
+      .items(
+        Joi.object()
+          .keys({
+            lendingInstitution: Joi.objectId().required(),
+            deal: Joi.objectId().required(),
+          })
+          .required()
       )
-    ),
+      .required(),
+    lenderContact: Joi.objectId(),
+    notes: Joi.array().items(Joi.string()),
+    stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
+    terms: termsEmbed,
+    termSheet: TermSheetSchema,
+    isEmailSent: Joi.string().valid(...Object.values(enumFields.EnumOfEmailStatus)),
+    followOnDate: Joi.date(),
+    postmarkMessageId: Joi.array().items(Joi.string()),
+  }),
+};
+
+export const removeLenderPlacement = {
+  query: Joi.object().keys({
+    lendingInstitution: Joi.objectId().required(),
+    deal: Joi.objectId().required(),
   }),
 };
 

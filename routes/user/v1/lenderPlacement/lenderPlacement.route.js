@@ -8,6 +8,10 @@ const router = express.Router();
 router
   .route('/')
   /**
+   * createLenderPlacement
+   * */
+  .post(auth('user'), validate(lenderPlacementValidation.createLenderPlacement), lenderPlacementController.create)
+  /**
    * getLenderPlacement
    * */
   .get(auth('user'), validate(lenderPlacementValidation.getLenderPlacement), lenderPlacementController.list);
@@ -17,6 +21,16 @@ router
    * getLenderPlacementPaginated
    * */
   .get(auth('user'), validate(lenderPlacementValidation.paginatedLenderPlacement), lenderPlacementController.paginate);
+router
+  .route('/remove')
+  /**
+   * removeLenderPlacement
+   * */
+  .delete(
+    auth('user'),
+    validate(lenderPlacementValidation.removeLenderPlacement),
+    lenderPlacementController.removeByDealAndLendingInstitution
+  );
 router
   .route('/:lenderPlacementId')
   /**

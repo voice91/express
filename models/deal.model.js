@@ -150,7 +150,7 @@ const DealSchema = new mongoose.Schema(
      * Loan amount to be requested. The assumption amount is in USD
      * */
     loanAmount: {
-      type: Number,
+      type: String,
       required: true,
     },
     /**

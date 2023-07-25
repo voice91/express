@@ -11,6 +11,7 @@ import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
 import { pick } from '../../utils/pick';
 import enumModel from '../../models/enum.model';
+import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -144,22 +145,37 @@ export const paginate = catchAsync(async (req, res) => {
 
 export const create = catchAsync(async (req, res) => {
   const { body } = req;
-  body.createdBy = req.user;
-  body.updatedBy = req.user;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
   const { user } = req;
   const moveFileObj = {
     ...(body.termSheet && { termSheet: body.termSheet }),
   };
+  if (body.stage) {
+    body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
+  }
+
   body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   const options = {};
-  const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(body, options);
-  if (lenderPlacementResult) {
-    const uploadedFileUrls = [];
-    uploadedFileUrls.push(lenderPlacementResult.termSheet);
-    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
-  }
-  return res.status(httpStatus.CREATED).send({ results: lenderPlacementResult });
+  // Before it wasn't allowing other institute to add as well even if one is already added, so using promise.all so that it'll throw error for one but will allow others to get added in deal
+  await Promise.all(
+    body.lendingDetails.map(async (lendingInstitute) => {
+      const placement = {
+        ...lendingInstitute,
+        createdBy: body.createdBy,
+        updatedBy: body.updatedBy,
+      };
+      const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(placement, options);
+
+      if (lenderPlacementResult) {
+        const uploadedFileUrls = [];
+        uploadedFileUrls.push(lenderPlacementResult.termSheet);
+        await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+      }
+    })
+  );
+  return res.status(httpStatus.CREATED).send({ results: 'Lender added to the deal' });
 });
 
 export const update = catchAsync(async (req, res) => {
@@ -190,6 +206,16 @@ export const remove = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const filter = {
     _id: lenderPlacementId,
+  };
+  const lenderPlacement = await lenderPlacementService.removeLenderPlacement(filter);
+  return res.status(httpStatus.OK).send({ results: lenderPlacement });
+});
+
+export const removeByDealAndLendingInstitution = catchAsync(async (req, res) => {
+  const { deal, lendingInstitution } = req.query;
+  const filter = {
+    deal,
+    lendingInstitution,
   };
   const lenderPlacement = await lenderPlacementService.removeLenderPlacement(filter);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });

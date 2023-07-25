@@ -38,7 +38,7 @@ export const createDeal = {
     assetType: Joi.string()
       .valid(...Object.values(enumFields.EnumAssetTypeOfDeal))
       .required(),
-    loanAmount: Joi.number().integer().required(),
+    loanAmount: Joi.string().required(),
     loanPurpose: Joi.string()
       .valid(...Object.values(enumFields.EnumLoanPurposeOfDeal))
       .required(),
@@ -93,7 +93,7 @@ export const updateDeal = {
     involvedUsersBorrower: Joi.array().items(Joi.objectId()),
     involvedUsersAdvisor: Joi.array().items(Joi.objectId()),
     assetType: Joi.string().valid(...Object.values(enumFields.EnumAssetTypeOfDeal)),
-    loanAmount: Joi.number().integer(),
+    loanAmount: Joi.string().required(),
     loanPurpose: Joi.string().valid(...Object.values(enumFields.EnumLoanPurposeOfDeal)),
     loanType: Joi.string().valid(...Object.values(enumFields.EnumLoanTypeOfDeal)),
     tasks: Joi.array().items(Joi.objectId()),
