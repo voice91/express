@@ -159,22 +159,19 @@ export const create = catchAsync(async (req, res) => {
   await moveFiles({ body, user, moveFileObj });
   const options = {};
   // Before it wasn't allowing other institute to add as well even if one is already added, so using promise.all so that it'll throw error for one but will allow others to get added in deal
-  await Promise.all(
-    body.lendingDetails.map(async (lendingInstitute) => {
-      const placement = {
-        ...lendingInstitute,
-        createdBy: body.createdBy,
-        updatedBy: body.updatedBy,
-      };
-      const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(placement, options);
-
-      if (lenderPlacementResult) {
-        const uploadedFileUrls = [];
-        uploadedFileUrls.push(lenderPlacementResult.termSheet);
-        await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
-      }
-    })
-  );
+  await asyncForEach(body.lendingDetails, async (lendingInstitute) => {
+    const placement = {
+      ...lendingInstitute,
+      createdBy: body.createdBy,
+      updatedBy: body.updatedBy,
+    };
+    const lenderPlacementResult = await lenderPlacementService.createLenderPlacement(placement, options);
+    if (lenderPlacementResult) {
+      const uploadedFileUrls = [];
+      uploadedFileUrls.push(lenderPlacementResult.termSheet);
+      await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+    }
+  });
   return res.status(httpStatus.CREATED).send({ results: 'Lender added to the deal' });
 });
 
