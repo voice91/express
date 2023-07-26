@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { lendingInstitutionService } from 'services';
+import { lenderPlacementService, lendingInstitutionService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 import { LenderProgram } from '../../models';
@@ -43,6 +43,7 @@ export const list = catchAsync(async (req, res) => {
 
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
+  const { dealId } = query;
   const queryParams = getLendingInstitutionFilterQuery(query);
   const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
@@ -102,9 +103,14 @@ export const paginate = catchAsync(async (req, res) => {
     options.sort = sortObj;
   }
   const lendingInstitution = await lendingInstitutionService.getLendingInstitutionListWithPagination(filter, options);
+  const lenderPlacements = await lenderPlacementService.getLenderPlacementList({ deal: dealId });
   lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => {
     const programs = lendingInstitutionObject.lenderProgram;
     return {
+      // isAlreadyAdded indicates that lender is already added in deal or not
+      isAlreadyAdded: lenderPlacements.some(
+        (lender) => lender.lendingInstitution.toString() === lendingInstitutionObject._id.toString()
+      ),
       createdAt: lendingInstitutionObject.createdAt,
       ...lendingInstitutionObject.toJSON(),
       lenderProgram: {

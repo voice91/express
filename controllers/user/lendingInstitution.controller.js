@@ -3,9 +3,10 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { lendingInstitutionService } from 'services';
+import { lenderPlacementService, lendingInstitutionService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import { LenderProgram } from '../../models';
 
 const getLendingInstitutionFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -42,6 +43,7 @@ export const list = catchAsync(async (req, res) => {
 
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
+  const { dealId } = query;
   const queryParams = getLendingInstitutionFilterQuery(query);
   const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
@@ -50,17 +52,78 @@ export const paginate = catchAsync(async (req, res) => {
   const filter = {
     ...queryParams,
   };
+  const fields = pick(query, [
+    'loanType',
+    'propertyType',
+    'statesArray',
+    'lenderInstitute',
+    'loanSize',
+    'lenderType',
+    'lenderNameVisible',
+  ]);
+
+  let lenderProgram = [];
+  const filterLenderProgram = {};
+  // condition to check whether the field in the query are these four ('loanType', 'propertyType', 'statesArray', 'loanSize') only.
+  const filterFields = ['loanType', 'propertyType', 'statesArray', 'loanSize'];
+  Object.keys(fields).forEach((field) => {
+    if (filterFields.includes(field)) {
+      if (field === 'loanSize') {
+        filterLenderProgram.$and = [{ minLoanSize: { $lte: query.loanSize } }, { maxLoanSize: { $gte: query.loanSize } }];
+      } else {
+        filterLenderProgram[field] = query[field];
+      }
+    }
+  });
+  // This piece of code is for: if the query field is from the four field only then only mongoose query should run else not.
+  const isFilterField = Object.keys(fields).some((property) => filterFields.includes(property));
+  if (isFilterField) {
+    lenderProgram = await LenderProgram.find(filterLenderProgram);
+  }
+  Object.keys(fields).forEach((field) => {
+    if (filterFields.includes(field)) {
+      filter._id = { $in: lenderProgram.map((item) => item.lenderInstitute) };
+    } else if (field === 'lenderNameVisible') {
+      filter[field] = new RegExp(fields.lenderNameVisible, 'i');
+    } else if (field === 'lenderType') {
+      if (fields[field] === 'bank') {
+        filter[field] = new RegExp(`.*bank$`, 'i');
+      } else {
+        filter[field] = fields[field];
+      }
+    } else {
+      filter[field] = fields[field];
+    }
+  });
   const options = {
     ...pick(query, ['limit', 'page']),
+    populate: { path: 'lenderProgram' },
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
   }
   const lendingInstitution = await lendingInstitutionService.getLendingInstitutionListWithPagination(filter, options);
-  lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => ({
-    createdAt: lendingInstitutionObject.createdAt,
-    ...lendingInstitutionObject.toJSON(),
-  }));
+  const lenderPlacements = await lenderPlacementService.getLenderPlacementList({ deal: dealId });
+  lendingInstitution.results = lendingInstitution.results.map((lendingInstitutionObject) => {
+    const programs = lendingInstitutionObject.lenderProgram;
+    return {
+      // isAlreadyAdded indicates that lender is already added in deal or not
+      isAlreadyAdded: lenderPlacements.some(
+        (lender) => lender.lendingInstitution.toString() === lendingInstitutionObject._id.toString()
+      ),
+      createdAt: lendingInstitutionObject.createdAt,
+      ...lendingInstitutionObject.toJSON(),
+      lenderProgram: {
+        minLoanSize: Math.min(...programs.map((program) => program.minLoanSize).filter(Boolean)),
+        maxLoanSize: Math.max(...programs.map((program) => program.maxLoanSize).filter(Boolean)),
+        propertyTypes: [...new Set(programs.flatMap((program) => program.propertyType))],
+        loanTypes: [...new Set(programs.flatMap((program) => program.loanType))],
+        statesArray: [...new Set(programs.flatMap((program) => program.statesArray))],
+        lenderProgramTypes: [...new Set(programs.flatMap((program) => program.lenderProgramType))],
+      },
+    };
+  });
+
   return res.status(httpStatus.OK).send({ results: lendingInstitution });
 });
 
