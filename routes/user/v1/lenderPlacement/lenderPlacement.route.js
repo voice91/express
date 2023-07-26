@@ -32,6 +32,12 @@ router
     lenderPlacementController.removeByDealAndLendingInstitution
   );
 router
+  .route('/update')
+  /**
+   * updateManyLenderPlacements
+   * */
+  .put(auth('user'), validate(lenderPlacementValidation.updateManyLenderPlacement), lenderPlacementController.updateMany);
+router
   .route('/:lenderPlacementId')
   /**
    * getLenderPlacementById

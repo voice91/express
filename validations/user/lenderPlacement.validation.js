@@ -79,6 +79,13 @@ export const updateLenderPlacement = {
   }),
 };
 
+export const updateManyLenderPlacement = {
+  body: Joi.object().keys({
+    lenderPlacementIds: Joi.array().items(Joi.objectId()).required(),
+    update: Joi.object(),
+  }),
+};
+
 export const getLenderPlacementById = {
   params: Joi.object().keys({
     lenderPlacementId: Joi.objectId().required(),
