@@ -79,6 +79,14 @@ export const updateLenderPlacement = {
   }),
 };
 
+export const updateManyLenderPlacement = {
+  body: Joi.object().keys({
+    lenderPlacementIds: Joi.array().items(Joi.objectId()).required(),
+    // todo : add the validation for below field as per requirements
+    update: Joi.object(),
+  }),
+};
+
 export const getLenderPlacementById = {
   params: Joi.object().keys({
     lenderPlacementId: Joi.objectId().required(),

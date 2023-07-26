@@ -226,6 +226,14 @@ const LenderPlacementSchema = new mongoose.Schema(
     postmarkMessageId: {
       type: [String],
     },
+    isFavourite: {
+      type: Boolean,
+      default: false,
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }
 );
