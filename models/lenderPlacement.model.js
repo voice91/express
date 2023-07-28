@@ -265,6 +265,13 @@ LenderPlacementSchema.virtual('lenderAllContacts', {
   justOne: false,
 });
 
+LenderPlacementSchema.virtual('outstandingTaskCount', {
+  ref: 'Task',
+  localField: 'lendingInstitution',
+  foreignField: 'askingPartyInstitute',
+  count: true,
+  match: { taskAnswer: { $exists: false } },
+});
 // Define the toJSON transform method for the LenderPlacementSchema options object
 LenderPlacementSchema.options.toJSON.transform = function (doc, { followOnDate, ...ret }) {
   // Check if followOnDate exists
