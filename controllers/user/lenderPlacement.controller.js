@@ -94,6 +94,9 @@ export const list = catchAsync(async (req, res) => {
         path: 'lenderAllContacts',
       },
       {
+        path: 'outstandingTaskCount',
+      },
+      {
         path: 'notes',
         populate: [{ path: 'user' }],
         match: { notesType: enumModel.EnumOfNotesTypeOfLenderNotes.EXTERNAL_NOTE },
