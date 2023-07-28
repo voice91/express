@@ -57,7 +57,10 @@ export const get = catchAsync(async (req, res) => {
     _id: lenderPlacementId,
   };
   const options = {
-    populate: { path: 'lendingInstitution' },
+    populate: [
+      { path: 'lendingInstitution' },
+      { path: 'notes', match: { notesType: enumModel.EnumOfNotesTypeOfLenderNotes.EXTERNAL_NOTE } },
+    ],
   };
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
