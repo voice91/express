@@ -115,6 +115,16 @@ export const getLenderPlacement = {
   body: Joi.object().keys({}).unknown(true),
 };
 
+export const updateManyLenderPlacement = {
+  body: Joi.object().keys({
+    lenderPlacementIds: Joi.array().items(Joi.objectId()).required(),
+    update: Joi.object().keys({
+      isFavourite: Joi.boolean(),
+      isArchived: Joi.boolean(),
+    }),
+  }),
+};
+
 export const paginatedLenderPlacement = {
   body: Joi.object().keys({}).unknown(true),
   query: Joi.object()

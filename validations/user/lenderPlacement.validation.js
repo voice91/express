@@ -83,7 +83,10 @@ export const updateManyLenderPlacement = {
   body: Joi.object().keys({
     lenderPlacementIds: Joi.array().items(Joi.objectId()).required(),
     // todo : add the validation for below field as per requirements
-    update: Joi.object(),
+    update: Joi.object().keys({
+      isFavourite: Joi.boolean(),
+      isArchived: Joi.boolean(),
+    }),
   }),
 };
 
@@ -111,4 +114,16 @@ export const paginatedLenderPlacement = {
       limit: Joi.number().default(10).max(100),
     })
     .unknown(true),
+};
+
+export const sendDeal = {
+  body: Joi.object().keys({
+    deals: Joi.array().items(
+      Joi.object().keys({
+        lenderInstitute: Joi.objectId().required(),
+        deal: Joi.objectId().required(),
+        lenderPlacement: Joi.objectId().required(),
+      })
+    ),
+  }),
 };
