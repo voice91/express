@@ -53,6 +53,12 @@ export const getTask = {
     deal: Joi.objectId().required(),
   }),
 };
+export const getTaskByDealId = {
+  body: Joi.object().keys({}).unknown(true),
+  params: Joi.object().keys({
+    dealId: Joi.objectId().required(),
+  }),
+};
 
 export const paginatedTask = {
   body: Joi.object().keys({}).unknown(true),
