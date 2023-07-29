@@ -23,6 +23,13 @@ router
   .get(auth('advisor'), validate(lenderPlacementValidation.paginatedLenderPlacement), lenderPlacementController.paginate);
 
 router
+  .route('/update')
+  /**
+   * updateManyLenderPlacements
+   * */
+  .put(auth('advisor'), validate(lenderPlacementValidation.updateManyLenderPlacement), lenderPlacementController.updateMany);
+
+router
   .route('/:lenderPlacementId')
   /**
    * getLenderPlacementById

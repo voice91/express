@@ -327,6 +327,19 @@ export const update = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: lenderPlacementResult });
 });
 
+export const updateMany = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.updatedBy = req.user;
+  const { lenderPlacementIds } = req.body;
+  const updateBody = req.body.update;
+  const filter = {
+    _id: { $in: lenderPlacementIds },
+  };
+  const options = { new: true };
+  const lenderPlacementResult = await lenderPlacementService.updateManyLenderPlacement(filter, updateBody, options);
+  return res.status(httpStatus.OK).send({ results: lenderPlacementResult });
+});
+
 export const remove = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const filter = {
