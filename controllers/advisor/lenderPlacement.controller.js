@@ -84,7 +84,7 @@ export const get = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 const getLenderPlacementFilterQuery = (query) => {
-  const filter = pick(query, ['deal']);
+  const filter = pick(query, ['deal', 'stage', 'isFavourite', 'isArchived']);
   if (query.search) {
     filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { lastName: new RegExp(query.search, 'i') }];
   }
