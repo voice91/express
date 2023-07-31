@@ -125,6 +125,13 @@ export const updateManyLenderPlacement = {
   }),
 };
 
+export const removeLenderPlacement = {
+  query: Joi.object().keys({
+    lendingInstitution: Joi.objectId().required(),
+    deal: Joi.objectId().required(),
+  }),
+};
+
 export const paginatedLenderPlacement = {
   body: Joi.object().keys({}).unknown(true),
   query: Joi.object()

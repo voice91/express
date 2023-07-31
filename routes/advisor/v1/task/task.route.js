@@ -19,7 +19,7 @@ router
 router
   .route('/deal/:dealId')
   /**
-   * getTaskPaginated
+   * getTask
    * */
   .get(auth('advisor'), validate(taskValidation.getTaskByDealId), checkAccessOfDeal, taskController.listByDeal);
 router

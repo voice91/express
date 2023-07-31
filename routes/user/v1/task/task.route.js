@@ -12,7 +12,12 @@ router
    * getTask
    * */
   .get(auth('user'), validate(taskValidation.getTask), checkAccessOfDeal, taskController.list);
-
+router
+  .route('/deal/:dealId')
+  /**
+   * getTask
+   * */
+  .get(auth('user'), validate(taskValidation.getTaskByDealId), checkAccessOfDeal, taskController.listByDeal);
 router
   .route('/deal/:dealId/paginated')
   /**

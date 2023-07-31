@@ -107,6 +107,44 @@ export const paginate = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: task });
 });
 
+export const listByDeal = catchAsync(async (req, res) => {
+  const { query } = req;
+  const sortingObj = pick(query, ['sort', 'order']); // Extracting the 'sort' and 'order' fields from the query
+
+  let sortObj;
+  // Check if 'sort' field is an array
+  if (Array.isArray(sortingObj.sort)) {
+    const sort = {};
+    sortingObj.sort.forEach((field) => {
+      sort[field] = sortingObj.order; // Assuming all fields should be sorted in ascending order (1)
+    });
+    sortObj = sort; // Creating the sort object
+  } else {
+    sortObj = {
+      [sortingObj.sort]: sortingObj.order, // Creating the sort object with single field and order
+    };
+  }
+
+  const filter = {
+    deal: req.params.dealId,
+  };
+  const options = {
+    ...pick(query, ['limit', 'page']),
+    populate: [{ path: 'user' }, { path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }],
+  };
+  if (sortingObj.sort) {
+    options.sort = sortObj; // Setting the sort options in the options object
+    options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
+  }
+
+  let task = await taskService.getTaskList(filter, options); // Call the function to get task list with pagination
+  task = task.map((taskObject) => ({
+    createdAt: taskObject.createdAt,
+    ...taskObject.toJSON(),
+  }));
+  return res.status(httpStatus.OK).send({ results: task });
+});
+
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
   const { taskDocuments } = body;

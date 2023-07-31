@@ -30,6 +30,17 @@ router
   .put(auth('advisor'), validate(lenderPlacementValidation.updateManyLenderPlacement), lenderPlacementController.updateMany);
 
 router
+  .route('/remove')
+  /**
+   * removeLenderPlacement
+   * */
+  .delete(
+    auth('advisor'),
+    validate(lenderPlacementValidation.removeLenderPlacement),
+    lenderPlacementController.removeByDealAndLendingInstitution
+  );
+
+router
   .route('/:lenderPlacementId')
   /**
    * getLenderPlacementById

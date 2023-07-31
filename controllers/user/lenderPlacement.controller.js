@@ -98,6 +98,8 @@ export const list = catchAsync(async (req, res) => {
       },
       {
         path: 'outstandingTaskCount',
+        count: true,
+        match: { taskAnswer: { $exists: false }, deal: query.deal },
       },
       {
         path: 'notes',
