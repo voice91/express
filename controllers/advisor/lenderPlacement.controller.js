@@ -16,7 +16,7 @@ import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach, encodeUrl } from 'utils/common';
+import { asyncForEach, encodeUrl, getTextFromTemplate } from 'utils/common';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
@@ -733,9 +733,8 @@ export const sendEmail = catchAsync(async (req, res) => {
 
 export const sendDealV2 = catchAsync(async (req, res) => {
   const { deals } = req.body;
-  // todo: change frontEndUrl to staging
   const frontEndUrl = config.frontEndUrl || 'http://54.196.81.18';
-  const admin = await User.findOne({ email: req.user.email });
+  const admin = req.user;
   const { emailPresentingPostmark } = admin;
   const advisorEmail = admin.email;
   const promises = await deals.map(async (body) => {
@@ -768,7 +767,9 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     let totalLoanAmount = 0;
     if (lenderContact.lenderPlacement && lenderContact.lenderPlacement.deal) {
       emailBodyValues.dealName = lenderContact.lenderPlacement.deal.dealName;
+      // here loanAmount is coming as $100,000 (string) so we are converting that to number
       totalLoanAmount = lenderContact.lenderPlacement.deal.loanAmount.replace(/[$,]/g, '') * 1;
+      // totalLoanAmount is converted into millions so if 1000000 then it should be 1
       totalLoanAmount /= 1000000;
       totalLoanAmount.toFixed(2);
       emailBodyValues.loanAmount = totalLoanAmount;
@@ -780,9 +781,20 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         lenderContact.lenderPlacement.deal.dealSummary.documents &&
         lenderContact.lenderPlacement.deal.dealSummary.documents.length
       ) {
-        emailBodyValues.documentsText = `The ${
-          lenderContact.lenderPlacement.deal.dealSummary.documents[0].fileName.split('.')[0]
-        } is attached`;
+        const documentNames = lenderContact.lenderPlacement.deal.dealSummary.documents.map(
+          (doc) => doc.fileName.split('.')[0]
+        );
+        // here we set the documents name text dynamic in template
+        let documentsText;
+        if (documentNames.length === 1) {
+          documentsText = `The ${documentNames[0]} is attached`;
+        } else if (documentNames.length === 2) {
+          documentsText = `The ${documentNames[0]} and ${documentNames[1]} are attached`;
+        } else {
+          const lastDocument = documentNames.pop();
+          documentsText = `The ${documentNames.join(', ')}, and ${lastDocument} are attached`;
+        }
+        emailBodyValues.documentsText = documentsText;
         dealSummaryDocs.push(...lenderContact.lenderPlacement.deal.dealSummary.documents);
       }
       if (lenderContact.lenderPlacement.deal.dealSummary.executiveSummary) {
@@ -813,6 +825,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       },
       { populate: 'deal' }
     );
+    // if already template not available then we are create
     if (!emailTemplate) {
       emailTemplate = await EmailTemplate.create({
         from: advisorEmail,
@@ -836,41 +849,30 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     const ccList = getEmailTemplate.ccList.map((item) => item);
 
     const bccList = getEmailTemplate.bccList.map((item) => item);
-    //
+
     const headers = [
       {
         Value: `${placementId}`,
       },
     ];
 
-    const getText = ({ lenderName, executiveSummary, documents, dealSummaryLink, passLink, advisorName }) => {
-      const data = _.template(getEmailTemplate.emailContent)({
-        lenderName: lenderName || 'Lender',
-        executiveSummary,
-        documents,
-        dealSummaryLink,
-        passLink,
-        advisorName,
-      });
-      return data;
-    };
-
     // todo : make function for this one, and make synchronize so we can handle error coming from that.
     await Promise.allSettled(
       getEmailTemplate.contact.map((item) => {
         return emailService.sendEmail({
-          to: 'testingmatlabinfotech1@gmail.com',
+          to: item.sendTo,
           cc: ccList,
           bcc: bccList,
           subject: getEmailTemplate.subject,
           ...(emailPresentingPostmark && { from: req.user.email }),
-          text: getText({
+          text: getTextFromTemplate({
             lenderName: item.name,
             executiveSummary: emailBodyValues.executiveSummary,
             documents: emailBodyValues.documentsText,
             dealSummaryLink: emailBodyValues.dealSummaryLink,
             passLink: emailBodyValues.passLink,
             advisorName: emailBodyValues.advisorName,
+            emailTemplate: getEmailTemplate.emailContent,
           }),
           // eslint-disable-next-line no-shadow
           attachments: dealSummaryDocs.map((item) => {
@@ -931,5 +933,5 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     }
   });
   await Promise.all(promises);
-  return res.status(httpStatus.OK).send({ message: 'mail sent' });
+  return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });

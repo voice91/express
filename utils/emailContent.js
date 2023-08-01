@@ -181,8 +181,7 @@ color: blue;
 `;
 
 export const borrowerSendDealEmailContent = () => `
-  <!DOCTYPE html>
-  <html>
+<html lang="en">
     <head>
       <style>
         .btn {
@@ -214,17 +213,17 @@ export const borrowerSendDealEmailContent = () => `
     </head>
     <body>
       <div>
-        <div>{{ lenderName }} -</div>
+        <div>${`{{ lenderName }}`} -</div>
         <br>
-        <div>{{ executiveSummary }}</div>
+        <div>${`{{ executiveSummary }}`}</div>
         <br>
-        <div>{{ documents }}</div>
+        <div>${`{{ documents }}`}</div>
         <br>
-        <p>Click the link to access the full information on the Parallel website: <a href="{{ dealSummaryLink }}">Deal Summary</a></p>
-        <p>Click here to pass: <a href="{{ passLink }}">Pass</a></p>
+        <p>Click the link to access the full information on the Parallel website: <a href=${`{{ dealSummaryLink }}`}>Deal Summary</a></p>
+        <p>Click here to pass: <a href=${`{{ passLink }}`}>Pass</a></p>
         <br>
         <p>Thank you,</p>
-        <p>{{ advisorName }}</p>
+        <p>${`{{ advisorName }}`}</p>
       </div>
     </body>
   </html>

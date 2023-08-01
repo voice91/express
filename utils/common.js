@@ -5,6 +5,7 @@ import {
   EnumLoanTypeOfDeal,
   EnumStatesOfDeal,
 } from 'models/enum.model';
+import _ from 'lodash';
 import contentType from './content-type.json';
 /* eslint-disable */
 export const asyncForEach = async (array, callback) => {
@@ -461,4 +462,39 @@ export const addIndexForCustomBlocks = (customBlocks) => {
     indexMap[sectionName] += 1;
   });
   return customBlocksWithIndex;
+};
+
+/**
+ * Function: getTextFromTemplate
+ * Description: This function takes in an object containing various parameters and generates an email text based on a provided email template.
+ *
+ * Parameters:
+ *   - lenderName: The name of the lender. If not provided, it defaults to 'Lender'.
+ *   - executiveSummary: The executive summary of the deal.
+ *   - documents: An array of documents related to the deal.
+ *   - dealSummaryLink: A link to the deal summary page.
+ *   - passLink: A link to pass page of the deal.
+ *   - advisorName: The name of the advisor.
+ *   - emailTemplate: The email template that includes placeholders for various parameters.
+ *
+ * Return:
+ *   - The generated email text with placeholders replaced by actual parameter values.
+ */
+export const getTextFromTemplate = ({
+  lenderName,
+  executiveSummary,
+  documents,
+  dealSummaryLink,
+  passLink,
+  advisorName,
+  emailTemplate,
+}) => {
+  return _.template(emailTemplate)({
+    lenderName: lenderName || 'Lender',
+    executiveSummary,
+    documents,
+    dealSummaryLink,
+    passLink,
+    advisorName,
+  });
 };
