@@ -149,6 +149,17 @@ const EnumStageOfLenderPlacement = {
   NOT_COMPETITIVE: 'notCompetitive',
   ARCHIVE: 'archive',
 };
+const EnumNextStepOfLenderPlacement = {
+  new: 'Send the lender the deal',
+  sent: 'Waiting on lender for initial review',
+  reviewing: 'Waiting on lender to review',
+  termsReceived: 'Review and negotiate lender terms',
+  pass: 'Lender passed due to the credit of the deal',
+  termsSheetReceived: 'Review and negotiate term sheet',
+  closing: 'Gather and send lender due diligence requests',
+  closed: 'Lender closed the deal',
+  notResponsive: 'Follow up or archive lender',
+};
 const EnumTermSheetOfLenderPlacement = {
   PDF: 'pdf',
   DOC: 'doc',
@@ -305,4 +316,5 @@ module.exports = {
   EnumOfDynamicFieldType,
   EnumOfTypeOfValue,
   EnumOfSectionName,
+  EnumNextStepOfLenderPlacement,
 };
