@@ -150,6 +150,18 @@ export const sendDeal = {
   }),
 };
 
+export const sendDealV2 = {
+  body: Joi.object().keys({
+    deals: Joi.array().items(
+      Joi.object().keys({
+        lenderInstitute: Joi.objectId().required(),
+        deal: Joi.objectId().required(),
+        lenderPlacement: Joi.objectId().required(),
+      })
+    ),
+  }),
+};
+
 export const getEmailTemplateId = {
   params: Joi.object().keys({
     emailTemplateId: Joi.objectId().required(),

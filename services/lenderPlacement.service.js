@@ -82,6 +82,12 @@ export async function sendDeal(filterToFindContact, filterToFindPlacement, filte
     {
       path: 'lendingInstitution',
     },
+    {
+      path: 'deal',
+      populate: {
+        path: 'dealSummary',
+      },
+    },
   ]);
   const dealDoc = await DealDocument.find(filterToFindDeal).populate([
     {

@@ -10,17 +10,18 @@ import {
   emailTemplateService,
   activityLogService,
   lenderContactService,
+  dealService,
 } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach, encodeUrl } from 'utils/common';
+import { asyncForEach, encodeUrl, getTextFromTemplate } from 'utils/common';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { Deal, EmailTemplate, LenderPlacement, User } from '../../models';
-import { sendDealTemplate1Text } from '../../utils/emailContent';
+import { borrowerSendDealEmailContent, sendDealTemplate1Text } from '../../utils/emailContent';
 import enumModel, {
   EnumOfActivityType,
   EnumOfEmailStatus,
@@ -727,5 +728,210 @@ export const sendEmail = catchAsync(async (req, res) => {
   if (createActivityLogBody.update) {
     await activityLogService.createActivityLog(createActivityLogBody);
   }
+  return res.status(httpStatus.OK).send({ results: 'Email sent....' });
+});
+
+export const sendDealV2 = catchAsync(async (req, res) => {
+  const { deals } = req.body;
+  const frontEndUrl = config.frontEndUrl || 'http://54.196.81.18';
+  const admin = req.user;
+  const { emailPresentingPostmark } = admin;
+  const advisorEmail = admin.email;
+  const promises = await deals.map(async (body) => {
+    const { lenderInstitute, deal, lenderPlacement } = body;
+    const filterToFindContact = {
+      lenderInstitute,
+    };
+    const filterToFindPlacement = {
+      lendingInstitution: lenderInstitute,
+      deal,
+    };
+    const filterToFindDeal = {
+      deal,
+    };
+    const lenderContact = await lenderPlacementService.sendDeal(
+      filterToFindContact,
+      filterToFindPlacement,
+      filterToFindDeal
+    );
+    const emailBodyValues = {
+      dealSummaryLink: `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary`,
+      passLink: 'passUrl',
+      advisorName: admin.firstName,
+      documents: [],
+      executiveSummary: '',
+    };
+    if (lenderContact.lenderPlacement.lendingInstitution) {
+      emailBodyValues.lenderName = lenderContact.lenderPlacement.lendingInstitution.lenderNameVisible;
+    }
+    let totalLoanAmount = 0;
+    if (lenderContact.lenderPlacement && lenderContact.lenderPlacement.deal) {
+      emailBodyValues.dealName = lenderContact.lenderPlacement.deal.dealName;
+      // here loanAmount is coming as $100,000 (string) so we are converting that to number
+      totalLoanAmount = lenderContact.lenderPlacement.deal.loanAmount.replace(/[$,]/g, '') * 1;
+      // totalLoanAmount is converted into millions so if 1000000 then it should be 1
+      totalLoanAmount /= 1000000;
+      totalLoanAmount.toFixed(2);
+      emailBodyValues.loanAmount = totalLoanAmount;
+    }
+
+    const dealSummaryDocs = [];
+    if (lenderContact.lenderPlacement.deal.dealSummary) {
+      if (
+        lenderContact.lenderPlacement.deal.dealSummary.documents &&
+        lenderContact.lenderPlacement.deal.dealSummary.documents.length
+      ) {
+        const documentNames = lenderContact.lenderPlacement.deal.dealSummary.documents.map(
+          (doc) => doc.fileName.split('.')[0]
+        );
+        // here we set the documents name text dynamic in template
+        let documentsText;
+        if (documentNames.length === 1) {
+          documentsText = `The ${documentNames[0]} is attached`;
+        } else if (documentNames.length === 2) {
+          documentsText = `The ${documentNames[0]} and ${documentNames[1]} are attached`;
+        } else {
+          const lastDocument = documentNames.pop();
+          documentsText = `The ${documentNames.join(', ')}, and ${lastDocument} are attached`;
+        }
+        emailBodyValues.documentsText = documentsText;
+        dealSummaryDocs.push(...lenderContact.lenderPlacement.deal.dealSummary.documents);
+      }
+      if (lenderContact.lenderPlacement.deal.dealSummary.executiveSummary) {
+        emailBodyValues.executiveSummary = lenderContact.lenderPlacement.deal.dealSummary.executiveSummary;
+      }
+    }
+
+    const { docIds } = lenderContact;
+
+    const contact = lenderContact.lenderContact.map((lc) => {
+      return {
+        sendTo: lc.email,
+        name: lc.firstName,
+      };
+    });
+    _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+    const staticEmailTemplateData = borrowerSendDealEmailContent();
+    let emailTemplate;
+    emailTemplate = await emailTemplateService.getOne(
+      {
+        lenderPlacement,
+        templateName: {
+          $in: [
+            `advisorSendDealTemplate - ${emailBodyValues.lenderName}`,
+            `borrowerSendDealTemplate - ${emailBodyValues.lenderName}`,
+          ],
+        },
+      },
+      { populate: 'deal' }
+    );
+    // if already template not available then we are create
+    if (!emailTemplate) {
+      emailTemplate = await EmailTemplate.create({
+        from: advisorEmail,
+        advisorName: admin.firstName,
+        contact,
+        subject: `${emailBodyValues.dealName}-$${emailBodyValues.loanAmount}m Financing Request`,
+        dealDocument: docIds,
+        emailContent: staticEmailTemplateData,
+        lenderPlacement,
+        deal,
+        emailAttachments: [],
+        isFirstTime: true,
+        isEmailSent: false,
+        totalLoanAmount,
+        templateName: `advisorSendDealTemplate - ${emailBodyValues.lenderName}`,
+      });
+    }
+    const getEmailTemplate = emailTemplate;
+    const placementId = getEmailTemplate.lenderPlacement;
+
+    const ccList = getEmailTemplate.ccList.map((item) => item);
+
+    const bccList = getEmailTemplate.bccList.map((item) => item);
+
+    const headers = [
+      {
+        Value: `${placementId}`,
+      },
+    ];
+
+    // todo : make function for this one, and make synchronize so we can handle error coming from that.
+    await Promise.allSettled(
+      getEmailTemplate.contact.map((item) => {
+        return emailService.sendEmail({
+          to: item.sendTo,
+          cc: ccList,
+          bcc: bccList,
+          subject: getEmailTemplate.subject,
+          ...(emailPresentingPostmark && { from: req.user.email }),
+          text: getTextFromTemplate({
+            lenderName: item.name,
+            executiveSummary: emailBodyValues.executiveSummary,
+            documents: emailBodyValues.documentsText,
+            dealSummaryLink: emailBodyValues.dealSummaryLink,
+            passLink: emailBodyValues.passLink,
+            advisorName: emailBodyValues.advisorName,
+            emailTemplate: getEmailTemplate.emailContent,
+          }),
+          // eslint-disable-next-line no-shadow
+          attachments: dealSummaryDocs.map((item) => {
+            return {
+              fileName: item.fileName,
+              path: item.url,
+              fileType: item.url.split('.').pop(),
+            };
+          }),
+          isHtml: true,
+          headers,
+        });
+      })
+    );
+
+    const result = await lenderPlacementService.getOne({ _id: placementId });
+
+    if (result.isEmailSent === enumModel.EnumOfEmailStatus.SEND_DEAL) {
+      const stage = enumModel.EnumStageOfLenderPlacement.SENT;
+      await lenderPlacementService.updateLenderPlacement(
+        { _id: placementId },
+        {
+          followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
+          isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
+          isEmailSentFirstTime: true,
+          stage,
+          stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+        }
+      );
+    } else {
+      await lenderPlacementService.updateLenderPlacement(
+        { _id: placementId },
+        {
+          followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
+          isEmailSent: enumModel.EnumOfEmailStatus.EMAIL_SENT,
+          isEmailSentFirstTime: false,
+        }
+      );
+    }
+    const stage = enumModel.EnumStageOfDeal.OUT_IN_MARKET;
+    const dealData = await dealService.updateDeal(
+      { _id: deal },
+      {
+        stage,
+        details: await detailsInDeal(stage, deal),
+      }
+    );
+    const createActivityLogBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      update: `${dealData.dealName} was sent out to lenders`,
+      deal,
+      type: enumModel.EnumOfActivityType.ACTIVITY,
+      user: config.activitySystemUser || 'system',
+    };
+    if (createActivityLogBody.update) {
+      await activityLogService.createActivityLog(createActivityLogBody);
+    }
+  });
+  await Promise.all(promises);
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });
