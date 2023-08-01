@@ -10,10 +10,16 @@ const taskDocumentSchema = Joi.object().keys({
   url: Joi.string().required(),
   fileName: Joi.string().required(),
 });
+
+const taskAnswerSchema = Joi.object().keys({
+  answer: Joi.string(),
+  receivedAt: Joi.date(),
+});
+
 export const updateTask = {
   body: Joi.object().keys({
     deal: Joi.objectId().required(),
-    taskAnswer: Joi.string().allow(null),
+    taskAnswer: Joi.array().items(taskAnswerSchema),
     taskDocuments: Joi.array().items(taskDocumentSchema),
   }),
   params: Joi.object().keys({

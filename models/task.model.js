@@ -18,6 +18,15 @@ const TaskDocumentSchema = new mongoose.Schema({
     required: true,
   },
 });
+const TaskAnswerSchema = new mongoose.Schema({
+  answer: {
+    type: String,
+  },
+  receivedAt: {
+    type: Date,
+    default: new Date(),
+  },
+});
 
 const TaskSchema = new mongoose.Schema(
   {
@@ -57,7 +66,7 @@ const TaskSchema = new mongoose.Schema(
      * Free text response, from the borrower (the advisor can also answer on behalf of the borrower)
      * */
     taskAnswer: {
-      type: String,
+      type: [TaskAnswerSchema],
     },
     /**
      * List of documents that pertain to the question, that borrower and advisor can upload and all can download/view
@@ -73,6 +82,10 @@ const TaskSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+    },
+    isCompleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
