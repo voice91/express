@@ -96,6 +96,7 @@ export const create = catchAsync(async (req, res) => {
   const { body } = req;
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
+  const uploadedBy = req.user.role;
   const fileName = body.documents.map((item) => item.fileName);
   const documentType = body.documents.map((item) => item.documentType);
   const { user } = req;
@@ -112,6 +113,7 @@ export const create = catchAsync(async (req, res) => {
       documents: body.documents.map((document) => ({
         ...document,
         createdAt: new Date(),
+        uploadedBy,
       })),
     },
   };
@@ -119,7 +121,7 @@ export const create = catchAsync(async (req, res) => {
   const options = { new: true, upsert: true };
   if (body.documents) {
     body.documents = body.documents.map((item, index) => {
-      return { url: encodeUrl(item), fileName: fileName[index], documentType: documentType[index] };
+      return { url: encodeUrl(item), fileName: fileName[index], documentType: documentType[index], uploadedBy };
     });
   }
   const dealDocuments = await DealDocument.find(filter);
@@ -148,6 +150,7 @@ export const create = catchAsync(async (req, res) => {
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
   body.updatedBy = req.user;
+  const uploadedBy = req.user.role;
   const { dealDocumentId } = req.params;
   const { user } = req;
   const moveFileObj = {
@@ -159,6 +162,7 @@ export const update = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
   }
   body._id = dealDocumentId;
+  body.uploadedBy = uploadedBy;
   await moveFiles({ body, user, moveFileObj });
   const filter = {
     _id: dealDocumentId,
