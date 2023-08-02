@@ -141,6 +141,10 @@ export const list = catchAsync(async (req, res) => {
     options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
   const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
+  lenderPlacement.forEach((placement) => {
+    // eslint-disable-next-line no-param-reassign
+    placement.nextStep = placement.nextStep ? placement.nextStep : enumModel.EnumNextStepOfLenderPlacement[placement.stage];
+  });
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 
@@ -755,7 +759,8 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       filterToFindDeal
     );
     const emailBodyValues = {
-      dealSummaryLink: `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary`,
+      // dealSummaryLink: `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary`,
+      dealSummaryLink: `${frontEndUrl}/register?dealId=${deal}`,
       passLink: 'passUrl',
       advisorName: admin.firstName,
       documents: [],

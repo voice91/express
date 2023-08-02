@@ -89,6 +89,7 @@ export const updateLenderPlacement = {
   body: Joi.object().keys({
     lendingInstitution: Joi.objectId(),
     lenderContact: Joi.objectId(),
+    nextStep: Joi.string(),
     notes: Joi.array().items(Joi.string()),
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
     terms: termsEmbed,
