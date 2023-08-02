@@ -31,6 +31,10 @@ const documentSchema = new mongoose.Schema(
     fileDescription: {
       type: String,
     },
+    uploadedBy: {
+      type: String,
+      enum: Object.values(enumModel.EnumRoleOfUser),
+    },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
