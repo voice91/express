@@ -12,7 +12,7 @@ const taskDocumentSchema = Joi.object().keys({
 });
 const taskAnswerSchema = Joi.object().keys({
   answer: Joi.string(),
-  receivedAt: Joi.date(),
+  receivedAt: Joi.date().default(new Date()),
 });
 export const createTask = {
   body: Joi.object().keys({
