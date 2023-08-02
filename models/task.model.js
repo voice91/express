@@ -26,6 +26,12 @@ const TaskAnswerSchema = new mongoose.Schema({
     type: Date,
     default: new Date(),
   },
+  answeredBy: {
+    type: String,
+  },
+  taskDocuments: {
+    type: [TaskDocumentSchema],
+  },
 });
 
 const TaskSchema = new mongoose.Schema(

@@ -270,7 +270,14 @@ LenderPlacementSchema.virtual('outstandingTaskCount', {
   localField: 'lendingInstitution',
   foreignField: 'askingPartyInstitute',
   count: true,
-  match: { taskAnswer: { $exists: false } },
+  match: {
+    $expr: {
+      $or: [
+        { $eq: ['$taskAnswer', []] }, // Check if taskAnswer is an empty array
+        { $not: { $isArray: '$taskAnswer' } }, // Check if taskAnswer is not an array or non-existent
+      ],
+    },
+  },
 });
 // Define the toJSON transform method for the LenderPlacementSchema options object
 LenderPlacementSchema.options.toJSON.transform = function (doc, { followOnDate, ...ret }) {

@@ -230,6 +230,14 @@ DealSchema.virtual('task', {
   justOne: false,
 });
 
+// DealSchema.virtual('outstandingTaskCount', {
+//   ref: 'Task',
+//   localField: '_id',
+//   foreignField: 'deal',
+//   count: true,
+//   match: { taskAnswer: { $exists: false } },
+// });
+
 DealSchema.virtual('outstandingTaskCount', {
   ref: 'Task',
   localField: '_id',

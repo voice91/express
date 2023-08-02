@@ -13,6 +13,8 @@ const taskDocumentSchema = Joi.object().keys({
 const taskAnswerSchema = Joi.object().keys({
   answer: Joi.string(),
   receivedAt: Joi.date().default(new Date()),
+  taskDocuments: Joi.array().items(taskDocumentSchema),
+  answeredBy: Joi.string(),
 });
 export const createTask = {
   body: Joi.object().keys({

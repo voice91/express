@@ -210,6 +210,14 @@ export const update = catchAsync(async (req, res) => {
     delete body.taskAnswer;
   }
 
+  if (body.taskAnswer && body.taskAnswer.length) {
+    body.taskAnswer.forEach((answer) => {
+      if (!answer.answeredBy) {
+        Object.assign(answer, { answeredBy: user.name });
+      }
+    });
+  }
+
   const taskResult = await taskService.updateTask(filter, body, options);
   // tempS3
   if (taskResult) {
