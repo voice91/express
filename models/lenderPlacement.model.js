@@ -142,6 +142,16 @@ const TermSheetSchema = new mongoose.Schema({
     type: String,
   },
 });
+const TimeLineSchema = new mongoose.Schema({
+  stage: {
+    type: String,
+    enum: Object.values(enumModel.EnumStageOfLenderPlacement),
+  },
+  updatedAt: {
+    type: Date,
+    default: new Date(),
+  },
+});
 const LenderPlacementSchema = new mongoose.Schema(
   {
     /**
@@ -201,7 +211,7 @@ const LenderPlacementSchema = new mongoose.Schema(
     },
     nextStep: {
       type: String,
-      default: enumModel.EnumNextStepOfLenderPlacement.NEW,
+      default: enumModel.EnumNextStepOfLenderPlacement.new,
     },
     /**
      * The set of terms that the lender is offering on the deal
@@ -237,6 +247,10 @@ const LenderPlacementSchema = new mongoose.Schema(
     isArchived: {
       type: Boolean,
       default: false,
+    },
+    timeLine: {
+      type: [TimeLineSchema],
+      // default: [{ stage: enumModel.EnumStageOfLenderPlacement.NEW, updatedAt: new Date() }],
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }

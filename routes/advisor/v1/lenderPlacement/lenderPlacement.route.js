@@ -65,7 +65,8 @@ router
 router
   .route('/v2/send-deal')
   /**
-   * Create Template or sendDeal
+   * Create Template and sendDeal
+   * This route is also used for followUp
    * */
   .post(auth('advisor'), validate(lenderPlacementValidation.sendDealV2), lenderPlacementController.sendDealV2);
 

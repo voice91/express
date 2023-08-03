@@ -162,6 +162,9 @@ export const sendDealV2 = {
       })
     ),
   }),
+  query: Joi.object().keys({
+    isFollowUp: Joi.boolean(),
+  }),
 };
 
 export const getEmailTemplateId = {

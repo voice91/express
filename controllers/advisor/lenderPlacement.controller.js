@@ -250,10 +250,6 @@ export const update = catchAsync(async (req, res) => {
     body.terms.totalLoanAmount = body.terms.initialFunding + futureFunding;
   }
 
-  if (body.stage) {
-    body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
-  }
-
   const options = {
     new: true,
     populate: [
@@ -268,6 +264,13 @@ export const update = catchAsync(async (req, res) => {
 
   const oldStage = beforeLenderPlacementResult.stage;
 
+  if (body.stage) {
+    body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
+    body.nextStep = enumModel.EnumNextStepOfLenderPlacement[body.stage];
+    if (body.stageEnumWiseNumber < stageOfLenderPlacementWithNumber(oldStage)) {
+      body.$addToSet = { timeLine: { stage: body.stage, updateAt: new Date() } };
+    }
+  }
   if (oldStage !== EnumStageOfLenderPlacement.CLOSED && body.stage === EnumStageOfLenderPlacement.ARCHIVE) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Only Archive possible when status changed from Closed to Archive..');
   }
@@ -319,6 +322,7 @@ export const update = catchAsync(async (req, res) => {
     await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
       stage,
       stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+      $addToSet: { timeLine: { stage, updateAt: new Date() } },
     });
   }
 
@@ -339,6 +343,7 @@ export const update = catchAsync(async (req, res) => {
     await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
       stage,
       stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+      $addToSet: { timeLine: { stage, updateAt: new Date() } },
     });
   }
 
