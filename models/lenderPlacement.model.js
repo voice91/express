@@ -199,6 +199,10 @@ const LenderPlacementSchema = new mongoose.Schema(
       max: enumModel.EnumStageOfLenderPlacement.length,
       default: 7,
     },
+    nextStep: {
+      type: String,
+      default: enumModel.EnumNextStepOfLenderPlacement.NEW,
+    },
     /**
      * The set of terms that the lender is offering on the deal
      * */

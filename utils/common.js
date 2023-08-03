@@ -488,6 +488,7 @@ export const getTextFromTemplate = ({
   passLink,
   advisorName,
   emailTemplate,
+  followUpContent,
 }) => {
   return _.template(emailTemplate)({
     lenderName: lenderName || 'Lender',
@@ -496,5 +497,6 @@ export const getTextFromTemplate = ({
     dealSummaryLink,
     passLink,
     advisorName,
+    followUpContent,
   });
 };
