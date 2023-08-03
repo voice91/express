@@ -9,6 +9,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const taskDocumentSchema = Joi.object().keys({
   url: Joi.string().required(),
   fileName: Joi.string().required(),
+  _id: Joi.objectId(),
 });
 const taskAnswerSchema = Joi.object().keys({
   answer: Joi.string(),
