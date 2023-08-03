@@ -158,6 +158,7 @@ export const sendDealV2 = {
         lenderInstitute: Joi.objectId().required(),
         deal: Joi.objectId().required(),
         lenderPlacement: Joi.objectId().required(),
+        followUpContent: Joi.string(),
       })
     ),
   }),

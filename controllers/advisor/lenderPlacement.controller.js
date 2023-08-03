@@ -21,7 +21,7 @@ import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { Deal, EmailTemplate, LenderPlacement, User } from '../../models';
-import { borrowerSendDealEmailContent, sendDealTemplate1Text } from '../../utils/emailContent';
+import { borrowerSendDealEmailContent, followUpEmailContent, sendDealTemplate1Text } from '../../utils/emailContent';
 import enumModel, {
   EnumOfActivityType,
   EnumOfEmailStatus,
@@ -739,10 +739,11 @@ export const sendDealV2 = catchAsync(async (req, res) => {
   const { deals } = req.body;
   const frontEndUrl = config.frontEndUrl || 'http://54.196.81.18';
   const admin = req.user;
+  const { isFollowUp } = req.query;
   const { emailPresentingPostmark } = admin;
   const advisorEmail = admin.email;
   const promises = await deals.map(async (body) => {
-    const { lenderInstitute, deal, lenderPlacement } = body;
+    const { lenderInstitute, deal, lenderPlacement, followUpContent } = body;
     const filterToFindContact = {
       lenderInstitute,
     };
@@ -759,8 +760,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       filterToFindDeal
     );
     const emailBodyValues = {
-      // dealSummaryLink: `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary`,
-      dealSummaryLink: `${frontEndUrl}/register?dealId=${deal}`,
+      dealSummaryLink: `${frontEndUrl}/dealDetail/${deal}?tab=presentation`,
       passLink: 'passUrl',
       advisorName: admin.firstName,
       documents: [],
@@ -781,7 +781,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     }
 
     const dealSummaryDocs = [];
-    if (lenderContact.lenderPlacement.deal.dealSummary) {
+    if (lenderContact.lenderPlacement.deal.dealSummary && !isFollowUp) {
       if (
         lenderContact.lenderPlacement.deal.dealSummary.documents &&
         lenderContact.lenderPlacement.deal.dealSummary.documents.length
@@ -802,7 +802,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         emailBodyValues.documentsText = documentsText;
         dealSummaryDocs.push(...lenderContact.lenderPlacement.deal.dealSummary.documents);
       }
-      if (lenderContact.lenderPlacement.deal.dealSummary.executiveSummary) {
+      if (lenderContact.lenderPlacement.deal.dealSummary.executiveSummary && !isFollowUp) {
         emailBodyValues.executiveSummary = lenderContact.lenderPlacement.deal.dealSummary.executiveSummary;
       }
     }
@@ -816,20 +816,28 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       };
     });
     _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
-    const staticEmailTemplateData = borrowerSendDealEmailContent();
+    const staticEmailTemplateData = isFollowUp ? followUpEmailContent() : borrowerSendDealEmailContent();
     let emailTemplate;
-    emailTemplate = await emailTemplateService.getOne(
-      {
-        lenderPlacement,
-        templateName: {
-          $in: [
-            `advisorSendDealTemplate - ${emailBodyValues.lenderName}`,
-            `borrowerSendDealTemplate - ${emailBodyValues.lenderName}`,
-          ],
-        },
-      },
-      { populate: 'deal' }
-    );
+    const filter = isFollowUp
+      ? {
+          lenderPlacement,
+          templateName: {
+            $in: [
+              `advisorFollowUpTemplate - ${emailBodyValues.lenderName}`,
+              `borrowerFollowUpTemplate - ${emailBodyValues.lenderName}`,
+            ],
+          },
+        }
+      : {
+          lenderPlacement,
+          templateName: {
+            $in: [
+              `advisorSendDealTemplate - ${emailBodyValues.lenderName}`,
+              `borrowerSendDealTemplate - ${emailBodyValues.lenderName}`,
+            ],
+          },
+        };
+    emailTemplate = await emailTemplateService.getOne(filter, { populate: 'deal' });
     // if already template not available then we are create
     if (!emailTemplate) {
       emailTemplate = await EmailTemplate.create({
@@ -837,15 +845,17 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         advisorName: admin.firstName,
         contact,
         subject: `${emailBodyValues.dealName}-$${emailBodyValues.loanAmount}m Financing Request`,
-        dealDocument: docIds,
+        dealDocument: isFollowUp ? [] : docIds,
         emailContent: staticEmailTemplateData,
         lenderPlacement,
         deal,
         emailAttachments: [],
-        isFirstTime: true,
+        isFirstTime: !isFollowUp,
         isEmailSent: false,
         totalLoanAmount,
-        templateName: `advisorSendDealTemplate - ${emailBodyValues.lenderName}`,
+        templateName: isFollowUp
+          ? `advisorFollowUpTemplate - ${emailBodyValues.lenderName}`
+          : `advisorSendDealTemplate - ${emailBodyValues.lenderName}`,
       });
     }
     const getEmailTemplate = emailTemplate;
@@ -878,6 +888,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
             passLink: emailBodyValues.passLink,
             advisorName: emailBodyValues.advisorName,
             emailTemplate: getEmailTemplate.emailContent,
+            followUpContent: followUpContent || `following up, did you have any feedback on this deal.`,
           }),
           // eslint-disable-next-line no-shadow
           attachments: dealSummaryDocs.map((item) => {
@@ -905,6 +916,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
           isEmailSentFirstTime: true,
           stage,
           stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+          $addToSet: { timeLine: { stage }, updateAt: new Date() },
         }
       );
     } else {
