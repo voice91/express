@@ -186,6 +186,7 @@ export const update = catchAsync(async (req, res) => {
   const { body } = req;
   body.updatedBy = req.user;
   const { dealId } = req.params;
+  const { dealSummaryBody } = body;
   body.user = req.user._id;
   const user = req.user._id;
   const filter = {
@@ -210,7 +211,9 @@ export const update = catchAsync(async (req, res) => {
     });
   }
   const deal = await dealService.updateDeal(filter, body, options);
-
+  if (dealSummaryBody) {
+    await dealSummaryService.updateDealSummary({ _id: dealSummaryBody._id || body.dealSummary }, dealSummaryBody);
+  }
   const lenderPlacement = await LenderPlacement.find({ deal: dealId }).populate([{ path: 'lendingInstitution' }]);
   let lenderName;
   let lender;

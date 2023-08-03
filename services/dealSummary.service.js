@@ -251,7 +251,7 @@ export async function updateDealSummary(filter, body, options = {}) {
     }
   }
 
-  if (body.documents.length) {
+  if (body.documents && body.documents.length) {
     // eslint-disable-next-line no-param-reassign
     body.documents = body.documents.map((item) => {
       if (item.url && !item.fileName) {
