@@ -103,6 +103,31 @@ export const updateDeal = {
     squareFootage: Joi.number(),
     unitCount: Joi.number(),
     occupancy: Joi.string(),
+    dealSummaryBody: Joi.object({
+      _id: Joi.objectId(),
+      mainPhoto: photoSchema,
+      propertySummary: Joi.array().items(
+        Joi.object({
+          key: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+      financingRequest: Joi.array().items(
+        Joi.object({
+          key: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+      dealMetrics: Joi.array().items(
+        Joi.object({
+          key: Joi.string(),
+          value: Joi.any(),
+          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+        })
+      ),
+    }),
   }),
   params: Joi.object().keys({
     dealId: Joi.objectId().required(),
