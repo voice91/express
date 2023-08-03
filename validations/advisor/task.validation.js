@@ -9,11 +9,18 @@ Joi.objectId = require('joi-objectid')(Joi);
 const taskDocumentSchema = Joi.object().keys({
   url: Joi.string().required(),
   fileName: Joi.string().required(),
+  _id: Joi.objectId(),
+});
+const taskAnswerSchema = Joi.object().keys({
+  answer: Joi.string(),
+  receivedAt: Joi.date().default(new Date()),
+  taskDocuments: Joi.array().items(taskDocumentSchema),
+  answeredBy: Joi.string(),
 });
 export const createTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string().required(),
-    taskAnswer: Joi.string(),
+    taskAnswer: Joi.array().items(taskAnswerSchema),
     askingPartyAdvisor: Joi.objectId(),
     askingPartyInstitute: Joi.objectId(),
     deal: Joi.objectId().required(),
@@ -24,9 +31,10 @@ export const createTask = {
 export const updateTask = {
   body: Joi.object().keys({
     taskQuestion: Joi.string(),
-    taskAnswer: Joi.string().allow(null),
+    taskAnswer: Joi.array().items(taskAnswerSchema),
     askingPartyAdvisor: Joi.objectId(),
     askingPartyInstitute: Joi.objectId(),
+    isCompleted: Joi.boolean(),
     deal: Joi.objectId().required(),
     taskDocuments: Joi.array().items(taskDocumentSchema),
   }),

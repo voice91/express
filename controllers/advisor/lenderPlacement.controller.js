@@ -122,7 +122,15 @@ export const list = catchAsync(async (req, res) => {
       {
         path: 'outstandingTaskCount',
         count: true,
-        match: { taskAnswer: { $exists: false }, deal: query.deal },
+        match: {
+          deal: query.deal,
+          $expr: {
+            $or: [
+              { $eq: ['$taskAnswer', []] }, // Check if taskAnswer is an empty array
+              { $not: { $isArray: '$taskAnswer' } }, // Check if taskAnswer is not an array or non-existent
+            ],
+          },
+        },
       },
       {
         path: 'notes',

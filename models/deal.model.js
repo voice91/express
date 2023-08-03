@@ -230,12 +230,27 @@ DealSchema.virtual('task', {
   justOne: false,
 });
 
+// DealSchema.virtual('outstandingTaskCount', {
+//   ref: 'Task',
+//   localField: '_id',
+//   foreignField: 'deal',
+//   count: true,
+//   match: { taskAnswer: { $exists: false } },
+// });
+
 DealSchema.virtual('outstandingTaskCount', {
   ref: 'Task',
   localField: '_id',
   foreignField: 'deal',
   count: true,
-  match: { taskAnswer: { $exists: false } },
+  match: {
+    $expr: {
+      $or: [
+        { $eq: ['$taskAnswer', []] }, // Check if taskAnswer is an empty array
+        { $not: { $isArray: '$taskAnswer' } }, // Check if taskAnswer is not an array or non-existent
+      ],
+    },
+  },
 });
 
 DealSchema.plugin(toJSON);
