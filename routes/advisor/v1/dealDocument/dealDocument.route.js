@@ -18,6 +18,17 @@ router
     dealDocumentController.create
   );
 router
+  .route('/v2/add')
+  /**
+   * createDealDocument updated flow
+   * */
+  .post(
+    auth('advisor'),
+    validate(dealDocumentValidation.createDealDocumentV2),
+    checkAccessOfDeal,
+    dealDocumentController.createV2
+  );
+router
   .route('/deal/:dealId')
   /**
    * getDealDocument

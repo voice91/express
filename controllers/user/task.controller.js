@@ -166,6 +166,13 @@ export const update = catchAsync(async (req, res) => {
       return { url: encodeUrl(item), fileName: fileName[index] };
     });
   }
+  if (body.taskAnswer && body.taskAnswer.length) {
+    body.taskAnswer.forEach((answer) => {
+      if (!answer.answeredBy) {
+        Object.assign(answer, { answeredBy: user.name });
+      }
+    });
+  }
   const options = { new: true };
   const taskResult = await taskService.updateTask(filter, body, options);
   // tempS3
