@@ -146,6 +146,52 @@ export const create = catchAsync(async (req, res) => {
     return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
   }
 });
+export const createV2 = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
+  const uploadedBy = req.user.role;
+  const { user } = req;
+  const moveFileObj = {
+    ...(body.documents && { documents: body.documents.map((item) => item.url) }),
+  };
+  const filter = {
+    deal: body.deal,
+  };
+  let fileName = [];
+  let documentType = [];
+  if (body.documents) {
+    fileName = body.documents.map((item) => item.fileName);
+    documentType = body.documents.map((item) => item.documentType);
+  }
+  await moveFiles({ body, user, moveFileObj });
+  if (body.documents) {
+    body.documents = body.documents.map((item, index) => {
+      return { url: encodeUrl(item), fileName: fileName[index], documentType: documentType[index], uploadedBy };
+    });
+  }
+  const dealDocuments = await DealDocument.find(filter);
+
+  const documents = flatMap(dealDocuments.map((item) => item.documents));
+  const dealDocumentsAvailableInDb = documents.length;
+  if (dealDocumentsAvailableInDb === 6 || dealDocumentsAvailableInDb > 6) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You can Add only 6 Documents..!');
+  } else if (body.documents && dealDocumentsAvailableInDb + body.documents.length > 6) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `${dealDocumentsAvailableInDb} document present in db,
+     ${6 - dealDocumentsAvailableInDb} document can be added`
+    );
+  } else {
+    const dealDocumentResult = await dealDocumentService.createDealDocument(body);
+    if (body.documents && dealDocumentResult) {
+      const uploadedFileUrls = [];
+      uploadedFileUrls.push(dealDocumentResult.file);
+      await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+    }
+    return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
+  }
+});
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;

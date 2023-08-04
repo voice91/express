@@ -16,6 +16,11 @@ const documentSchema = Joi.object().keys({
     .required(),
   fileDescription: Joi.string(),
 });
+const updatedDocumentSchema = Joi.object().keys({
+  url: Joi.string().required(),
+  fileName: Joi.string().required(),
+  fileType: Joi.string(),
+});
 export const createDealDocument = {
   body: Joi.object().keys({
     documents: Joi.array().items(documentSchema).required(),
@@ -23,10 +28,27 @@ export const createDealDocument = {
   }),
 };
 
+export const createDealDocumentV2 = {
+  body: Joi.object().keys({
+    documents: Joi.when('isAddRecommendedFile', {
+      is: true,
+      then: Joi.array().items(updatedDocumentSchema),
+      otherwise: Joi.array().items(updatedDocumentSchema).required(),
+    }),
+    // documents: Joi.array().items(updatedDocumentSchema),
+    deal: Joi.objectId().required(),
+    fileDescription: Joi.string().required(),
+    comment: Joi.string(),
+    isAddRecommendedFile: Joi.boolean(),
+  }),
+};
+
 export const updateDealDocument = {
   body: Joi.object().keys({
     documents: Joi.array().items(documentSchema).required(),
     deal: Joi.objectId().required(),
+    fileDescription: Joi.string(),
+    comment: Joi.string(),
   }),
   params: Joi.object().keys({
     dealDocumentId: Joi.objectId().required(),

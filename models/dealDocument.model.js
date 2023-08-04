@@ -25,7 +25,7 @@ const documentSchema = new mongoose.Schema(
     documentType: {
       type: String,
       enum: Object.values(enumModel.EnumDocumentTypeOfDealDocument),
-      required: true,
+      // required: true,
       default: enumModel.EnumDocumentTypeOfDealDocument.OTHERS,
     },
     fileDescription: {
@@ -62,6 +62,13 @@ const DealDocumentSchema = new mongoose.Schema(
       ref: 'Deal',
       required: true,
     },
+    fileDescription: {
+      type: String,
+    },
+    comment: {
+      type: String,
+    },
+    isAddRecommendedFile: { type: Boolean, default: false },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
