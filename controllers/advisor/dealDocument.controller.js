@@ -175,6 +175,7 @@ export const createV2 = catchAsync(async (req, res) => {
     documentType = body.documents.map((item) => item.documentType);
     fileType = body.documents.map((item) => item.fileType);
   }
+  body._id = mongoose.Types.ObjectId();
   await moveFiles({ body, user, moveFileObj });
   if (body.documents) {
     body.documents = body.documents.map((item, index) => {
@@ -217,9 +218,17 @@ export const update = catchAsync(async (req, res) => {
   const { dealDocumentId } = req.params;
   const { user } = req;
   const moveFileObj = {
-    ...(body.file && { file: body.file }),
+    ...(body.documents && { documents: body.documents.map((item) => item.url) }),
   };
   const dealId = body.deal;
+  let fileName = [];
+  let documentType = [];
+  let fileType = [];
+  if (body.documents) {
+    fileName = body.documents.map((item) => item.fileName);
+    documentType = body.documents.map((item) => item.documentType);
+    fileType = body.documents.map((item) => item.fileType);
+  }
   const dealObj = await Deal.findById(dealId);
   if (!dealObj) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
@@ -227,6 +236,32 @@ export const update = catchAsync(async (req, res) => {
   body._id = dealDocumentId;
   body.uploadedBy = uploadedBy;
   await moveFiles({ body, user, moveFileObj });
+
+  if (body.documents) {
+    body.documents = body.documents.map((item, index) => {
+      return {
+        url: encodeUrl(item),
+        fileName: fileName[index],
+        documentType: documentType[index],
+        fileType: fileType[index],
+        uploadedBy,
+      };
+    });
+  }
+
+  // todo: Uncomment below code for limiting max documents of a deal.
+  // const dealDocuments = await DealDocument.find({ deal: dealId });
+  // const documents = flatMap(dealDocuments.map((item) => item.documents));
+  // const dealDocumentsAvailableInDb = documents.length;
+  // if (dealDocumentsAvailableInDb === 6 || dealDocumentsAvailableInDb > 6) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'You can Add only 6 Documents..!');
+  // } else if (body.documents && dealDocumentsAvailableInDb + body.documents.length > 6) {
+  //   throw new ApiError(
+  //     httpStatus.BAD_REQUEST,
+  //     `${dealDocumentsAvailableInDb} document present in db,
+  //    ${6 - dealDocumentsAvailableInDb} document can be added`
+  //   );
+  // }
   const filter = {
     _id: dealDocumentId,
   };

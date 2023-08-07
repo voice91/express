@@ -11,9 +11,7 @@ const documentSchema = Joi.object().keys({
   url: Joi.string().required(),
   fileName: Joi.string().required(),
   fileType: Joi.string(),
-  documentType: Joi.string()
-    .valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument))
-    .required(),
+  documentType: Joi.string().valid(...Object.values(enumFields.EnumDocumentTypeOfDealDocument)),
   fileDescription: Joi.string(),
 });
 const updatedDocumentSchema = Joi.object().keys({
@@ -45,7 +43,7 @@ export const createDealDocumentV2 = {
 
 export const updateDealDocument = {
   body: Joi.object().keys({
-    documents: Joi.array().items(documentSchema).required(),
+    documents: Joi.array().items(documentSchema),
     deal: Joi.objectId().required(),
     fileDescription: Joi.string(),
     comment: Joi.string(),
