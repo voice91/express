@@ -9,6 +9,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const taskDocumentSchema = Joi.object().keys({
   url: Joi.string().required(),
   fileName: Joi.string().required(),
+  fileType: Joi.string(),
   _id: Joi.objectId(),
 });
 const taskAnswerSchema = Joi.object().keys({
@@ -16,6 +17,8 @@ const taskAnswerSchema = Joi.object().keys({
   receivedAt: Joi.date().default(new Date()),
   taskDocuments: Joi.array().items(taskDocumentSchema),
   answeredBy: Joi.string(),
+  fileDescription: Joi.string(),
+  comment: Joi.string(),
 });
 export const createTask = {
   body: Joi.object().keys({
