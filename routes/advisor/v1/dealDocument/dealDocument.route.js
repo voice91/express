@@ -39,6 +39,18 @@ router
     checkAccessOfDeal,
     dealDocumentController.getDealDocumentByDeal
   );
+
+router
+  .route('/v2/deal/:dealId')
+  /**
+   * getDealDocuments list by deal
+   * */
+  .get(
+    auth('advisor'),
+    validate(dealDocumentValidation.getDealDocument),
+    checkAccessOfDeal,
+    dealDocumentController.getDealDocumentByDealV2
+  );
 router
   .route('/paginated')
   /**

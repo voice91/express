@@ -71,6 +71,15 @@ export const getDealDocumentByDeal = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
 
+export const getDealDocumentByDealV2 = catchAsync(async (req, res) => {
+  const filter = {
+    deal: req.params.dealId,
+  };
+  const options = {};
+  const dealDocument = await dealDocumentService.getDealDocumentList(filter, options);
+  return res.status(httpStatus.OK).send({ results: dealDocument });
+});
+
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
   const sortingObj = pick(query, ['sort', 'order']);
@@ -160,14 +169,22 @@ export const createV2 = catchAsync(async (req, res) => {
   };
   let fileName = [];
   let documentType = [];
+  let fileType = [];
   if (body.documents) {
     fileName = body.documents.map((item) => item.fileName);
     documentType = body.documents.map((item) => item.documentType);
+    fileType = body.documents.map((item) => item.fileType);
   }
   await moveFiles({ body, user, moveFileObj });
   if (body.documents) {
     body.documents = body.documents.map((item, index) => {
-      return { url: encodeUrl(item), fileName: fileName[index], documentType: documentType[index], uploadedBy };
+      return {
+        url: encodeUrl(item),
+        fileName: fileName[index],
+        documentType: documentType[index],
+        fileType: fileType[index],
+        uploadedBy,
+      };
     });
   }
   const dealDocuments = await DealDocument.find(filter);
