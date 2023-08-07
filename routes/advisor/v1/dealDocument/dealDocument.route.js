@@ -71,6 +71,12 @@ router
     validate(dealDocumentValidation.updateDealDocument),
     checkAccessOfDeal,
     dealDocumentController.update
+  )
+  .delete(
+    auth('advisor'),
+    validate(dealDocumentValidation.removeDealDocument),
+    checkAccessOfDeal,
+    dealDocumentController.remove
   );
 router
   .route('/documents/:documentId')

@@ -80,3 +80,9 @@ export const deleteDocument = {
     documentId: Joi.objectId().required(),
   }),
 };
+
+export const removeDealDocument = {
+  params: Joi.object().keys({
+    dealDocumentId: Joi.objectId().required(),
+  }),
+};
