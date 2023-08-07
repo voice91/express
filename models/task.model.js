@@ -17,6 +17,9 @@ const TaskDocumentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  fileType: {
+    type: String,
+  },
 });
 const TaskAnswerSchema = new mongoose.Schema({
   answer: {
@@ -31,6 +34,12 @@ const TaskAnswerSchema = new mongoose.Schema({
   },
   taskDocuments: {
     type: [TaskDocumentSchema],
+  },
+  fileDescription: {
+    type: String,
+  },
+  comment: {
+    type: String,
   },
 });
 
