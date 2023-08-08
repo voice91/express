@@ -155,21 +155,115 @@ export const create = catchAsync(async (req, res) => {
   }
 });
 
+export const createV2 = catchAsync(async (req, res) => {
+  const { body } = req;
+  body.createdBy = req.user._id;
+  body.updatedBy = req.user._id;
+  const uploadedBy = req.user.role;
+  const { user } = req;
+  const moveFileObj = {
+    ...(body.documents && { documents: body.documents.map((item) => item.url) }),
+  };
+  // const filter = {
+  //   deal: body.deal,
+  // };
+  let fileName = [];
+  let documentType = [];
+  let fileType = [];
+  if (body.documents) {
+    fileName = body.documents.map((item) => item.fileName);
+    documentType = body.documents.map((item) => item.documentType);
+    fileType = body.documents.map((item) => item.fileType);
+  }
+  body._id = mongoose.Types.ObjectId();
+  body.uploadedBy = uploadedBy;
+  await moveFiles({ body, user, moveFileObj });
+  if (body.documents) {
+    body.documents = body.documents.map((item, index) => {
+      return {
+        url: encodeUrl(item),
+        fileName: fileName[index],
+        documentType: documentType[index],
+        fileType: fileType[index],
+        uploadedBy,
+      };
+    });
+  }
+  // todo: Uncomment below code for limiting max documents of a deal.
+  // const dealDocuments = await DealDocument.find(filter);
+  //
+  // const documents = flatMap(dealDocuments.map((item) => item.documents));
+  // const dealDocumentsAvailableInDb = documents.length;
+  // if (dealDocumentsAvailableInDb === 6 || dealDocumentsAvailableInDb > 6) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'You can Add only 6 Documents..!');
+  // } else if (body.documents && dealDocumentsAvailableInDb + body.documents.length > 6) {
+  //   throw new ApiError(
+  //     httpStatus.BAD_REQUEST,
+  //     `${dealDocumentsAvailableInDb} document present in db,
+  //    ${6 - dealDocumentsAvailableInDb} document can be added`
+  //   );
+  // } else {
+  const dealDocumentResult = await dealDocumentService.createDealDocument(body);
+  if (body.documents && dealDocumentResult) {
+    const uploadedFileUrls = [];
+    uploadedFileUrls.push(dealDocumentResult.file);
+    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+  }
+  return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
+  // }
+});
+
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
   body.updatedBy = req.user;
+  const uploadedBy = req.user.role;
   const { dealDocumentId } = req.params;
   const { user } = req;
   const moveFileObj = {
-    ...(body.file && { file: body.file }),
+    ...(body.documents && { documents: body.documents.map((item) => item.url) }),
   };
   const dealId = body.deal;
+  let fileName = [];
+  let documentType = [];
+  let fileType = [];
+  if (body.documents) {
+    fileName = body.documents.map((item) => item.fileName);
+    documentType = body.documents.map((item) => item.documentType);
+    fileType = body.documents.map((item) => item.fileType);
+  }
   const dealObj = await Deal.findById(dealId);
   if (!dealObj) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
   }
   body._id = dealDocumentId;
+  body.uploadedBy = uploadedBy;
   await moveFiles({ body, user, moveFileObj });
+
+  if (body.documents) {
+    body.documents = body.documents.map((item, index) => {
+      return {
+        url: encodeUrl(item),
+        fileName: fileName[index],
+        documentType: documentType[index],
+        fileType: fileType[index],
+        uploadedBy,
+      };
+    });
+  }
+
+  // todo: Uncomment below code for limiting max documents of a deal.
+  // const dealDocuments = await DealDocument.find({ deal: dealId });
+  // const documents = flatMap(dealDocuments.map((item) => item.documents));
+  // const dealDocumentsAvailableInDb = documents.length;
+  // if (dealDocumentsAvailableInDb === 6 || dealDocumentsAvailableInDb > 6) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'You can Add only 6 Documents..!');
+  // } else if (body.documents && dealDocumentsAvailableInDb + body.documents.length > 6) {
+  //   throw new ApiError(
+  //     httpStatus.BAD_REQUEST,
+  //     `${dealDocumentsAvailableInDb} document present in db,
+  //    ${6 - dealDocumentsAvailableInDb} document can be added`
+  //   );
+  // }
   const filter = {
     _id: dealDocumentId,
   };
@@ -197,5 +291,14 @@ export const removeDocuments = catchAsync(async (req, res) => {
     new: true,
   };
   const dealDocument = await dealDocumentService.updateDealDocument(filter, updateDocument, options);
+  return res.status(httpStatus.OK).send({ results: dealDocument });
+});
+
+export const remove = catchAsync(async (req, res) => {
+  const { dealDocumentId } = req.params;
+  const filter = {
+    _id: dealDocumentId,
+  };
+  const dealDocument = await dealDocumentService.removeDealDocument(filter);
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
