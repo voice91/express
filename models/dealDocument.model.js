@@ -69,6 +69,10 @@ const DealDocumentSchema = new mongoose.Schema(
       type: String,
     },
     isAddRecommendedFile: { type: Boolean, default: false },
+    uploadedBy: {
+      type: String,
+      enum: Object.values(enumModel.EnumRoleOfUser),
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
