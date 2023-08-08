@@ -164,9 +164,9 @@ export const createV2 = catchAsync(async (req, res) => {
   const moveFileObj = {
     ...(body.documents && { documents: body.documents.map((item) => item.url) }),
   };
-  const filter = {
-    deal: body.deal,
-  };
+  // const filter = {
+  //   deal: body.deal,
+  // };
   let fileName = [];
   let documentType = [];
   let fileType = [];
@@ -176,6 +176,7 @@ export const createV2 = catchAsync(async (req, res) => {
     fileType = body.documents.map((item) => item.fileType);
   }
   body._id = mongoose.Types.ObjectId();
+  body.uploadedBy = uploadedBy;
   await moveFiles({ body, user, moveFileObj });
   if (body.documents) {
     body.documents = body.documents.map((item, index) => {
@@ -188,27 +189,28 @@ export const createV2 = catchAsync(async (req, res) => {
       };
     });
   }
-  const dealDocuments = await DealDocument.find(filter);
-
-  const documents = flatMap(dealDocuments.map((item) => item.documents));
-  const dealDocumentsAvailableInDb = documents.length;
-  if (dealDocumentsAvailableInDb === 6 || dealDocumentsAvailableInDb > 6) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'You can Add only 6 Documents..!');
-  } else if (body.documents && dealDocumentsAvailableInDb + body.documents.length > 6) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `${dealDocumentsAvailableInDb} document present in db,
-     ${6 - dealDocumentsAvailableInDb} document can be added`
-    );
-  } else {
-    const dealDocumentResult = await dealDocumentService.createDealDocument(body);
-    if (body.documents && dealDocumentResult) {
-      const uploadedFileUrls = [];
-      uploadedFileUrls.push(dealDocumentResult.file);
-      await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
-    }
-    return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
+  // todo: Uncomment below code for limiting max documents of a deal.
+  // const dealDocuments = await DealDocument.find(filter);
+  //
+  // const documents = flatMap(dealDocuments.map((item) => item.documents));
+  // const dealDocumentsAvailableInDb = documents.length;
+  // if (dealDocumentsAvailableInDb === 6 || dealDocumentsAvailableInDb > 6) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'You can Add only 6 Documents..!');
+  // } else if (body.documents && dealDocumentsAvailableInDb + body.documents.length > 6) {
+  //   throw new ApiError(
+  //     httpStatus.BAD_REQUEST,
+  //     `${dealDocumentsAvailableInDb} document present in db,
+  //    ${6 - dealDocumentsAvailableInDb} document can be added`
+  //   );
+  // } else {
+  const dealDocumentResult = await dealDocumentService.createDealDocument(body);
+  if (body.documents && dealDocumentResult) {
+    const uploadedFileUrls = [];
+    uploadedFileUrls.push(dealDocumentResult.file);
+    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
   }
+  return res.status(httpStatus.CREATED).send({ results: dealDocumentResult });
+  // }
 });
 
 export const update = catchAsync(async (req, res) => {
