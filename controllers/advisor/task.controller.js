@@ -213,7 +213,7 @@ export const update = catchAsync(async (req, res) => {
   if (body.taskAnswer && body.taskAnswer.length) {
     body.taskAnswer.forEach((answer) => {
       if (!answer.answeredBy) {
-        Object.assign(answer, { answeredBy: user.name });
+        Object.assign(answer, { answeredBy: user.firstName });
       }
     });
   }
