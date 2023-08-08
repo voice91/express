@@ -92,6 +92,15 @@ export const paginate = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
 
+export const getDealDocumentByDealV2 = catchAsync(async (req, res) => {
+  const filter = {
+    deal: req.params.dealId,
+  };
+  const options = {};
+  const dealDocument = await dealDocumentService.getDealDocumentList(filter, options);
+  return res.status(httpStatus.OK).send({ results: dealDocument });
+});
+
 export const create = catchAsync(async (req, res) => {
   const { body } = req;
   body.createdBy = req.user;
