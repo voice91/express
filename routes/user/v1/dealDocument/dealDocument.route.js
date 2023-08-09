@@ -24,6 +24,17 @@ router
     dealDocumentController.getDealDocumentByDeal
   );
 router
+  .route('/v2/add')
+  /**
+   * createDealDocument updated flow
+   * */
+  .post(
+    auth('advisor'),
+    validate(dealDocumentValidation.createDealDocumentV2),
+    checkAccessOfDeal,
+    dealDocumentController.createV2
+  );
+router
   .route('/v2/deal/:dealId')
   /**
    * getDealDocuments list by deal
@@ -49,7 +60,8 @@ router
   /**
    * updateDealDocument
    * */
-  .put(auth('user'), validate(dealDocumentValidation.updateDealDocument), checkAccessOfDeal, dealDocumentController.update);
+  .put(auth('user'), validate(dealDocumentValidation.updateDealDocument), checkAccessOfDeal, dealDocumentController.update)
+  .delete(auth('user'), validate(dealDocumentValidation.removeDealDocumentById), dealDocumentController.remove);
 router
   .route('/documents/:documentId')
   .delete(auth('user'), validate(dealDocumentValidation.deleteDocument), dealDocumentController.removeDocuments);
