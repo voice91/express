@@ -193,15 +193,10 @@ export const update = catchAsync(async (req, res) => {
     _id: dealId,
     user,
   };
-  if (body.stage) {
-    body.orderOfStage = stageOfDealWithNumber(body.stage);
-    body.details = await detailsInDeal(body.stage, dealId);
-  }
+
   const options = { new: true };
-  const dealStage = await Deal.find(filter);
-
-  const oldStage = dealStage.map((item) => item.stage).toString();
-
+  const dealStage = await dealService.getOne(filter);
+  const oldStage = dealStage.stage;
   if (oldStage !== EnumStageOfDeal.CLOSED && body.stage === EnumStageOfDeal.ARCHIVE) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Only Archive possible when status changed from Closed to Archive..');
   }
@@ -209,6 +204,19 @@ export const update = catchAsync(async (req, res) => {
     await Deal.findByIdAndUpdate(dealId, {
       stage: EnumStageOfDeal.ARCHIVE,
     });
+  }
+  if (body.stage) {
+    body.orderOfStage = stageOfDealWithNumber(body.stage);
+    body.details = await detailsInDeal(body.stage, dealId);
+    const indexToUpdate = dealStage.timeLine.findIndex((entry) => entry.stage === body.stage);
+    body.timeLine = dealStage.timeLine || [];
+    // If an existing entry with the stage is found, update its updatedAt value
+    if (indexToUpdate !== -1) {
+      body.timeLine[indexToUpdate].updatedAt = new Date();
+    } else {
+      // If no existing entry found, add a new entry with the updated stage and updatedAt
+      body.timeLine.push({ stage: body.stage, updatedAt: new Date() });
+    }
   }
   const deal = await dealService.updateDeal(filter, body, options);
   if (dealSummaryBody) {

@@ -285,6 +285,7 @@ export const update = catchAsync(async (req, res) => {
     const stage = enumModel.EnumStageOfDeal.CLOSING;
     await Deal.findByIdAndUpdate(dealId, {
       stage,
+      $push: { timeLine: { stage, updatedAt: new Date() } },
       details: await detailsInDeal(stage, dealId),
     });
     const createActivityLogBody = {
@@ -731,6 +732,7 @@ export const sendEmail = catchAsync(async (req, res) => {
   const stage = EnumStageOfDeal.OUT_IN_MARKET;
   await Deal.findByIdAndUpdate(dealId, {
     stage,
+    $push: { timeLine: { stage, updatedAt: new Date() } },
     details: await detailsInDeal(stage, dealId),
   });
   const deal = await Deal.findById(dealId);
@@ -947,6 +949,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       { _id: deal },
       {
         stage,
+        $push: { timeLine: { stage, updatedAt: new Date() } },
         details: await detailsInDeal(stage, deal),
       }
     );
