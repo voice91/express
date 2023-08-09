@@ -21,6 +21,7 @@ export const register = {
       .required(),
     zipcode: Joi.number().integer().min(10000).max(99999).required(),
     emailPresentingPostmark: Joi.bool().default(false),
+    isRedirectedFromSendDeal: Joi.bool(),
   }),
 };
 

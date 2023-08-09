@@ -11,6 +11,8 @@ import {
   activityLogService,
   lenderContactService,
   dealService,
+  userService,
+  invitationService,
 } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
@@ -752,7 +754,7 @@ export const sendEmail = catchAsync(async (req, res) => {
 
 export const sendDealV2 = catchAsync(async (req, res) => {
   const { deals } = req.body;
-  const frontEndUrl = config.frontEndUrl || 'http://54.196.81.18';
+  const frontEndUrl = config.frontEndUrl || 'http://localhost:5173';
   const admin = req.user;
   const { isFollowUp } = req.query;
   const { emailPresentingPostmark } = admin;
@@ -828,6 +830,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       return {
         sendTo: lc.email,
         name: lc.firstName,
+        _id: lc._id,
       };
     });
     _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
@@ -887,37 +890,49 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     ];
 
     // todo : make function for this one, and make synchronize so we can handle error coming from that.
-    await Promise.allSettled(
-      getEmailTemplate.contact.map((item) => {
-        return emailService.sendEmail({
-          to: item.sendTo,
-          cc: ccList,
-          bcc: bccList,
-          subject: getEmailTemplate.subject,
-          ...(emailPresentingPostmark && { from: req.user.email }),
-          text: getTextFromTemplate({
-            lenderName: item.name,
-            executiveSummary: emailBodyValues.executiveSummary,
-            documents: emailBodyValues.documentsText,
-            dealSummaryLink: emailBodyValues.dealSummaryLink,
-            passLink: emailBodyValues.passLink,
-            advisorName: emailBodyValues.advisorName,
-            emailTemplate: getEmailTemplate.emailContent,
-            followUpContent: followUpContent || `following up, did you have any feedback on this deal.`,
-          }),
-          // eslint-disable-next-line no-shadow
-          attachments: dealSummaryDocs.map((item) => {
-            return {
-              fileName: item.fileName,
-              path: item.url,
-              fileType: item.url.split('.').pop(),
-            };
-          }),
-          isHtml: true,
-          headers,
+    // await Promise.allSettled(
+    await asyncForEach(getEmailTemplate.contact, async (item) => {
+      let dealSummaryLink = `${frontEndUrl}/dealDetail/${deal}?tab=presentation`;
+      const user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
+      if (!user) {
+        dealSummaryLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
+        await invitationService.createInvitation({
+          deal,
+          invitedBy: admin._id,
+          inviteeEmail: item.sendTo,
+          role: enumModel.EnumRoleOfUser.LENDER,
         });
-      })
-    );
+      }
+      return emailService.sendEmail({
+        to: item.sendTo,
+        cc: ccList,
+        bcc: bccList,
+        subject: getEmailTemplate.subject,
+        ...(emailPresentingPostmark && { from: req.user.email }),
+        text: getTextFromTemplate({
+          lenderName: item.name,
+          executiveSummary: emailBodyValues.executiveSummary,
+          documents: emailBodyValues.documentsText,
+          // dealSummaryLink: emailBodyValues.dealSummaryLink,
+          dealSummaryLink,
+          passLink: emailBodyValues.passLink,
+          advisorName: emailBodyValues.advisorName,
+          emailTemplate: getEmailTemplate.emailContent,
+          followUpContent: followUpContent || `following up, did you have any feedback on this deal.`,
+        }),
+        // eslint-disable-next-line no-shadow
+        attachments: dealSummaryDocs.map((item) => {
+          return {
+            fileName: item.fileName,
+            path: item.url,
+            fileType: item.url.split('.').pop(),
+          };
+        }),
+        isHtml: true,
+        headers,
+      });
+    });
+    // );
 
     const result = await lenderPlacementService.getOne({ _id: placementId });
 

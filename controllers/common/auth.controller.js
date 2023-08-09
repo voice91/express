@@ -1,33 +1,67 @@
 import httpStatus from 'http-status';
 import { catchAsync } from 'utils/catchAsync';
-import { authService, tokenService, userService, emailService } from 'services';
+import { authService, tokenService, userService, emailService, lenderContactService, invitationService } from 'services';
 import { Deal, Invitation } from '../../models';
+import enumModel from '../../models/enum.model';
+import ApiError from '../../utils/ApiError';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
-  const user = await userService.createUser(body);
-  // Add user to the respective deal once registered.
-  const update = {
-    invitee: user._id,
-    status: 'accepted',
-  };
-  const [invitation] = await Promise.all([
-    Invitation.find({ inviteeEmail: user.email }),
-    Invitation.updateMany({ inviteeEmail: user.email }, update),
-  ]);
-  const updateDeal = {
-    $addToSet: { 'involvedUsers.borrowers': user._id },
-  };
-  await Deal.updateMany({ _id: { $in: invitation.map((item) => item.deal) } }, updateDeal);
-  const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
-  emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
-  res.status(httpStatus.OK).send({
-    results: {
-      success: true,
-      message: 'Email has been sent to your registered email. Please check your email and verify it',
-      user,
-    },
-  });
+  if (body.isRedirectedFromSendDeal) {
+    const LenderInvitation = await invitationService.getOne({
+      inviteeEmail: body.email,
+      role: enumModel.EnumRoleOfUser.LENDER,
+      status: enumModel.EnumTypeOfStatus.PENDING,
+    });
+    if (LenderInvitation) {
+      const isLenderContact = await lenderContactService.getOne({ email: body.email });
+      if (isLenderContact) {
+        body.role = enumModel.EnumRoleOfUser.LENDER;
+        const user = await userService.createUser(body);
+        await invitationService.updateInvitation(
+          { _id: LenderInvitation._id },
+          { status: enumModel.EnumTypeOfStatus.ACCEPTED }
+        );
+        const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
+        emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
+        res.status(httpStatus.OK).send({
+          results: {
+            success: true,
+            message: 'Email has been sent to your registered email. Please check your email and verify it',
+            user,
+          },
+        });
+      } else {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid lender email');
+      }
+    } else {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid lender email');
+    }
+  } else {
+    const user = await userService.createUser(body);
+    // Add user to the respective deal once registered.
+    const update = {
+      invitee: user._id,
+      status: 'accepted',
+    };
+    const [invitation] = await Promise.all([
+      Invitation.find({ inviteeEmail: user.email }),
+      Invitation.updateMany({ inviteeEmail: user.email }, update),
+    ]);
+    const updateDeal = {
+      $addToSet: { 'involvedUsers.borrowers': user._id },
+    };
+    await Deal.updateMany({ _id: { $in: invitation.map((item) => item.deal) } }, updateDeal);
+    const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
+    emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
+    res.status(httpStatus.OK).send({
+      results: {
+        success: true,
+        message: 'Email has been sent to your registered email. Please check your email and verify it',
+        user,
+      },
+    });
+  }
 });
 
 export const login = catchAsync(async (req, res) => {
