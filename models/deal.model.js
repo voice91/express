@@ -45,6 +45,16 @@ const pointSchema = new mongoose.Schema({
     required: true,
   },
 });
+const TimeLineSchema = new mongoose.Schema({
+  stage: {
+    type: String,
+    enum: Object.values(enumModel.EnumStageOfDeal),
+  },
+  updatedAt: {
+    type: Date,
+    default: new Date(),
+  },
+});
 const DealSchema = new mongoose.Schema(
   {
     /**
@@ -204,6 +214,10 @@ const DealSchema = new mongoose.Schema(
     dealSummary: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'DealSummary',
+    },
+    timeLine: {
+      type: [TimeLineSchema],
+      default: [{ stage: enumModel.EnumStageOfDeal.NEW, updatedAt: new Date() }],
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
