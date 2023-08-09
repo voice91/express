@@ -754,7 +754,7 @@ export const sendEmail = catchAsync(async (req, res) => {
 
 export const sendDealV2 = catchAsync(async (req, res) => {
   const { deals } = req.body;
-  const frontEndUrl = config.frontEndUrl || 'http://localhost:5173';
+  const frontEndUrl = config.frontEndUrl || 'http://54.196.81.18';
   const admin = req.user;
   const { isFollowUp } = req.query;
   const { emailPresentingPostmark } = admin;
