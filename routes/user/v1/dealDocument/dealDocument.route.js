@@ -29,7 +29,7 @@ router
    * createDealDocument updated flow
    * */
   .post(
-    auth('advisor'),
+    auth('user'),
     validate(dealDocumentValidation.createDealDocumentV2),
     checkAccessOfDeal,
     dealDocumentController.createV2
