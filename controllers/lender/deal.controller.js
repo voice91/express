@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { dealService } from 'services';
+import { dealService, lenderContactService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 
@@ -49,19 +49,15 @@ export const list = catchAsync(async (req, res) => {
 
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
-  const user = req.user._id;
+  const { user } = req;
   const queryParams = getDealFilterQuery(query);
+  const lenderContact = await lenderContactService.getOne({ email: user.email });
   const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
   const filter = {
-    $or: [
-      { user },
-      { 'involvedUsers.advisors': user },
-      { 'involvedUsers.borrowers': user },
-      { 'involvedUsers.lenders': user },
-    ],
+    'involvedUsers.lenders': lenderContact,
     ...queryParams,
   };
   const options = {
