@@ -892,7 +892,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     // todo : make function for this one, and make synchronize so we can handle error coming from that.
     // await Promise.allSettled(
     await asyncForEach(getEmailTemplate.contact, async (item) => {
-      let dealSummaryLink = `${frontEndUrl}/dealDetail/${deal}?tab=presentation`;
+      let dealSummaryLink = `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary`;
       const user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
       if (!user) {
         dealSummaryLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
