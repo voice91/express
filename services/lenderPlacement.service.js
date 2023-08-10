@@ -5,6 +5,7 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { DealDocument, LenderContact, LenderPlacement, LendingInstitution } from 'models';
+import { dealService, lenderContactService } from './index';
 
 export async function getLenderPlacementById(id, options = {}) {
   const lenderPlacement = await LenderPlacement.findById(id, options.projection, options).populate('lendingInstitution');
@@ -45,6 +46,14 @@ export async function createLenderPlacement(body) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field lendingInstitution is not valid');
   }
   const lenderPlacement = await LenderPlacement.create(body);
+  // here updating lenderIds in the deal
+  if (lenderPlacement) {
+    const lenders = await lenderContactService.getLenderContactList({ lenderInstitute: body.lendingInstitution });
+    await dealService.updateDeal(
+      { _id: body.deal },
+      { $addToSet: { 'involvedUsers.lenders': { $each: lenders.map((lender) => lender._id) } } }
+    );
+  }
   return lenderPlacement;
 }
 
@@ -64,6 +73,14 @@ export async function updateManyLenderPlacement(filter, body, options = {}) {
 
 export async function removeLenderPlacement(filter) {
   const lenderPlacement = await LenderPlacement.findOneAndRemove(filter);
+  if (lenderPlacement) {
+    // here removing lenderIds from the deal
+    const lenders = await lenderContactService.getLenderContactList({ lenderInstitute: lenderPlacement.lendingInstitution });
+    await dealService.updateDeal(
+      { _id: lenderPlacement.deal },
+      { $pull: { 'involvedUsers.lenders': { $in: lenders.map((lender) => lender._id) } } }
+    );
+  }
   return lenderPlacement;
 }
 
