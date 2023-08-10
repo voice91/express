@@ -56,7 +56,7 @@ router
   /**
    * getDealDocumentById
    * */
-  .get(auth('user'), validate(dealDocumentValidation.getDealDocumentById), checkAccessOfDeal, dealDocumentController.get)
+  .get(auth('user'), validate(dealDocumentValidation.getDealDocumentById), dealDocumentController.get)
   /**
    * updateDealDocument
    * */
