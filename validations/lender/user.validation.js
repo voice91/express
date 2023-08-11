@@ -47,6 +47,11 @@ export const updateUser = {
     company: Joi.string(),
     lastSignIn: Joi.date(),
     profilePhoto: Joi.string(),
+    companyName: Joi.string(),
+    companyAddress: Joi.string(),
+    city: Joi.string(),
+    state: Joi.string(),
+    zipcode: Joi.string(),
   }),
   params: Joi.object().keys({
     userId: Joi.objectId().required(),
