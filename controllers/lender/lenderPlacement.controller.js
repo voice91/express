@@ -49,6 +49,13 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
     }
   });
 };
+const getLenderPlacementFilterQuery = (query) => {
+  const filter = pick(query, ['deal', 'stage', 'isFavourite', 'isArchived']);
+  if (query.search) {
+    filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { lastName: new RegExp(query.search, 'i') }];
+  }
+  return filter;
+};
 export const get = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const filter = {
@@ -60,9 +67,38 @@ export const get = catchAsync(async (req, res) => {
 });
 
 export const list = catchAsync(async (req, res) => {
-  const filter = {};
-  const options = {};
-  const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
+  const { query } = req;
+  const queryParams = getLenderPlacementFilterQuery(query);
+
+  const sortingObj = pick(query, ['sort', 'order']);
+  const sortObj = {
+    [sortingObj.sort]: sortingObj.order,
+  };
+
+  const filter = {
+    ...queryParams,
+  };
+  const options = {
+    ...pick(query, ['sort', 'limit', 'page']),
+    populate: [
+      { path: 'lenderAllContacts' },
+      {
+        path: 'lendingInstitution',
+      },
+      {
+        path: 'lenderContact',
+      },
+    ],
+  };
+  if (sortingObj.sort) {
+    options.sort = sortObj;
+    options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
+  }
+  const lenderPlacements = await lenderPlacementService.getLenderPlacementList(filter, options);
+  // here finding placements for the particular lender from the all lenderPlacementsList for a deal
+  const lenderPlacement = lenderPlacements.filter((placement) =>
+    placement.lenderAllContacts.map((contact) => contact.email).includes(req.user.email)
+  );
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 

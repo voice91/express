@@ -16,12 +16,12 @@ const getDealFilterQuery = (query) => {
 };
 export const get = catchAsync(async (req, res) => {
   const { dealId } = req.params;
-  const user = req.user._id;
   const filter = {
     _id: dealId,
-    user,
   };
-  const options = {};
+  const options = {
+    populate: [{ path: 'dealSummary' }],
+  };
   const deal = await dealService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: deal });
 });
