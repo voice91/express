@@ -14,3 +14,4 @@ module.exports.taskController = require('./task.controller');
 module.exports.dealDocumentController = require('./dealDocument.controller');
 module.exports.authController = require('./auth.controller');
 module.exports.lenderNotesController = require('./lenderNotes.controller');
+module.exports.dealSummaryController = require('./dealSummary.controller');
