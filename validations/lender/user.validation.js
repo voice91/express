@@ -46,6 +46,7 @@ export const updateUser = {
     phoneNumber: Joi.string(),
     company: Joi.string(),
     lastSignIn: Joi.date(),
+    profilePhoto: Joi.string(),
   }),
   params: Joi.object().keys({
     userId: Joi.objectId().required(),
