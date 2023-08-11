@@ -151,10 +151,6 @@ export const list = catchAsync(async (req, res) => {
     options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
   const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
-  lenderPlacement.forEach((placement) => {
-    // eslint-disable-next-line no-param-reassign
-    placement.nextStep = placement.nextStep ? placement.nextStep : enumModel.EnumNextStepOfLenderPlacement[placement.stage];
-  });
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 
@@ -289,6 +285,7 @@ export const update = catchAsync(async (req, res) => {
       stage,
       $push: { timeLine: { stage, updatedAt: new Date() } },
       details: await detailsInDeal(stage, dealId),
+      nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
     });
     const createActivityLogBody = {
       createdBy: req.user._id,
@@ -326,6 +323,7 @@ export const update = catchAsync(async (req, res) => {
       stage,
       stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
       $addToSet: { timeLine: { stage, updateAt: new Date() } },
+      nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
     });
   }
 
@@ -347,6 +345,7 @@ export const update = catchAsync(async (req, res) => {
       stage,
       stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
       $addToSet: { timeLine: { stage, updateAt: new Date() } },
+      nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
     });
   }
 
@@ -946,6 +945,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
           isEmailSentFirstTime: true,
           stage,
           stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+          nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
           $addToSet: { timeLine: { stage }, updateAt: new Date() },
         }
       );
@@ -965,6 +965,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       {
         stage,
         $push: { timeLine: { stage, updatedAt: new Date() } },
+        nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
         details: await detailsInDeal(stage, deal),
       }
     );

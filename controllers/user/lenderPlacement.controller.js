@@ -169,6 +169,7 @@ export const create = catchAsync(async (req, res) => {
   };
   if (body.stage) {
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
+    body.nextStep = enumModel.EnumNextStepOfLenderPlacement[body.stage];
   }
 
   body._id = mongoose.Types.ObjectId();
