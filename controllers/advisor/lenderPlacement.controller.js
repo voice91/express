@@ -126,12 +126,7 @@ export const list = catchAsync(async (req, res) => {
         count: true,
         match: {
           deal: query.deal,
-          $expr: {
-            $or: [
-              { $eq: ['$taskAnswer', []] }, // Check if taskAnswer is an empty array
-              { $not: { $isArray: '$taskAnswer' } }, // Check if taskAnswer is not an array or non-existent
-            ],
-          },
+          isCompleted: false,
         },
       },
       {
