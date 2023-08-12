@@ -36,10 +36,6 @@ export const createUser = {
 export const updateUser = {
   body: Joi.object().keys({
     name: Joi.string(),
-    email: Joi.string().email(),
-    role: Joi.string().valid(...Object.values(enumFields.EnumRoleOfUser)),
-    codes: Joi.array().items(codesEmbed),
-    password: Joi.string(),
     googleProvider: googleProviderEmbed,
     firstName: Joi.string(),
     lastName: Joi.string(),
@@ -51,7 +47,7 @@ export const updateUser = {
     companyAddress: Joi.string(),
     city: Joi.string(),
     state: Joi.string(),
-    zipcode: Joi.string(),
+    zipcode: Joi.number().integer().min(100).max(999999),
   }),
   params: Joi.object().keys({
     userId: Joi.objectId().required(),
