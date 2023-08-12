@@ -3,13 +3,18 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService } from 'services';
+import { s3Service, lenderPlacementService, activityLogService, dealService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach } from 'utils/common';
+import { asyncForEach, encodeUrl } from 'utils/common';
 import { pick } from '../../utils/pick';
+import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
+import enumModel, { EnumOfActivityType, EnumStageOfLenderPlacement } from '../../models/enum.model';
+import ApiError from '../../utils/ApiError';
+import { detailsInDeal } from '../../utils/detailsInDeal';
+import config from '../../config/config';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -61,7 +66,9 @@ export const get = catchAsync(async (req, res) => {
   const filter = {
     _id: lenderPlacementId,
   };
-  const options = {};
+  const options = {
+    populate: [{ path: 'lendingInstitution' }],
+  };
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
@@ -145,25 +152,132 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  body.updatedBy = req.user;
+  body.updatedBy = req.user._id;
   const { lenderPlacementId } = req.params;
   const { user } = req;
+  const termsheet = body.termSheet;
   const moveFileObj = {
-    ...(body.termSheet && { termSheet: body.termSheet }),
+    ...(body.termSheet && { termSheet: body.termSheet.url }),
   };
   body._id = lenderPlacementId;
   await moveFiles({ body, user, moveFileObj });
   const filter = {
     _id: lenderPlacementId,
   };
-  const options = { new: true };
+  if (body.termSheet) {
+    const { fileName } = termsheet;
+    body.termSheet = { url: encodeUrl(body.termSheet), fileName };
+  }
+  if (body.terms) {
+    const futureFunding = body.terms.futureFunding ? body.terms.futureFunding : 0;
+    body.terms.totalLoanAmount = body.terms.initialFunding + futureFunding;
+  }
+
+  const options = {
+    new: true,
+    populate: [{ path: 'lendingInstitution' }, { path: 'deal' }],
+  };
+  const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
+
+  const oldStage = beforeLenderPlacementResult.stage;
+
+  if (body.stage) {
+    body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
+    body.nextStep = enumModel.EnumNextStepOfLenderPlacement[body.stage];
+    if (body.stageEnumWiseNumber < stageOfLenderPlacementWithNumber(oldStage)) {
+      body.$addToSet = { timeLine: { stage: body.stage, updateAt: new Date() } };
+    }
+  }
+  if (oldStage !== EnumStageOfLenderPlacement.CLOSED && body.stage === EnumStageOfLenderPlacement.ARCHIVE) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Only Archive possible when status changed from Closed to Archive..');
+  }
+  if (oldStage === EnumStageOfLenderPlacement.CLOSED && body.stage === EnumStageOfLenderPlacement.ARCHIVE) {
+    await lenderPlacementService.updateLenderPlacement(
+      { _id: lenderPlacementId },
+      {
+        stage: EnumStageOfLenderPlacement.ARCHIVE,
+      }
+    );
+  }
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
+  const dealId = lenderPlacementResult.deal;
+  if (lenderPlacementResult.stage === enumModel.EnumStageOfLenderPlacement.CLOSING) {
+    const stage = enumModel.EnumStageOfDeal.CLOSING;
+    await dealService.updateDeal(
+      { _id: dealId },
+      {
+        stage,
+        $push: { timeLine: { stage, updatedAt: new Date() } },
+        details: await detailsInDeal(stage, dealId),
+        nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
+      }
+    );
+    const createActivityLogBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      update: `${lenderPlacementResult.deal.dealName} moved into closing with ${lenderPlacementResult.lendingInstitution.lenderNameVisible}`,
+      deal: dealId,
+      type: EnumOfActivityType.ACTIVITY,
+      user: config.activitySystemUser || 'system',
+    };
+    await activityLogService.createActivityLog(createActivityLogBody);
+  }
   // tempS3
-  if (lenderPlacementResult) {
+  if (lenderPlacementResult.termSheet) {
     const uploadedFileUrls = [];
-    uploadedFileUrls.push(lenderPlacementResult.termSheet);
+    uploadedFileUrls.push(lenderPlacementResult.termSheet.url);
     await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
   }
+  // if termSheet added for first time than only we add activity logs and update lenderPlacement stage to termSheet Received
+  if (!beforeLenderPlacementResult.termSheet && body.termSheet) {
+    const createActivityLogBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      update: `${beforeLenderPlacementResult.lendingInstitution.lenderNameVisible} posted a term sheet on ${lenderPlacementResult.deal.dealName}`,
+      deal: lenderPlacementResult.deal,
+      lender: lenderPlacementResult.lendingInstitution,
+      type: EnumOfActivityType.ACTIVITY,
+      user: config.activitySystemUser || 'system',
+    };
+    await activityLogService.createActivityLog(createActivityLogBody);
+
+    const stage = EnumStageOfLenderPlacement.TERMS_SHEET_RECEIVED;
+    await lenderPlacementService.updateLenderPlacement(
+      { _id: lenderPlacementId },
+      {
+        stage,
+        stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+        $addToSet: { timeLine: { stage, updateAt: new Date() } },
+        nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
+      }
+    );
+  }
+
+  // if terms added for first time than only we add activity logs and update lenderPlacement stage to terms Received
+  if (!beforeLenderPlacementResult.terms && body.terms) {
+    const createActivityLogBody = {
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+      update: `${beforeLenderPlacementResult.lendingInstitution.lenderNameVisible} sent over terms`,
+      deal: lenderPlacementResult.deal,
+      lender: lenderPlacementResult.lendingInstitution,
+      type: EnumOfActivityType.ACTIVITY,
+      user: config.activitySystemUser || 'system',
+    };
+    await activityLogService.createActivityLog(createActivityLogBody);
+
+    const stage = EnumStageOfLenderPlacement.TERMS_RECEIVED;
+    await lenderPlacementService.updateLenderPlacement(
+      { _id: lenderPlacementId },
+      {
+        stage,
+        stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+        $addToSet: { timeLine: { stage, updateAt: new Date() } },
+        nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
+      }
+    );
+  }
+
   return res.status(httpStatus.OK).send({ results: lenderPlacementResult });
 });
 

@@ -8,6 +8,13 @@ import enumFields from 'models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
+const extensionsSchema = Joi.object().keys({
+  extensionOption: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
+  extensionFee: Joi.string(),
+});
 const termsEmbed = Joi.object().keys({
   initialFunding: Joi.number().integer().required(),
   futureFunding: Joi.number().integer(),
@@ -15,15 +22,45 @@ const termsEmbed = Joi.object().keys({
   interestRateType: Joi.string().valid(...Object.values(enumFields.EnumInterestRateTypeOfTerms)),
   interestRateIndexValue: Joi.string(),
   interestRateIndexDate: Joi.date(),
-  spread: Joi.number().integer(),
+  spread: Joi.string(),
   totalRate: Joi.string(),
   rateNotes: Joi.string(),
-  initialTerm: Joi.string(),
-  extensionOptionOne: Joi.string(),
-  extensionFee: Joi.string(),
+  initialTerm: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
   interestRateIndex: Joi.string(),
-  extensionOptionTwo: Joi.string(),
+  extensions: Joi.array().items(extensionsSchema),
   LTC: Joi.string(),
+  termNotes: Joi.string(),
+  prePaymentPeriod: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
+  IO: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
+  amortization: Joi.object().keys({
+    value: Joi.number(),
+    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+  }),
+  originationFee: Joi.string(),
+  exitFee: Joi.string(),
+  recourse: Joi.string().valid(...Object.values(enumFields.EnumOfRecourse)),
+  asIsLTV: Joi.string(),
+  stabilizedLTV: Joi.string(),
+  asIsDY: Joi.string(),
+  stabilizedDY: Joi.string(),
+  asIsDSCR: Joi.string(),
+  generalNotes: Joi.string(),
+  prePaymentType: Joi.string().valid(...Object.values(enumFields.EnumPrePaymentTypeOfTerms)),
+  stabilizedDSCR: Joi.string(),
+  penaltySchedule: Joi.string(),
+});
+const TermSheetSchema = Joi.object().keys({
+  url: Joi.string(),
+  fileName: Joi.string(),
 });
 export const createLenderPlacement = {
   body: Joi.object().keys({
@@ -46,14 +83,11 @@ export const updateLenderPlacement = {
   body: Joi.object().keys({
     lendingInstitution: Joi.objectId(),
     lenderContact: Joi.objectId(),
+    nextStep: Joi.string(),
     notes: Joi.array().items(Joi.string()),
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
     terms: termsEmbed,
-    termSheet: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(pdf|doc|docx|ppt|xls|xlsx|pptx)$)`
-      )
-    ),
+    termSheet: TermSheetSchema,
   }),
   params: Joi.object().keys({
     lenderPlacementId: Joi.objectId().required(),
