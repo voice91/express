@@ -216,7 +216,6 @@ export const createV2 = catchAsync(async (req, res) => {
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
   body.updatedBy = req.user;
-  const uploadedBy = req.user.role;
   const { dealDocumentId } = req.params;
   const { user } = req;
   const moveFileObj = {
@@ -226,17 +225,18 @@ export const update = catchAsync(async (req, res) => {
   let fileName = [];
   let documentType = [];
   let fileType = [];
+  let uploadedBy = [];
   if (body.documents) {
     fileName = body.documents.map((item) => item.fileName);
     documentType = body.documents.map((item) => item.documentType);
     fileType = body.documents.map((item) => item.fileType);
+    uploadedBy = body.documents.map((item) => item.uploadedBy);
   }
   const dealObj = await Deal.findById(dealId);
   if (!dealObj) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Deal doesn't exist");
   }
   body._id = dealDocumentId;
-  body.uploadedBy = uploadedBy;
   await moveFiles({ body, user, moveFileObj });
 
   if (body.documents) {
@@ -246,7 +246,7 @@ export const update = catchAsync(async (req, res) => {
         fileName: fileName[index],
         documentType: documentType[index],
         fileType: fileType[index],
-        uploadedBy,
+        uploadedBy: uploadedBy[index],
       };
     });
   }
