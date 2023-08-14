@@ -3,9 +3,10 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { dealService, lenderContactService } from 'services';
+import { dealService, lenderContactService, lenderPlacementService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
+import enumModel from '../../models/enum.model';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -19,10 +20,30 @@ export const get = catchAsync(async (req, res) => {
   const filter = {
     _id: dealId,
   };
+  const { user } = req;
   const options = {
     populate: [{ path: 'dealSummary' }],
   };
   const deal = await dealService.getOne(filter, options);
+  const lenderContact = await lenderContactService.getOne({ email: user.email });
+  const lenderPlacement = await lenderPlacementService.getOne({
+    deal: dealId,
+    lendingInstitution: lenderContact.lenderInstitute,
+  });
+  const { timeLine } = lenderPlacement;
+  // to update the stage to reviewing for lenderPlacement
+  if (
+    lenderPlacement.stage === enumModel.EnumStageOfLenderPlacement.SENT &&
+    !timeLine.map((changeStage) => changeStage.stage).includes(enumModel.EnumStageOfLenderPlacement.REVIEWING)
+  ) {
+    await lenderPlacementService.updateLenderPlacement(
+      { _id: lenderPlacement._id },
+      {
+        stage: enumModel.EnumStageOfLenderPlacement.REVIEWING,
+        $push: { timeLine: { stage: enumModel.EnumStageOfLenderPlacement.REVIEWING, updatedAt: new Date() } },
+      }
+    );
+  }
   return res.status(httpStatus.OK).send({ results: deal });
 });
 
