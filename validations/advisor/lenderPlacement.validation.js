@@ -14,7 +14,11 @@ const extensionsSchema = Joi.object().keys({
   }),
   extensionFee: Joi.string(),
 });
-
+const documentSchema = Joi.object().keys({
+  url: Joi.string().required(),
+  fileName: Joi.string().required(),
+  fileType: Joi.string(),
+});
 const termsEmbed = Joi.object().keys({
   initialFunding: Joi.number().integer().required(),
   futureFunding: Joi.number().integer(),
@@ -207,6 +211,22 @@ export const sendEmail = {
 export const getEmailTemplatesByLanderPlacementId = {
   params: Joi.object().keys({
     lenderPlacement: Joi.objectId().required(),
+  }),
+};
+
+export const sendMessage = {
+  params: Joi.object().keys({
+    lenderPlacementId: Joi.objectId().required(),
+  }),
+  body: Joi.object().keys({
+    message: Joi.string(),
+    documents: Joi.array().items(documentSchema),
+  }),
+};
+
+export const getMessages = {
+  params: Joi.object().keys({
+    lenderPlacementId: Joi.objectId().required(),
   }),
 };
 

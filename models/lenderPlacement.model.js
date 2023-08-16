@@ -9,6 +9,19 @@ import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import enumModel from 'models/enum.model';
 import { toJSON, softDelete } from './plugins';
 
+const documentSchema = new mongoose.Schema({
+  url: {
+    type: String,
+    required: true,
+  },
+  fileName: {
+    type: String,
+    required: true,
+  },
+  fileType: {
+    type: String,
+  },
+});
 const ExtensionsShema = new mongoose.Schema({
   extensionOption: {
     value: Number,
@@ -152,6 +165,20 @@ const TimeLineSchema = new mongoose.Schema({
     default: new Date(),
   },
 });
+const messageSchema = new mongoose.Schema({
+  sender: {
+    type: String,
+  },
+  updatedAt: {
+    type: Date,
+    default: new Date(),
+  },
+  message: {
+    type: String,
+  },
+  documents: { type: [documentSchema] },
+  messageId: { type: String },
+});
 const LenderPlacementSchema = new mongoose.Schema(
   {
     /**
@@ -251,6 +278,10 @@ const LenderPlacementSchema = new mongoose.Schema(
     timeLine: {
       type: [TimeLineSchema],
       // default: [{ stage: enumModel.EnumStageOfLenderPlacement.NEW, updatedAt: new Date() }],
+    },
+    messages: {
+      type: [messageSchema],
+      select: false,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }

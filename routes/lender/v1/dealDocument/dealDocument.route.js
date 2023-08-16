@@ -3,6 +3,7 @@ import { dealDocumentController } from 'controllers/lender';
 import { dealDocumentValidation } from 'validations/lender';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import checkAccessOfDeal from '../../../../middlewares/checkUserOfDeal';
 
 const router = express.Router();
 router
@@ -11,6 +12,17 @@ router
    * getDealDocument
    * */
   .get(auth('lender'), validate(dealDocumentValidation.getDealDocument), dealDocumentController.list);
+router
+  .route('/v2/deal/:dealId')
+  /**
+   * getDealDocuments list by deal
+   * */
+  .get(
+    auth('lender'),
+    validate(dealDocumentValidation.getDealDocument),
+    checkAccessOfDeal,
+    dealDocumentController.getDealDocumentByDealV2
+  );
 router
   .route('/paginated')
   /**

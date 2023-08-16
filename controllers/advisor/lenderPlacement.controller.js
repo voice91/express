@@ -979,3 +979,68 @@ export const sendDealV2 = catchAsync(async (req, res) => {
   await Promise.all(promises);
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });
+
+export const sendMessage = catchAsync(async (req, res) => {
+  const { lenderPlacementId } = req.params;
+  const advisor = req.user;
+  const { emailPresentingPostmark } = advisor;
+  const { body } = req;
+  const filter = {
+    _id: lenderPlacementId,
+  };
+  const lenderPlacement = await lenderPlacementService.getOne(filter);
+  const lenderContact = await lenderContactService.getOne(
+    {
+      lenderInstitute: lenderPlacement.lendingInstitution,
+    },
+    { populate: 'lenderInstitute' }
+  );
+  const emailAttachments = body.documents ? body.documents : [];
+  const headers = [
+    {
+      Value: `${lenderPlacementId}`,
+    },
+  ];
+  // send email to lender in reply of send-deal mail
+  const emailTemplate = await emailTemplateService.getOne({
+    lenderPlacement: lenderPlacementId,
+    templateName: `advisorSendDealTemplate - ${lenderContact.lenderInstitute.lenderNameVisible}`,
+  });
+  await emailService.sendEmail({
+    to: lenderContact.email,
+    subject: emailTemplate.subject,
+    ...(emailPresentingPostmark && { from: req.user.email }),
+    text: body.message,
+    attachments: emailAttachments.map((item) => {
+      return {
+        fileName: item.fileName,
+        path: item.url ? item.url : item.path,
+        fileType: item.fileType,
+      };
+    }),
+    isHtml: false,
+    // Headers: [{ Name: 'In-Reply-To', Value: 'originalMessageId@example.com' }],
+    headers,
+  });
+  await lenderPlacementService.updateLenderPlacement(
+    { _id: lenderPlacementId },
+    {
+      $push: {
+        messages: { sender: advisor.firstName, updatedAt: new Date(), message: body.message, documents: body.documents },
+      },
+    }
+  );
+  return res.status(httpStatus.OK).send({ results: 'Message sent...' });
+});
+
+export const getMessages = catchAsync(async (req, res) => {
+  const { lenderPlacementId } = req.params;
+  const filter = {
+    _id: lenderPlacementId,
+  };
+  const options = {
+    select: { messages: 1 },
+  };
+  const lenderPlacement = await lenderPlacementService.getOne(filter, options);
+  return res.status(httpStatus.OK).send({ results: lenderPlacement });
+});
