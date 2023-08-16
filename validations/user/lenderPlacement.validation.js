@@ -127,3 +127,9 @@ export const sendDeal = {
     ),
   }),
 };
+
+export const getDocumentsOfMessages = {
+  params: Joi.object().keys({
+    lenderPlacementId: Joi.objectId().required(),
+  }),
+};

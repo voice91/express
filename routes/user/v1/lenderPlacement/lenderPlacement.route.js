@@ -22,6 +22,16 @@ router
    * */
   .get(auth('user'), validate(lenderPlacementValidation.paginatedLenderPlacement), lenderPlacementController.paginate);
 router
+  .route('/documents/:lenderPlacementId')
+  /**
+   * getDocumentsUploadedInMessages
+   * */
+  .get(
+    auth('user'),
+    validate(lenderPlacementValidation.getDocumentsOfMessages),
+    lenderPlacementController.getDocumentsOfMessages
+  );
+router
   .route('/remove')
   /**
    * removeLenderPlacement

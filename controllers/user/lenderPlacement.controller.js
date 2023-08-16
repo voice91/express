@@ -9,6 +9,7 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
+import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import enumModel from '../../models/enum.model';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
@@ -246,4 +247,17 @@ export const removeByDealAndLendingInstitution = catchAsync(async (req, res) => 
   };
   const lenderPlacement = await lenderPlacementService.removeLenderPlacement(filter);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
+});
+
+export const getDocumentsOfMessages = catchAsync(async (req, res) => {
+  const { lenderPlacementId } = req.params;
+  const filter = {
+    _id: lenderPlacementId,
+  };
+  const options = {
+    select: { messages: 1 },
+  };
+  const lenderPlacement = await lenderPlacementService.getOne(filter, options);
+  const documents = _.flatten(lenderPlacement.messages.map((message) => message.documents));
+  return res.status(httpStatus.OK).send({ results: documents });
 });
