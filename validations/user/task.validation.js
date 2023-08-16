@@ -54,6 +54,9 @@ export const getTaskByDealId = {
   params: Joi.object().keys({
     dealId: Joi.objectId().required(),
   }),
+  query: Joi.object().keys({
+    lenderPlacement: Joi.objectId(),
+  }),
 };
 
 export const paginatedTask = {
