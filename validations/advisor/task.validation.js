@@ -25,7 +25,7 @@ export const createTask = {
     taskQuestion: Joi.string().required(),
     taskAnswer: Joi.array().items(taskAnswerSchema),
     askingPartyAdvisor: Joi.objectId(),
-    askingPartyInstitute: Joi.objectId(),
+    askingPartyInstitute: Joi.objectId().required(),
     deal: Joi.objectId().required(),
     taskDocuments: Joi.array().items(taskDocumentSchema),
   }),
@@ -68,6 +68,9 @@ export const getTaskByDealId = {
   body: Joi.object().keys({}).unknown(true),
   params: Joi.object().keys({
     dealId: Joi.objectId().required(),
+  }),
+  query: Joi.object().keys({
+    lenderPlacement: Joi.objectId(),
   }),
 };
 

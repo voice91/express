@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, taskService } from 'services';
+import { lenderPlacementService, s3Service, taskService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -130,6 +130,12 @@ export const listByDeal = catchAsync(async (req, res) => {
   const filter = {
     deal: req.params.dealId,
   };
+  if (query.lenderPlacement) {
+    const lenderPlacement = await lenderPlacementService.getLenderPlacementById(query.lenderPlacement);
+    if (lenderPlacement) {
+      filter.askingPartyInstitute = lenderPlacement.lendingInstitution._id;
+    }
+  }
   const options = {
     ...pick(query, ['limit', 'page']),
     populate: [{ path: 'user' }, { path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }],
@@ -138,7 +144,6 @@ export const listByDeal = catchAsync(async (req, res) => {
     options.sort = sortObj; // Setting the sort options in the options object
     options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
-
   let task = await taskService.getTaskList(filter, options); // Call the function to get task list with pagination
   task = task.map((taskObject) => ({
     createdAt: taskObject.createdAt,
