@@ -7,6 +7,7 @@ import { dealService, lenderContactService, lenderPlacementService } from 'servi
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 import enumModel from '../../models/enum.model';
+import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -40,6 +41,7 @@ export const get = catchAsync(async (req, res) => {
       { _id: lenderPlacement._id },
       {
         stage: enumModel.EnumStageOfLenderPlacement.REVIEWING,
+        stageEnumWiseNumber: stageOfLenderPlacementWithNumber(enumModel.EnumStageOfLenderPlacement.REVIEWING),
         $push: { timeLine: { stage: enumModel.EnumStageOfLenderPlacement.REVIEWING, updatedAt: new Date() } },
       }
     );
