@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService, activityLogService, dealService } from 'services';
+import { s3Service, lenderPlacementService, activityLogService, dealService, lenderContactService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -287,5 +287,48 @@ export const remove = catchAsync(async (req, res) => {
     _id: lenderPlacementId,
   };
   const lenderPlacement = await lenderPlacementService.removeLenderPlacement(filter);
+  return res.status(httpStatus.OK).send({ results: lenderPlacement });
+});
+
+export const sendMessage = catchAsync(async (req, res) => {
+  const { lenderPlacementId } = req.params;
+  const lender = req.user;
+  const { body } = req;
+  const filter = {
+    _id: lenderPlacementId,
+  };
+  const lenderPlacement = await lenderPlacementService.getOne(filter);
+  const lenderContact = await lenderContactService.getOne(
+    {
+      lenderInstitute: lenderPlacement.lendingInstitution,
+    },
+    { populate: 'lenderInstitute' }
+  );
+  await lenderPlacementService.updateLenderPlacement(
+    { _id: lenderPlacementId },
+    {
+      $push: {
+        messages: {
+          sender: lenderContact.lenderInstitute.lenderNameVisible || lender.firstName,
+          updatedAt: new Date(),
+          message: body.message,
+          documents: body.documents,
+        },
+      },
+    }
+  );
+  return res.status(httpStatus.OK).send({ results: 'Message sent...' });
+});
+
+export const getMessages = catchAsync(async (req, res) => {
+  const { lenderPlacementId } = req.params;
+  const filter = {
+    _id: lenderPlacementId,
+  };
+  const options = {
+    select: { messages: 1 },
+  };
+  const lenderPlacement = await lenderPlacementService.getOne(filter, options);
+
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });

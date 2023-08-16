@@ -63,6 +63,14 @@ router
   .post(auth('advisor'), validate(lenderPlacementValidation.sendDeal), lenderPlacementController.sendDeal);
 
 router
+  .route('/message/:lenderPlacementId')
+  /**
+   * email lender
+   * */
+  .post(auth('advisor'), validate(lenderPlacementValidation.sendMessage), lenderPlacementController.sendMessage)
+  .get(auth('advisor'), validate(lenderPlacementValidation.getMessages), lenderPlacementController.getMessages);
+
+router
   .route('/v2/send-deal')
   /**
    * Create Template and sendDeal

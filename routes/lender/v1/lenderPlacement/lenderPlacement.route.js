@@ -22,6 +22,13 @@ router
    * */
   .get(auth('lender'), validate(lenderPlacementValidation.paginatedLenderPlacement), lenderPlacementController.paginate);
 router
+  .route('/message/:lenderPlacementId')
+  /**
+   * email lender
+   * */
+  .post(auth('lender'), validate(lenderPlacementValidation.sendMessage), lenderPlacementController.sendMessage)
+  .get(auth('lender'), validate(lenderPlacementValidation.getMessages), lenderPlacementController.getMessages);
+router
   .route('/:lenderPlacementId')
   /**
    * getLenderPlacementById

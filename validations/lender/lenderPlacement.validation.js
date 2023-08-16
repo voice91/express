@@ -62,6 +62,11 @@ const TermSheetSchema = Joi.object().keys({
   url: Joi.string(),
   fileName: Joi.string(),
 });
+const documentSchema = Joi.object().keys({
+  url: Joi.string().required(),
+  fileName: Joi.string().required(),
+  fileType: Joi.string(),
+});
 export const createLenderPlacement = {
   body: Joi.object().keys({
     lendingInstitution: Joi.objectId().required(),
@@ -116,6 +121,27 @@ export const paginatedLenderPlacement = {
     .keys({
       page: Joi.number().default(1),
       limit: Joi.number().default(10).max(100),
+    })
+    .unknown(true),
+};
+
+export const sendMessage = {
+  params: Joi.object().keys({
+    lenderPlacementId: Joi.objectId().required(),
+  }),
+  body: Joi.object().keys({
+    message: Joi.string(),
+    documents: Joi.array().items(documentSchema),
+  }),
+};
+export const getMessages = {
+  params: Joi.object().keys({
+    lenderPlacementId: Joi.objectId().required(),
+  }),
+  body: Joi.object()
+    .keys({
+      message: Joi.string(),
+      documents: Joi.array().items(documentSchema),
     })
     .unknown(true),
 };

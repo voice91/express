@@ -50,6 +50,8 @@ export const sendEmail = async (emailParams) => {
   if (isHtml) {
     msg.HtmlBody = text;
     delete msg.text;
+  } else {
+    msg.TextBody = text;
   }
   // we have cc and bcc type is array and postmark allow only string for this so, we did this thing
   if (cc) {

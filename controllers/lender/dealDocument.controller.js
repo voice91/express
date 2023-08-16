@@ -17,6 +17,7 @@ const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   return newUrl;
 };
 // this is used to move file to new specified path as shown in basePath, used in create and update controller.
+// eslint-disable-next-line no-unused-vars
 const moveFiles = async ({ body, user, moveFileObj }) => {
   await asyncForEach(Object.keys(moveFileObj), async (key) => {
     const fieldValidation = FileFieldValidationEnum[`${key}OfDealDocument`];
@@ -56,6 +57,15 @@ export const get = catchAsync(async (req, res) => {
   };
   const options = {};
   const dealDocument = await dealDocumentService.getOne(filter, options);
+  return res.status(httpStatus.OK).send({ results: dealDocument });
+});
+
+export const getDealDocumentByDealV2 = catchAsync(async (req, res) => {
+  const filter = {
+    deal: req.params.dealId,
+  };
+  const options = {};
+  const dealDocument = await dealDocumentService.getDealDocumentList(filter, options);
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
 

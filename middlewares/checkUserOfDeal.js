@@ -1,10 +1,12 @@
 import { Deal } from 'models';
 import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
+import { lenderContactService } from '../services';
 
 const checkAccessOfDeal = async (req, res, next) => {
   try {
     const user = req.user._id;
+    const lender = await lenderContactService.getOne({ email: req.user.email });
 
     const dealId = req.body.deal || req.params.dealId;
     const dealObj = await Deal.findById(dealId);
@@ -20,7 +22,7 @@ const checkAccessOfDeal = async (req, res, next) => {
             { user },
             { 'involvedUsers.advisors': user },
             { 'involvedUsers.borrowers': user },
-            { 'involvedUsers.lenders': user },
+            { 'involvedUsers.lenders': lender ? lender._id : user },
           ],
         },
       ],
