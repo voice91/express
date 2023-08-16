@@ -111,10 +111,9 @@ const DealSchema = new mongoose.Schema(
      * zip code
      * */
     zipcode: {
-      type: Number,
+      type: String,
       required: true,
-      min: 10000,
-      max: 99999,
+      match: /^[0-9]{5}$/, // Regular expression to ensure it's 5 digits
     },
     /**
      * map co-ordinates to be stored as the exact location

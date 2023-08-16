@@ -29,7 +29,10 @@ export const createDeal = {
     state: Joi.string()
       .valid(...Object.values(enumFields.EnumStatesOfDeal))
       .required(),
-    zipcode: Joi.number().integer().min(10000).max(99999).required(),
+    // zipcode: Joi.number().integer().min(10000).max(99999).required(),
+    zipcode: Joi.string().pattern(new RegExp('^[0-9]{5}$')).messages({
+      'string.pattern.base': 'zipcode must be 5 digits number',
+    }),
     mapLocation: locationSchema,
     involvedUsers: involvedUsersEmbed,
     involvedUsersLender: Joi.array().items(Joi.objectId()),
@@ -86,7 +89,9 @@ export const updateDeal = {
     address: Joi.string(),
     city: Joi.string(),
     state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
-    zipcode: Joi.number().integer(),
+    zipcode: Joi.string().pattern(new RegExp('^[0-9]{5}$')).messages({
+      'string.pattern.base': 'zipcode must be 5 digits number',
+    }),
     mapLocation: locationSchema,
     involvedUsers: involvedUsersEmbed,
     involvedUsersLender: Joi.array().items(Joi.objectId()),

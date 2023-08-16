@@ -33,6 +33,7 @@ import enumModel, {
 import config from '../../config/config';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 import { detailsInDeal } from '../../utils/detailsInDeal';
+import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -278,6 +279,7 @@ export const update = catchAsync(async (req, res) => {
     const stage = enumModel.EnumStageOfDeal.CLOSING;
     await Deal.findByIdAndUpdate(dealId, {
       stage,
+      orderOfStage: stageOfDealWithNumber(stage),
       $push: { timeLine: { stage, updatedAt: new Date() } },
       details: await detailsInDeal(stage, dealId),
       nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
@@ -728,6 +730,7 @@ export const sendEmail = catchAsync(async (req, res) => {
   const stage = EnumStageOfDeal.OUT_IN_MARKET;
   await Deal.findByIdAndUpdate(dealId, {
     stage,
+    orderOfStage: stageOfDealWithNumber(stage),
     $push: { timeLine: { stage, updatedAt: new Date() } },
     details: await detailsInDeal(stage, dealId),
   });
@@ -959,6 +962,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       { _id: deal },
       {
         stage,
+        orderOfStage: stageOfDealWithNumber(stage),
         $push: { timeLine: { stage, updatedAt: new Date() } },
         nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
         details: await detailsInDeal(stage, deal),
