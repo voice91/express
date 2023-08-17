@@ -6,23 +6,40 @@ import Joi from 'joi';
 import enumFields from 'models/enum.model';
 
 export const register = {
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
-    phoneNumber: Joi.string(),
-    companyName: Joi.string().required(),
-    companyAddress: Joi.string(),
-    role: Joi.string().valid(...Object.values(enumFields.EnumRoleOfUser)),
-    city: Joi.string().required(),
-    state: Joi.string()
-      .valid(...Object.values(enumFields.EnumStatesOfDeal))
-      .required(),
-    zipcode: Joi.number().integer().min(10000).max(99999).required(),
-    emailPresentingPostmark: Joi.bool().default(false),
-    isRedirectedFromSendDeal: Joi.bool(),
-  }),
+  body: Joi.object()
+    .keys({
+      email: Joi.string().email(),
+      password: Joi.string(),
+      firstName: Joi.string(),
+      lastName: Joi.string(),
+      phoneNumber: Joi.string(),
+      companyName: Joi.string(),
+      companyAddress: Joi.string(),
+      role: Joi.string().valid(...Object.values(enumFields.EnumRoleOfUser)),
+      city: Joi.string(),
+      state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
+      zipcode: Joi.number().integer().min(10000).max(99999),
+      emailPresentingPostmark: Joi.bool().default(false),
+      isRedirectedFromSendDeal: Joi.bool(),
+    })
+    .when(Joi.object({ isRedirectedFromSendDeal: Joi.exist() }).unknown(), {
+      then: Joi.object({
+        email: Joi.string().required().email(),
+        password: Joi.string().required(),
+      }),
+      otherwise: Joi.object({
+        email: Joi.string().required().email(),
+        password: Joi.string().required(),
+        firstName: Joi.string().required(),
+        lastName: Joi.string().required(),
+        companyName: Joi.string().required(),
+        city: Joi.string().required(),
+        state: Joi.string()
+          .valid(...Object.values(enumFields.EnumStatesOfDeal))
+          .required(),
+        zipcode: Joi.number().integer().min(10000).max(99999).required(),
+      }),
+    }),
 };
 
 export const login = {
