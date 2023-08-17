@@ -8,6 +8,7 @@ import enumFields from 'models/enum.model';
 export const register = {
   body: Joi.object()
     .keys({
+      // Common fields for the registration process
       email: Joi.string().email(),
       password: Joi.string(),
       firstName: Joi.string(),
@@ -22,11 +23,14 @@ export const register = {
       emailPresentingPostmark: Joi.bool().default(false),
       isRedirectedFromSendDeal: Joi.bool(),
     })
+    // Condition: Check if isRedirectedFromSendDeal exists in the request body
     .when(Joi.object({ isRedirectedFromSendDeal: Joi.exist() }).unknown(), {
+      // If the condition is met (isRedirectedFromSendDeal exists)
       then: Joi.object({
         email: Joi.string().required().email(),
         password: Joi.string().required(),
       }),
+      // If the condition is not met (isRedirectedFromSendDeal doesn't exist)
       otherwise: Joi.object({
         email: Joi.string().required().email(),
         password: Joi.string().required(),
