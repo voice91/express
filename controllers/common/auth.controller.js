@@ -14,9 +14,15 @@ export const register = catchAsync(async (req, res) => {
       status: enumModel.EnumTypeOfStatus.PENDING,
     });
     if (LenderInvitation) {
-      const isLenderContact = await lenderContactService.getOne({ email: body.email });
+      const isLenderContact = await lenderContactService.getOne({ email: body.email }, { populate: 'lenderInstitute' });
       if (isLenderContact) {
-        body.role = enumModel.EnumRoleOfUser.LENDER;
+        const lenderInfo = {
+          firstName: isLenderContact.firstName,
+          lastName: isLenderContact.lastName,
+          companyName: isLenderContact.lenderInstitute.lenderNameVisible,
+          role: enumModel.EnumRoleOfUser.LENDER,
+        };
+        Object.assign(body, lenderInfo);
         const user = await userService.createUser(body);
         await invitationService.updateInvitation(
           { _id: LenderInvitation._id },
