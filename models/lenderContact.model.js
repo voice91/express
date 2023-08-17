@@ -111,9 +111,8 @@ const LenderContactSchema = new mongoose.Schema(
      * Zipcode of the address of the contact
      */
     zipcode: {
-      type: Number,
-      min: 10000,
-      max: 99999,
+      type: String,
+      match: /^[0-9]{5}$/, // Regular expression to ensure it's 5 digits
     },
     /**
      * Free text
