@@ -103,6 +103,7 @@ export const list = catchAsync(async (req, res) => {
 
   const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
+    isFavourite: 'desc',
     [sortingObj.sort]: sortingObj.order,
   };
 
@@ -800,19 +801,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         lenderContact.lenderPlacement.deal.dealSummary.documents &&
         lenderContact.lenderPlacement.deal.dealSummary.documents.length
       ) {
-        const documentNames = lenderContact.lenderPlacement.deal.dealSummary.documents.map(
-          (doc) => doc.fileName.split('.')[0]
-        );
-        // here we set the documents name text dynamic in template
-        let documentsText;
-        if (documentNames.length === 1) {
-          documentsText = `The ${documentNames[0]} is attached`;
-        } else if (documentNames.length === 2) {
-          documentsText = `The ${documentNames[0]} and ${documentNames[1]} are attached`;
-        } else {
-          const lastDocument = documentNames.pop();
-          documentsText = `The ${documentNames.join(', ')}, and ${lastDocument} are attached`;
-        }
+        const documentsText = 'Please see attached for deal materials';
         emailBodyValues.documentsText = documentsText;
         dealSummaryDocs.push(...lenderContact.lenderPlacement.deal.dealSummary.documents);
       }
@@ -1047,4 +1036,18 @@ export const getMessages = catchAsync(async (req, res) => {
   };
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
+});
+
+export const removeDocument = catchAsync(async (req, res) => {
+  const { lenderPlacementId, documentId } = req.params;
+  const query = {
+    _id: lenderPlacementId,
+  };
+  const updates = {
+    $pull: {
+      'messages.$[].documents': { _id: documentId }, // Remove the document with this _id from the documents array
+    },
+  };
+  await lenderPlacementService.updateLenderPlacement(query, updates);
+  return res.status(httpStatus.OK).send({ results: 'Document removed.' });
 });

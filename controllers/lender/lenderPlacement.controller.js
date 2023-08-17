@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService, activityLogService, dealService, lenderContactService } from 'services';
+import { s3Service, lenderPlacementService, activityLogService, dealService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -294,22 +294,12 @@ export const sendMessage = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const lender = req.user;
   const { body } = req;
-  const filter = {
-    _id: lenderPlacementId,
-  };
-  const lenderPlacement = await lenderPlacementService.getOne(filter);
-  const lenderContact = await lenderContactService.getOne(
-    {
-      lenderInstitute: lenderPlacement.lendingInstitution,
-    },
-    { populate: 'lenderInstitute' }
-  );
   await lenderPlacementService.updateLenderPlacement(
     { _id: lenderPlacementId },
     {
       $push: {
         messages: {
-          sender: lenderContact.lenderInstitute.lenderNameVisible || lender.firstName,
+          sender: lender.firstName,
           updatedAt: new Date(),
           message: body.message,
           documents: body.documents,
@@ -331,4 +321,18 @@ export const getMessages = catchAsync(async (req, res) => {
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
 
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
+});
+
+export const removeDocument = catchAsync(async (req, res) => {
+  const { lenderPlacementId, documentId } = req.params;
+  const query = {
+    _id: lenderPlacementId,
+  };
+  const updates = {
+    $pull: {
+      'messages.$[].documents': { _id: documentId }, // Remove the document with this _id from the documents array
+    },
+  };
+  await lenderPlacementService.updateLenderPlacement(query, updates);
+  return res.status(httpStatus.OK).send({ results: 'Document removed.' });
 });
