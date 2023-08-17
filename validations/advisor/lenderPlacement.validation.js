@@ -230,6 +230,13 @@ export const getMessages = {
   }),
 };
 
+export const removeDocument = {
+  params: Joi.object().keys({
+    lenderPlacementId: Joi.objectId().required(),
+    documentId: Joi.objectId().required(),
+  }),
+};
+
 export const updateAndSaveInitialEmailContent = {
   params: Joi.object().keys({
     emailTemplateId: Joi.objectId().required(),

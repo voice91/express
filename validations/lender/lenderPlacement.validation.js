@@ -145,3 +145,10 @@ export const getMessages = {
     })
     .unknown(true),
 };
+
+export const removeDocument = {
+  params: Joi.object().keys({
+    lenderPlacementId: Joi.objectId().required(),
+    documentId: Joi.objectId().required(),
+  }),
+};

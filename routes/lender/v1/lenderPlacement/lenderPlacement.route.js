@@ -29,6 +29,12 @@ router
   .post(auth('lender'), validate(lenderPlacementValidation.sendMessage), lenderPlacementController.sendMessage)
   .get(auth('lender'), validate(lenderPlacementValidation.getMessages), lenderPlacementController.getMessages);
 router
+  .route('/:lenderPlacementId/document/:documentId')
+  /**
+   * remove document from message
+   * */
+  .delete(auth('lender'), validate(lenderPlacementValidation.removeDocument), lenderPlacementController.removeDocument);
+router
   .route('/:lenderPlacementId')
   /**
    * getLenderPlacementById

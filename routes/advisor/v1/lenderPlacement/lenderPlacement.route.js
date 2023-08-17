@@ -39,7 +39,12 @@ router
     validate(lenderPlacementValidation.removeLenderPlacement),
     lenderPlacementController.removeByDealAndLendingInstitution
   );
-
+router
+  .route('/:lenderPlacementId/document/:documentId')
+  /**
+   * remove document from message
+   * */
+  .delete(auth('advisor'), validate(lenderPlacementValidation.removeDocument), lenderPlacementController.removeDocument);
 router
   .route('/:lenderPlacementId')
   /**
