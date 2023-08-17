@@ -78,6 +78,22 @@ export const createDeal = {
           type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
       ),
+      sourcesAndUses: Joi.object().keys({
+        sources: Joi.array().items(
+          Joi.object().keys({
+            key: Joi.string(),
+            value: Joi.string(),
+            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        ),
+        uses: Joi.array().items(
+          Joi.object().keys({
+            key: Joi.string(),
+            value: Joi.string(),
+            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        ),
+      }),
     }),
   }),
 };
@@ -132,6 +148,22 @@ export const updateDeal = {
           type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
         })
       ),
+      sourcesAndUses: Joi.object().keys({
+        sources: Joi.array().items(
+          Joi.object().keys({
+            key: Joi.string(),
+            value: Joi.string(),
+            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        ),
+        uses: Joi.array().items(
+          Joi.object().keys({
+            key: Joi.string(),
+            value: Joi.string(),
+            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          })
+        ),
+      }),
     }),
   }),
   params: Joi.object().keys({
