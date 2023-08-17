@@ -23,7 +23,9 @@ export const createLenderContact = {
     contactTag: Joi.number().integer().default(1),
     programs: Joi.array().items(Joi.string()),
     state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
-    zipcode: Joi.number().integer().min(10000).max(99999),
+    zipcode: Joi.string().pattern(new RegExp('^[0-9]{5}$')).messages({
+      'string.pattern.base': 'zipcode must be 5 digits number',
+    }),
     note: Joi.string(),
     lenderInstitute: Joi.objectId().required(),
   }),
@@ -45,7 +47,9 @@ export const updateLenderContact = {
     emailTag: Joi.number().default(1),
     contactTag: Joi.number().default(1),
     state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
-    zipcode: Joi.number().integer().min(10000).max(99999),
+    zipcode: Joi.string().pattern(new RegExp('^[0-9]{5}$')).messages({
+      'string.pattern.base': 'zipcode must be 5 digits number',
+    }),
     note: Joi.string(),
   }),
   params: Joi.object().keys({
