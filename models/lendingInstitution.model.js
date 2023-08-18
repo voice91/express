@@ -9,6 +9,14 @@ import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import enumModel from 'models/enum.model';
 import { toJSON, softDelete } from './plugins';
 
+const PhotosSchema = new mongoose.Schema({
+  url: {
+    type: String,
+  },
+  fileName: {
+    type: String,
+  },
+});
 const LendingInstitutionSchema = new mongoose.Schema(
   {
     /**
@@ -45,6 +53,21 @@ const LendingInstitutionSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(enumModel.EnumLenderTypeOfLendingInstitution),
       required: true,
+    },
+    /**
+     * logo of lender
+     * */
+    logo: {
+      type: PhotosSchema,
+    },
+    headquarter: {
+      type: String,
+    },
+    website: {
+      type: String,
+    },
+    creRanking: {
+      type: Number,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }

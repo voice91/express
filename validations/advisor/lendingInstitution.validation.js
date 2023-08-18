@@ -7,6 +7,10 @@ import enumFields from 'models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
+const PhotosSchema = Joi.object().keys({
+  url: Joi.string(),
+  fileName: Joi.string(),
+});
 export const createLendingInstitution = {
   body: Joi.object().keys({
     lenderNameVisible: Joi.string().required(),
@@ -14,6 +18,9 @@ export const createLendingInstitution = {
     lenderType: Joi.string()
       .valid(...Object.values(enumFields.EnumLenderTypeOfLendingInstitution))
       .required(),
+    logo: PhotosSchema,
+    headquarter: Joi.string(),
+    website: Joi.string(),
   }),
 };
 
@@ -24,6 +31,9 @@ export const updateLendingInstitution = {
     lenderType: Joi.string().valid(...Object.values(enumFields.EnumLenderTypeOfLendingInstitution)),
     lenderPrograms: Joi.array().items(Joi.objectId()),
     contacts: Joi.objectId(),
+    logo: PhotosSchema,
+    headquarter: Joi.string(),
+    website: Joi.string(),
   }),
   params: Joi.object().keys({
     lendingInstitutionId: Joi.objectId().required(),

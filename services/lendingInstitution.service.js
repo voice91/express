@@ -31,6 +31,11 @@ export async function createLendingInstitution(body) {
   return lendingInstitution;
 }
 
+export async function updateLendingInstitutionDetails(filter, body, options = {}) {
+  const lendingInstitution = await LendingInstitution.findOneAndUpdate(filter, body, options);
+  return lendingInstitution;
+}
+
 export async function updateLendingInstitution(filter, body, options = {}) {
   const lenderPrograms = await LenderProgram.find({ _id: { $in: body.lenderPrograms } });
   if (!lenderPrograms.length) {

@@ -113,6 +113,7 @@ export const createDealSummary = {
     sponserOverview: Joi.string(),
     deal: Joi.objectId().required(),
     mainPhoto: PhotosSchema,
+    dataSheet: PhotosSchema,
     otherPhotos: Joi.array().items(PhotosSchema),
     map: Joi.object().keys({
       lat: Joi.number(),
@@ -255,6 +256,7 @@ export const updateDealSummary = {
     marketSummary: Joi.string().allow(''),
     sponserOverview: Joi.string(),
     mainPhoto: PhotosSchema,
+    dataSheet: PhotosSchema,
     otherPhotos: Joi.array().items(PhotosSchema),
     map: Joi.object().keys({
       lat: Joi.number(),

@@ -3,10 +3,53 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { lenderPlacementService, lendingInstitutionService } from 'services';
+import { lenderPlacementService, lendingInstitutionService, s3Service } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import mongoose from 'mongoose';
 import { pick } from '../../utils/pick';
 import { LenderProgram } from '../../models';
+import TempS3 from '../../models/tempS3.model';
+import { asyncForEach, encodeUrl } from '../../utils/common';
+import FileFieldValidationEnum from '../../models/fileFieldValidation.model';
+
+const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
+  const newUrl = await s3Service.moveFile({ key: url, newFilePath });
+  await TempS3.findOneAndUpdate({ url }, { url: newUrl });
+  return newUrl;
+};
+// this is used to move file to new specified path as shown in basePath, used in create and update controller.
+const moveFiles = async ({ body, user, moveFileObj }) => {
+  await asyncForEach(Object.keys(moveFileObj), async (key) => {
+    const fieldValidation = FileFieldValidationEnum[`${key}OfLendingInstitution`];
+    const basePath = `users/${user._id}/lenderInstitution/${body._id}/${key}/${mongoose.Types.ObjectId()}/`;
+    if (Array.isArray(moveFileObj[key])) {
+      const newUrlsArray = [];
+      moveFileObj[key].map(async (ele) => {
+        const filePath = `${mongoose.Types.ObjectId()}_${ele.split('/').pop()}`;
+        newUrlsArray.push(await moveFileAndUpdateTempS3({ url: ele, newFilePath: basePath + filePath }));
+      });
+      Object.assign(body, { ...body, [key]: await Promise.all(newUrlsArray) });
+    } else {
+      const filePath = `${mongoose.Types.ObjectId()}_${moveFileObj[key].split('/').pop()}`;
+      Object.assign(body, {
+        ...body,
+        [key]: await moveFileAndUpdateTempS3({
+          url: moveFileObj[key],
+          newFilePath: basePath + filePath,
+        }),
+      });
+      if (fieldValidation.generateThumbnails) {
+        Object.assign(body, {
+          ...body,
+          [`thumbOf${key}`]: await s3Service.createThumbnails({
+            url: moveFileObj[key],
+            resolutions: fieldValidation.thumbnailResolutions,
+          }),
+        });
+      }
+    }
+  });
+};
 
 const getLendingInstitutionFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -211,12 +254,28 @@ export const create = catchAsync(async (req, res) => {
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
   body.updatedBy = req.user;
+  const { user } = req;
   const { lendingInstitutionId } = req.params;
+  const { logo } = body;
+  const moveFileObj = {
+    ...(body.logo && { logo: body.logo.url }),
+  };
+  body._id = lendingInstitutionId;
+  await moveFiles({ body, user, moveFileObj });
   const filter = {
     _id: lendingInstitutionId,
   };
+  if (body.logo) {
+    const { fileName } = logo;
+    body.logo = { url: encodeUrl(body.logo), fileName };
+  }
   const options = { new: true };
-  const lendingInstitution = await lendingInstitutionService.updateLendingInstitution(filter, body, options);
+  const lendingInstitution = await lendingInstitutionService.updateLendingInstitutionDetails(filter, body, options);
+  if (lendingInstitution.logo) {
+    const uploadedFileUrls = [];
+    uploadedFileUrls.push(lendingInstitution.logo.url);
+    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+  }
   return res.status(httpStatus.OK).send({ results: lendingInstitution });
 });
 
