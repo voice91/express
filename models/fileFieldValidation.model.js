@@ -30,6 +30,13 @@ module.exports = {
     thumbnailResolutions: [],
     generateThumbnails: false,
   },
+  logoOfLendingInstitution: {
+    uploadServiceType: 'direct',
+    allowedExtension: ['png', 'jpg', 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'],
+    allowedMaxFileSize: 30720,
+    thumbnailResolutions: [],
+    generateThumbnails: false,
+  },
   fileOfDealSummary: {
     uploadServiceType: 'direct',
     allowedExtension: ['png', 'jpg', 'jpeg', 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'],

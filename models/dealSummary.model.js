@@ -195,6 +195,9 @@ const DealSummarySchema = new mongoose.Schema(
     documents: {
       type: [PhotosSchema],
     },
+    dataSheet: {
+      type: PhotosSchema,
+    },
     dynamicField: [
       {
         name: String,
