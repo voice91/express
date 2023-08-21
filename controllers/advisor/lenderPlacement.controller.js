@@ -261,7 +261,7 @@ export const update = catchAsync(async (req, res) => {
 
   if (body.stage) {
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
-    body.nextStep = enumModel.EnumNextStepOfLenderPlacement[body.stage];
+    body.nextStep = body.nextStep ? body.nextStep : enumModel.EnumNextStepOfLenderPlacement[body.stage];
     if (body.stageEnumWiseNumber < stageOfLenderPlacementWithNumber(oldStage)) {
       body.$addToSet = { timeLine: { stage: body.stage, updateAt: new Date() } };
     }
@@ -752,13 +752,13 @@ export const sendEmail = catchAsync(async (req, res) => {
 
 export const sendDealV2 = catchAsync(async (req, res) => {
   const { deals } = req.body;
-  const frontEndUrl = config.frontEndUrl || 'http://54.196.81.18';
+  const frontEndUrl = config.front || 'http://54.196.81.18';
   const admin = req.user;
   const { isFollowUp } = req.query;
   const { emailPresentingPostmark } = admin;
   const advisorEmail = admin.email;
   const promises = await deals.map(async (body) => {
-    const { lenderInstitute, deal, lenderPlacement, followUpContent } = body;
+    const { lenderInstitute, deal, lenderPlacement, followUpContent, lender } = body;
     const filterToFindContact = {
       lenderInstitute,
     };
@@ -812,7 +812,8 @@ export const sendDealV2 = catchAsync(async (req, res) => {
 
     const { docIds } = lenderContact;
 
-    const contact = lenderContact.lenderContact.map((lc) => {
+    const lendersDetail = lenderContact.lenderContact.filter((lc) => lc._id.toString() === lender);
+    const contact = lendersDetail.map((lc) => {
       return {
         sendTo: lc.email,
         name: lc.firstName,
@@ -955,7 +956,8 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         $push: { timeLine: { stage, updatedAt: new Date() } },
         nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
         details: await detailsInDeal(stage, deal),
-      }
+      },
+      { new: true }
     );
     const createActivityLogBody = {
       createdBy: req.user._id,

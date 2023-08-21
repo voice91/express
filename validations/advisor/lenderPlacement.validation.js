@@ -160,6 +160,7 @@ export const sendDealV2 = {
     deals: Joi.array().items(
       Joi.object().keys({
         lenderInstitute: Joi.objectId().required(),
+        lender: Joi.objectId().required(),
         deal: Joi.objectId().required(),
         lenderPlacement: Joi.objectId().required(),
         followUpContent: Joi.string(),
