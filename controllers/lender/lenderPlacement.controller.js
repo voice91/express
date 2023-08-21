@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { s3Service, lenderPlacementService, activityLogService, dealService } from 'services';
+import { s3Service, lenderPlacementService, activityLogService, dealService, lenderContactService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
@@ -75,15 +75,17 @@ export const get = catchAsync(async (req, res) => {
 
 export const list = catchAsync(async (req, res) => {
   const { query } = req;
+  const { user } = req;
   const queryParams = getLenderPlacementFilterQuery(query);
 
   const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
-
+  const lenderContact = await lenderContactService.getOne({ email: user.email });
   const filter = {
     ...queryParams,
+    lendingInstitution: lenderContact.lenderInstitute,
   };
   const options = {
     ...pick(query, ['sort', 'limit', 'page']),

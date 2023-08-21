@@ -66,6 +66,9 @@ const LendingInstitutionSchema = new mongoose.Schema(
     website: {
       type: String,
     },
+    description: {
+      type: String,
+    },
     creRanking: {
       type: Number,
     },

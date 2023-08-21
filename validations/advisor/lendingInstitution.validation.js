@@ -8,8 +8,8 @@ import enumFields from 'models/enum.model';
 Joi.objectId = require('joi-objectid')(Joi);
 
 const PhotosSchema = Joi.object().keys({
-  url: Joi.string(),
-  fileName: Joi.string(),
+  url: Joi.string().required(),
+  fileName: Joi.string().required(),
 });
 export const createLendingInstitution = {
   body: Joi.object().keys({
@@ -34,6 +34,7 @@ export const updateLendingInstitution = {
     logo: PhotosSchema,
     headquarter: Joi.string(),
     website: Joi.string(),
+    description: Joi.string(),
   }),
   params: Joi.object().keys({
     lendingInstitutionId: Joi.objectId().required(),
