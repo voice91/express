@@ -3,10 +3,12 @@ import {
   EnumAssetTypeOfDeal,
   EnumLenderTypeOfLendingInstitution,
   EnumLoanTypeOfDeal,
+  EnumStageOfLenderPlacement,
   EnumStatesOfDeal,
 } from 'models/enum.model';
 import _ from 'lodash';
 import contentType from './content-type.json';
+import { stageOfLenderPlacementWithNumber } from './enumStageOfLenderPlacement';
 /* eslint-disable */
 export const asyncForEach = async (array, callback) => {
   for (let index = 0; index < array.length; index += 1) {
@@ -499,4 +501,45 @@ export const getTextFromTemplate = ({
     advisorName,
     followUpContent,
   });
+};
+
+/**
+ * Manage the timeline of lender placement stages based on changes in stages.
+ * @param {string} oldStage - The previous stage of lender placement.
+ * @param {string} updatedStage - The updated stage of lender placement.
+ * @param {Array} timeline - The timeline of stage changes.
+ * @returns {Array} - The modified timeline after processing the stage changes.
+ */
+export const manageLenderPlacementStageTimeline = (oldStage, updatedStage, timeline) => {
+  const timelineArray = timeline;
+  const oldStageNumber = stageOfLenderPlacementWithNumber(oldStage);
+  const updatedStageNumber = stageOfLenderPlacementWithNumber(updatedStage);
+  const numberStageMap = new Map([
+    [1, EnumStageOfLenderPlacement.CLOSED],
+    [2, EnumStageOfLenderPlacement.CLOSING],
+    [3, EnumStageOfLenderPlacement.TERMS_SHEET_RECEIVED],
+    [4, EnumStageOfLenderPlacement.TERMS_RECEIVED],
+    [5, EnumStageOfLenderPlacement.REVIEWING],
+    [6, EnumStageOfLenderPlacement.SENT],
+    [7, EnumStageOfLenderPlacement.NEW],
+  ]);
+  // Check if the old stage is ahead of the updated stage
+  if (stageOfLenderPlacementWithNumber(oldStage) > stageOfLenderPlacementWithNumber(updatedStage)) {
+    // Iterate through the stages between old and updated stages in reverse.
+    for (let i = oldStageNumber - 1; i >= updatedStageNumber; i -= 1) {
+      if (numberStageMap.get(i)) {
+        // Add the stage to the timeline with the current date.
+        timelineArray.push({ stage: numberStageMap.get(i), updateAt: new Date() });
+      }
+    }
+  } else if (stageOfLenderPlacementWithNumber(oldStage) < stageOfLenderPlacementWithNumber(updatedStage)) {
+    for (let index = timelineArray.length - 1; index >= 0; index -= 1) {
+      const changeLog = timelineArray[index];
+      if (stageOfLenderPlacementWithNumber(changeLog.stage) < updatedStageNumber) {
+        timelineArray.splice(index, 1);
+      }
+    }
+    return timeline;
+  }
+  return timelineArray;
 };
