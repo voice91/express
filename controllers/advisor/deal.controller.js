@@ -127,6 +127,7 @@ export const paginate = catchAsync(async (req, res) => {
       { path: 'documents' },
       { path: 'task' },
       { path: 'outstandingTaskCount', count: true, match: { isCompleted: false } },
+      { path: 'dealSummary' },
     ],
   };
   if (sortingObj.sort) {

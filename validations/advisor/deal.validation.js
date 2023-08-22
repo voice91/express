@@ -55,6 +55,13 @@ export const createDeal = {
     squareFootage: Joi.number(),
     unitCount: Joi.number(),
     occupancy: Joi.string(),
+    loanInformation: Joi.array().items(
+      Joi.object({
+        key: Joi.string(),
+        value: Joi.any(),
+        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+      })
+    ),
     dealSummaryBody: Joi.object({
       mainPhoto: photoSchema,
       propertySummary: Joi.array().items(
@@ -124,6 +131,13 @@ export const updateDeal = {
     squareFootage: Joi.number(),
     unitCount: Joi.number(),
     occupancy: Joi.string(),
+    loanInformation: Joi.array().items(
+      Joi.object({
+        key: Joi.string(),
+        value: Joi.any(),
+        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+      })
+    ),
     dealSummaryBody: Joi.object({
       _id: Joi.objectId(),
       mainPhoto: photoSchema,

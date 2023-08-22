@@ -85,7 +85,7 @@ export const paginate = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['limit', 'page']),
-    populate: [{ path: 'notes' }, { path: 'documents' }],
+    populate: [{ path: 'notes' }, { path: 'documents' }, { path: 'dealSummary' }],
   };
   if (sortingObj.sort) {
     options.sort = sortObj;

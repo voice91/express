@@ -103,6 +103,7 @@ export const paginate = catchAsync(async (req, res) => {
       { path: 'documents' },
       { path: 'task' },
       { path: 'outstandingTaskCount' },
+      { path: 'dealSummary' },
     ],
   };
   if (sortingObj.sort) {

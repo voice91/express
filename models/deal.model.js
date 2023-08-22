@@ -4,7 +4,7 @@
  * select your project then select model and click on + icon to add new fields.
  * For more checkout the docs at "docs.appinvento.io/product-guides/create-a-new-collection-field"
  */
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import enumModel from 'models/enum.model';
 import { toJSON, softDelete } from './plugins';
@@ -218,6 +218,20 @@ const DealSchema = new mongoose.Schema(
       type: [TimeLineSchema],
       default: [{ stage: enumModel.EnumStageOfDeal.NEW, updatedAt: new Date() }],
     },
+    loanInformation: [
+      {
+        key: {
+          type: String,
+        },
+        value: {
+          type: Schema.Types.Mixed,
+        },
+        type: {
+          type: String,
+          enum: Object.values(enumModel.EnumOfTypeOfValue),
+        },
+      },
+    ],
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
