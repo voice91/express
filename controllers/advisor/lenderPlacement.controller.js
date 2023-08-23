@@ -18,7 +18,13 @@ import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach, encodeUrl, getTextFromTemplate, manageLenderPlacementStageTimeline } from 'utils/common';
+import {
+  asyncForEach,
+  encodeUrl,
+  getTextFromTemplate,
+  manageDealStageTimeline,
+  manageLenderPlacementStageTimeline,
+} from 'utils/common';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
@@ -279,7 +285,7 @@ export const update = catchAsync(async (req, res) => {
     await Deal.findByIdAndUpdate(dealId, {
       stage,
       orderOfStage: stageOfDealWithNumber(stage),
-      $push: { timeLine: { stage, updatedAt: new Date() } },
+      timeLine: manageDealStageTimeline(lenderPlacementResult.deal.stage, stage, lenderPlacementResult.deal.timeLine),
       details: await detailsInDeal(stage, dealId),
       nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
     });
@@ -951,7 +957,11 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       {
         stage,
         orderOfStage: stageOfDealWithNumber(stage),
-        $push: { timeLine: { stage, updatedAt: new Date() } },
+        timeLine: manageDealStageTimeline(
+          lenderContact.lenderPlacement.deal.stage,
+          stage,
+          lenderContact.lenderPlacement.deal.timeLine
+        ),
         nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
         details: await detailsInDeal(stage, deal),
       },

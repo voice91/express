@@ -16,6 +16,7 @@ import ApiError from '../../utils/ApiError';
 import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
 import { detailsInDeal } from '../../utils/detailsInDeal';
 import { dealSummeryDto } from '../../services/dealSummary.service';
+import { manageDealStageTimeline } from '../../utils/common';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -209,15 +210,7 @@ export const update = catchAsync(async (req, res) => {
   if (body.stage) {
     body.orderOfStage = stageOfDealWithNumber(body.stage);
     body.details = await detailsInDeal(body.stage, dealId);
-    const indexToUpdate = dealStage.timeLine.findIndex((entry) => entry.stage === body.stage);
-    body.timeLine = dealStage.timeLine || [];
-    // If an existing entry with the stage is found, update its updatedAt value
-    if (indexToUpdate !== -1) {
-      body.timeLine[indexToUpdate].updatedAt = new Date();
-    } else {
-      // If no existing entry found, add a new entry with the updated stage and updatedAt
-      body.timeLine.push({ stage: body.stage, updatedAt: new Date() });
-    }
+    body.timeLine = manageDealStageTimeline(oldStage, body.stage, dealStage.timeLine);
   }
   const deal = await dealService.updateDeal(filter, body, options);
   if (dealSummaryBody) {

@@ -18,3 +18,13 @@ export const stageOfLenderPlacementWithNumber = (stageName) => {
 
   return stageNumberMap.get(stageName) || null;
 };
+
+export const lenderPlacementStageToStageNumberMapping = new Map([
+  [EnumStageOfLenderPlacement.CLOSED, 1],
+  [EnumStageOfLenderPlacement.CLOSING, 2],
+  [EnumStageOfLenderPlacement.TERMS_SHEET_RECEIVED, 3],
+  [EnumStageOfLenderPlacement.TERMS_RECEIVED, 4],
+  [EnumStageOfLenderPlacement.REVIEWING, 5],
+  [EnumStageOfLenderPlacement.SENT, 6],
+  [EnumStageOfLenderPlacement.NEW, 7],
+]);

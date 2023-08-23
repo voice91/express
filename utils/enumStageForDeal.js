@@ -14,3 +14,11 @@ export const stageOfDealWithNumber = (stageName) => {
 
   return stageMapping.get(stageName) || null;
 };
+export const dealStageToStageNumberMapping = new Map([
+  [EnumStageOfDeal.CLOSED, 1],
+  [EnumStageOfDeal.CLOSING, 2],
+  [EnumStageOfDeal.SELECTING_LENDER, 3],
+  [EnumStageOfDeal.OUT_IN_MARKET, 4],
+  [EnumStageOfDeal.PREPARING_MATERIALS, 5],
+  [EnumStageOfDeal.NEW, 6],
+]);
