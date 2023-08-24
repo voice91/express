@@ -11,6 +11,7 @@ import { LenderProgram } from '../../models';
 import TempS3 from '../../models/tempS3.model';
 import { asyncForEach, encodeUrl } from '../../utils/common';
 import FileFieldValidationEnum from '../../models/fileFieldValidation.model';
+import { EnumStageOfLenderPlacement } from '../../models/enum.model';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -286,4 +287,22 @@ export const remove = catchAsync(async (req, res) => {
   };
   const lendingInstitution = await lendingInstitutionService.removeLendingInstitution(filter);
   return res.status(httpStatus.OK).send({ results: lendingInstitution });
+});
+
+export const getLendingInstitutionFeedBack = catchAsync(async (req, res) => {
+  const { lendingInstitutionId } = req.params;
+  const filter = {
+    lendingInstitution: lendingInstitutionId,
+    $or: [
+      {
+        terms: { $exists: true },
+      },
+      {
+        stage: EnumStageOfLenderPlacement.PASS,
+      },
+    ],
+  };
+  const options = { populate: { path: 'deal' } };
+  const feedBacks = await lenderPlacementService.getLenderPlacementList(filter, options);
+  return res.status(httpStatus.OK).send({ results: feedBacks });
 });

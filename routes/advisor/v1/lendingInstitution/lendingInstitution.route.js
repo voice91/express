@@ -47,4 +47,16 @@ router
     validate(lendingInstitutionValidation.deleteLendingInstitutionById),
     lendingInstitutionController.remove
   );
+
+router
+  .route('/:lendingInstitutionId/feed-back')
+  /**
+   * getLendingInstitutionById
+   * */
+  .get(
+    auth('advisor'),
+    validate(lendingInstitutionValidation.getLendingInstitutionFeedBack),
+    lendingInstitutionController.getLendingInstitutionFeedBack
+  );
+
 export default router;

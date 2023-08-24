@@ -47,6 +47,12 @@ export const getLendingInstitutionById = {
   }),
 };
 
+export const getLendingInstitutionFeedBack = {
+  params: Joi.object().keys({
+    lendingInstitutionId: Joi.objectId().required(),
+  }),
+};
+
 export const deleteLendingInstitutionById = {
   params: Joi.object().keys({
     lendingInstitutionId: Joi.objectId().required(),
