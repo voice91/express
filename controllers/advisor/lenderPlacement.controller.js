@@ -780,7 +780,8 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     );
     const emailBodyValues = {
       dealSummaryLink: `${frontEndUrl}/dealDetail/${deal}?tab=presentation`,
-      passLink: 'passUrl',
+      // TODO: conform & remove from here if not needed
+      passLink: `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary&pass=true`,
       advisorName: admin.firstName,
       documents: [],
       executiveSummary: '',
@@ -884,9 +885,11 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     // await Promise.allSettled(
     await asyncForEach(getEmailTemplate.contact, async (item) => {
       let dealSummaryLink = `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary`;
+      let passLink = `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary&pass=true`;
       const user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
       if (!user) {
         dealSummaryLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
+        passLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
         await invitationService.createInvitation({
           deal,
           invitedBy: admin._id,
@@ -906,7 +909,8 @@ export const sendDealV2 = catchAsync(async (req, res) => {
           documents: emailBodyValues.documentsText,
           // dealSummaryLink: emailBodyValues.dealSummaryLink,
           dealSummaryLink,
-          passLink: emailBodyValues.passLink,
+          // passLink: emailBodyValues.passLink,
+          passLink,
           advisorName: emailBodyValues.advisorName,
           emailTemplate: getEmailTemplate.emailContent,
           followUpContent: followUpContent || `following up, did you have any feedback on this deal.`,
