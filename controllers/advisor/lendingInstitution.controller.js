@@ -303,6 +303,8 @@ export const getLendingInstitutionFeedBack = catchAsync(async (req, res) => {
     ],
   };
   const options = { populate: { path: 'deal' } };
-  const feedBacks = await lenderPlacementService.getLenderPlacementList(filter, options);
+  let feedBacks = await lenderPlacementService.getLenderPlacementList(filter, options);
+  // bcs in some old deals is not finding so need to filter out from here
+  feedBacks = feedBacks.filter((feedBack) => feedBack.deal);
   return res.status(httpStatus.OK).send({ results: feedBacks });
 });
