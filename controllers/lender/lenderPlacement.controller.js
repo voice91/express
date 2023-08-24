@@ -185,7 +185,7 @@ export const update = catchAsync(async (req, res) => {
 
   if (body.stage) {
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
-    body.nextStep = enumModel.EnumNextStepOfLenderPlacement[body.stage];
+    body.nextStep = body.nextStep ? body.nextStep : enumModel.EnumNextStepOfLenderPlacement[body.stage];
     if (body.stageEnumWiseNumber < stageOfLenderPlacementWithNumber(oldStage)) {
       body.$addToSet = { timeLine: { stage: body.stage, updateAt: new Date() } };
     }
