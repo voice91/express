@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach, encodeUrl } from 'utils/common';
+import { asyncForEach, encodeUrl, manageLenderPlacementStageTimeline } from 'utils/common';
 import { pick } from '../../utils/pick';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 import enumModel, { EnumOfActivityType, EnumStageOfLenderPlacement } from '../../models/enum.model';
@@ -186,9 +186,7 @@ export const update = catchAsync(async (req, res) => {
   if (body.stage) {
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
     body.nextStep = body.nextStep ? body.nextStep : enumModel.EnumNextStepOfLenderPlacement[body.stage];
-    if (body.stageEnumWiseNumber < stageOfLenderPlacementWithNumber(oldStage)) {
-      body.$addToSet = { timeLine: { stage: body.stage, updateAt: new Date() } };
-    }
+    body.timeLine = manageLenderPlacementStageTimeline(oldStage, body.stage, beforeLenderPlacementResult.timeLine);
   }
   if (oldStage !== EnumStageOfLenderPlacement.CLOSED && body.stage === EnumStageOfLenderPlacement.ARCHIVE) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Only Archive possible when status changed from Closed to Archive..');
@@ -209,7 +207,7 @@ export const update = catchAsync(async (req, res) => {
       { _id: dealId },
       {
         stage,
-        $push: { timeLine: { stage, updatedAt: new Date() } },
+        timeLine: manageLenderPlacementStageTimeline(oldStage, stage, beforeLenderPlacementResult.timeLine),
         details: await detailsInDeal(stage, dealId),
         nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
       }
@@ -249,7 +247,7 @@ export const update = catchAsync(async (req, res) => {
       {
         stage,
         stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
-        $addToSet: { timeLine: { stage, updateAt: new Date() } },
+        timeLine: manageLenderPlacementStageTimeline(oldStage, stage, beforeLenderPlacementResult.timeLine),
         nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
       }
     );
@@ -274,7 +272,7 @@ export const update = catchAsync(async (req, res) => {
       {
         stage,
         stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
-        $addToSet: { timeLine: { stage, updateAt: new Date() } },
+        timeLine: manageLenderPlacementStageTimeline(oldStage, stage, beforeLenderPlacementResult.timeLine),
         nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
       }
     );
