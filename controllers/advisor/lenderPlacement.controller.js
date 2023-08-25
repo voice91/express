@@ -153,7 +153,12 @@ export const list = catchAsync(async (req, res) => {
     options.sort = sortObj;
     options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
-  const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
+  let lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
+  // filter out if we only need outstanding tasks placement
+  // if we want to find according to it than DB query will be increase & it takes more time bcs we are counting outstandingTaskCount by virtual & matching
+  if (query.outstandingTask) {
+    lenderPlacement = lenderPlacement.filter((placement) => placement.outstandingTaskCount > 0);
+  }
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 

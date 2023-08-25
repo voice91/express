@@ -118,6 +118,11 @@ export const deleteLenderPlacementById = {
 
 export const getLenderPlacement = {
   body: Joi.object().keys({}).unknown(true),
+  query: Joi.object()
+    .keys({
+      outstandingTask: Joi.boolean(),
+    })
+    .unknown(true),
 };
 
 export const updateManyLenderPlacement = {
