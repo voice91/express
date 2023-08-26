@@ -1,4 +1,5 @@
 import httpStatus from 'http-status';
+import _ from 'lodash';
 import { Deal, DealSummary } from '../models';
 import { importExcelFile } from '../utils/importExcel';
 import ApiError from '../utils/ApiError';
@@ -128,33 +129,33 @@ export function dealSummeryDto(dealSummary) {
       return changeData(item, 0, 'type', 'value');
     });
   }
-  if (dealSummary.financingRequest) {
+  if (!_.isEmpty(dealSummary.financingRequest)) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.financingRequest = dealSummary.financingRequest.map((item) => changeData(item, 0, 'type', 'value'));
   }
-  if (dealSummary.propertySummary) {
+  if (!_.isEmpty(dealSummary.propertySummary)) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.propertySummary = dealSummary.propertySummary.map((item) => changeData(item, 0, 'type', 'value'));
   }
-  if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.sources) {
+  if (dealSummary.sourcesAndUses && !_.isEmpty(dealSummary.sourcesAndUses.sources)) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.sourcesAndUses.sources = dealSummary.sourcesAndUses.sources
       .map((item) => changeData(item, 0, 'type', 'value'))
       .filter((item) => item.key !== 'Total Sources');
   }
-  if (dealSummary.sourcesAndUses && dealSummary.sourcesAndUses.uses) {
+  if (dealSummary.sourcesAndUses && !_.isEmpty(dealSummary.sourcesAndUses.uses)) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.sourcesAndUses.uses = dealSummary.sourcesAndUses.uses
       .map((item) => changeData(item, 0, 'type', 'value'))
       .filter((item) => item.key !== 'Total Uses');
   }
-  if (dealSummary.rentRollSummary) {
+  if (!_.isEmpty(dealSummary.rentRollSummary)) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.rentRollSummary = dealSummary.rentRollSummary.map((item) =>
       item.map((data) => changeData(data, 0, 'type', 'value'))
     );
   }
-  if (dealSummary.financialSummary && dealSummary.financialSummary.revenue) {
+  if (dealSummary.financialSummary && !_.isEmpty(dealSummary.financialSummary.revenue)) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue
       .map((item) => changeData(item, 0, 'inPlaceType', 'inPlaceValue'))
@@ -164,7 +165,7 @@ export function dealSummeryDto(dealSummary) {
       .map((item) => changeData(item, 0, 'stabilizedType', 'stabilizedValue'))
       .filter((data) => data.key !== 'Effective Gross Income');
   }
-  if (dealSummary.financialSummary && dealSummary.financialSummary.expenses) {
+  if (dealSummary.financialSummary && !_.isEmpty(dealSummary.financialSummary.expenses)) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses
       .map((item) => changeData(item, 0, 'inPlaceType', 'inPlaceValue'))
