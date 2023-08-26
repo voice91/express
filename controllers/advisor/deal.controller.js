@@ -216,6 +216,14 @@ export const update = catchAsync(async (req, res) => {
     body.details = await detailsInDeal(body.stage, dealId);
     body.timeLine = manageDealStageTimeline(oldStage, body.stage, dealStage.timeLine);
   }
+
+  Object.entries(body).forEach(([key, value]) => {
+    if (!value) {
+      body.$unset = { ...body.$unset, [key]: '' };
+      delete body[key];
+    }
+  });
+
   const deal = await dealService.updateDeal(filter, body, options);
   if (dealSummaryBody) {
     await dealSummaryService.updateDealSummary({ _id: dealSummaryBody._id || body.dealSummary }, dealSummaryBody);
