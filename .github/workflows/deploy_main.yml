@@ -25,16 +25,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Deploy push to AWS S3
-      - name: AWS Deploy push
-        run: |
-          aws deploy create-deployment \
-          --application-name ${{ matrix.appname }} \
-          --description "Revision for the ${{ matrix.appname }}-${{ github.sha }}" \
-          --no-ignore-hidden-files \
-          --s3-location s3://${{ matrix.s3-bucket }}/${{ matrix.s3-filename }}.zip \
-          --source .
-
       # Create deployment using AWS CodeDeploy
       - name: AWS Create Deployment
         run: |
