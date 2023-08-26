@@ -114,7 +114,7 @@ export function dealSummeryDto(dealSummary) {
   if (dealSummary.dealMetrics) {
     // eslint-disable-next-line no-param-reassign
     dealSummary.dealMetrics = dealSummary.dealMetrics.map((item) => {
-      if (['Stabilized DY', 'Estimated LTV'].includes(item.key)) {
+      if (['Stabilized DY', 'Estimated LTV', 'In-Place DY'].includes(item.key)) {
         return changeData(item, 1, 'type', 'value');
       }
       if (['Stabilized DSCR'].includes(item.key)) {
