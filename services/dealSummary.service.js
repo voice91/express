@@ -65,7 +65,7 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = `${(data[keyToAssign] * 1).toFixed(decimalPoint)}%`;
     }
-    if (typeof data[keyToAssign] !== 'string') {
+    if (data[keyToAssign] && typeof data[keyToAssign] !== 'string') {
       // eslint-disable-next-line no-param-reassign
       data[keyToAssign] = `${data[keyToAssign].toFixed(decimalPoint)}%`;
     }
