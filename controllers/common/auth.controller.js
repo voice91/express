@@ -25,6 +25,7 @@ export const register = catchAsync(async (req, res) => {
         // in new flow we do not want lender to verify email so directly verifying email
         Object.assign(body, lenderInfo, { emailVerified: true });
         const user = await userService.createUser(body);
+        const tokens = await tokenService.generateAuthTokens(user);
         await invitationService.updateInvitation(
           { _id: LenderInvitation._id },
           { status: enumModel.EnumTypeOfStatus.ACCEPTED }
@@ -37,6 +38,7 @@ export const register = catchAsync(async (req, res) => {
             success: true,
             message: 'Successfully registered',
             user,
+            tokens,
           },
         });
       } else {
