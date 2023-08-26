@@ -54,7 +54,7 @@ export const get = catchAsync(async (req, res) => {
   deal.involvedUsers.borrowers = deal.involvedUsers.borrowers.map((item) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
     if (!invitation) {
-      throw new ApiError(`system error, user don/'t have invitation for this deal`);
+      throw new ApiError(httpStatus.BAD_REQUEST, `user don/'t have invitation for this deal`);
     }
     return {
       ...item,
@@ -216,6 +216,14 @@ export const update = catchAsync(async (req, res) => {
     body.details = await detailsInDeal(body.stage, dealId);
     body.timeLine = manageDealStageTimeline(oldStage, body.stage, dealStage.timeLine);
   }
+
+  Object.entries(body).forEach(([key, value]) => {
+    if (!value) {
+      body.$unset = { ...body.$unset, [key]: '' };
+      delete body[key];
+    }
+  });
+
   const deal = await dealService.updateDeal(filter, body, options);
   if (dealSummaryBody) {
     await dealSummaryService.updateDealSummary({ _id: dealSummaryBody._id || body.dealSummary }, dealSummaryBody);

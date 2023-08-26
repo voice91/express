@@ -128,9 +128,9 @@ export const updateDeal = {
     dealNotes: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.array().items(Joi.objectId()),
     documents: Joi.array().items(Joi.objectId()),
-    squareFootage: Joi.number(),
-    unitCount: Joi.number(),
-    occupancy: Joi.string(),
+    squareFootage: Joi.number().allow(null),
+    unitCount: Joi.number().allow(null),
+    occupancy: Joi.string().allow(null),
     loanInformation: Joi.array().items(
       Joi.object({
         key: Joi.string(),
