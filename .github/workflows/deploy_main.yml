@@ -1,0 +1,44 @@
+'on':
+  push:
+    branches:
+      - main
+
+name: Deploy Lender API Staging Server
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        appname: ['lender-staging']
+        deploy-group: ['lender-staging-deployment']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Configure AWS Credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Deploy push to AWS S3
+      - name: AWS Deploy push
+        run: |
+          aws deploy create-deployment \
+          --application-name ${{ matrix.appname }} \
+          --description "Revision for the ${{ matrix.appname }}-${{ github.sha }}" \
+          --no-ignore-hidden-files \
+          --s3-location s3://${{ matrix.s3-bucket }}/${{ matrix.s3-filename }}.zip \
+          --source .
+
+      # Create deployment using AWS CodeDeploy
+      - name: AWS Create Deployment
+        run: |
+          aws deploy create-deployment \
+          --application-name ${{ matrix.appname }} \
+          --deployment-group-name ${{ matrix.deploy-group }} \
+          --github-location repository=hardikbeladiya/lender-backend,commitId=${{ github.sha }}\
