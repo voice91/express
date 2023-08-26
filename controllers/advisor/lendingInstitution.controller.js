@@ -271,6 +271,14 @@ export const update = catchAsync(async (req, res) => {
     body.logo = { url: encodeUrl(body.logo), fileName };
   }
   const options = { new: true };
+
+  Object.entries(body).forEach(([key, value]) => {
+    if (!value) {
+      body.$unset = { ...body.$unset, [key]: '' };
+      delete body[key];
+    }
+  });
+
   const lendingInstitution = await lendingInstitutionService.updateLendingInstitutionDetails(filter, body, options);
   if (lendingInstitution.logo) {
     const uploadedFileUrls = [];
