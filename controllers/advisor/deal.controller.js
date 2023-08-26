@@ -108,6 +108,10 @@ export const paginate = catchAsync(async (req, res) => {
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
+  // bcs when we sort using number than it in same number it will not work when there is some data on different pages it takes same data, so we are giving this, so it will work properly
+  if (sortingObj.sort === 'orderOfStage') {
+    sortObj.dealName = 'asc';
+  }
   const filter = {
     $or: [
       { user },
