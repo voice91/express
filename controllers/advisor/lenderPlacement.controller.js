@@ -271,6 +271,10 @@ export const update = catchAsync(async (req, res) => {
   const oldStage = beforeLenderPlacementResult.stage;
 
   if (body.stage) {
+    // we change the isEmailSent to same as what we have when we add lender bcs if we don't change than it will not chane stage of deal & timeline when we send the deal after changing stage
+    if (body.stage === enumModel.EnumStageOfDeal.NEW) {
+      body.isEmailSent = enumModel.EnumOfEmailStatus.SEND_DEAL;
+    }
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
     body.nextStep = body.nextStep ? body.nextStep : enumModel.EnumNextStepOfLenderPlacement[body.stage];
     body.timeLine = manageLenderPlacementStageTimeline(oldStage, body.stage, beforeLenderPlacementResult.timeLine);
