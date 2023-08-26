@@ -9,3 +9,4 @@ module.exports.importFileController = require('./importFile.controller');
 module.exports.exportDBController = require('./exportDB.controller');
 module.exports.wehbookController = require('./wehbook.controller');
 module.exports.addUserController = require('./addUser.controller');
+module.exports.addLogoController = require('./addLogo.controller');

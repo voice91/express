@@ -18,6 +18,8 @@ import wehbookRoutes from './common/wehbook/wehbook.route';
 
 import addUserRoute from './common/addUser/addUser.route';
 
+import addLogoRoute from './common/addLogo/addLogo.route';
+
 const userRoutes = require('./user');
 const advisorRoutes = require('./advisor');
 const lenderRoutes = require('./lender');
@@ -35,4 +37,5 @@ router.use('/exportDB', exportDBRoutes);
 router.use('/auth', authRoutes);
 router.use('/wehbook', wehbookRoutes);
 router.use('/add-user', addUserRoute);
+router.use('/add-logo', addLogoRoute);
 module.exports = router;
