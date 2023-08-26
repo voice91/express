@@ -22,18 +22,20 @@ export const register = catchAsync(async (req, res) => {
           companyName: isLenderContact.lenderInstitute.lenderNameVisible,
           role: enumModel.EnumRoleOfUser.LENDER,
         };
-        Object.assign(body, lenderInfo);
+        // in new flow we do not want lender to verify email so directly verifying email
+        Object.assign(body, lenderInfo, { emailVerified: true });
         const user = await userService.createUser(body);
         await invitationService.updateInvitation(
           { _id: LenderInvitation._id },
           { status: enumModel.EnumTypeOfStatus.ACCEPTED }
         );
-        const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
-        emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
+        // in new flow we do not want lender to verify email so removing it
+        // const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
+        // emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
         res.status(httpStatus.OK).send({
           results: {
             success: true,
-            message: 'Email has been sent to your registered email. Please check your email and verify it',
+            message: 'Successfully registered',
             user,
           },
         });

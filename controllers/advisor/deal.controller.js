@@ -54,7 +54,7 @@ export const get = catchAsync(async (req, res) => {
   deal.involvedUsers.borrowers = deal.involvedUsers.borrowers.map((item) => {
     const invitation = userInInvitation.find((value) => value.invitee.equals(item._id));
     if (!invitation) {
-      throw new ApiError(`system error, user don/'t have invitation for this deal`);
+      throw new ApiError(httpStatus.BAD_REQUEST, `user don/'t have invitation for this deal`);
     }
     return {
       ...item,
