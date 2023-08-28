@@ -1,0 +1,34 @@
+'on':
+  push:
+    branches:
+      - production
+
+name: Deploy Lender API Production Server
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        appname: ['lender-production']
+        deploy-group: ['lender-production-deployment']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Configure AWS Credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Create deployment using AWS CodeDeploy
+      - name: AWS Create Deployment
+        run: |
+          aws deploy create-deployment \
+          --application-name ${{ matrix.appname }} \
+          --deployment-group-name ${{ matrix.deploy-group }} \
+          --github-location repository=hardikbeladiya/lender-backend,commitId=${{ github.sha }}\
