@@ -7,7 +7,7 @@ import { lenderNotesService } from '../../services';
 const he = require('he');
 
 // eslint-disable-next-line import/prefer-default-export
-export const list = catchAsync(async (req, res) => {
+export const processEmailMessage = catchAsync(async (req, res) => {
   const senderName = req.body.FromName;
   const message = req.body.StrippedTextReply;
 

@@ -14,7 +14,7 @@ import importFileRoutes from './common/import/importFile.route';
 
 import exportDBRoutes from './common/export/exportDB.route';
 
-import wehbookRoutes from './common/wehbook/wehbook.route';
+import webhookRoutes from './common/webhook/webhook.route';
 
 import addUserRoute from './common/addUser/addUser.route';
 
@@ -35,7 +35,7 @@ router.use('/rates', ratesRoutes);
 router.use('/importFile', importFileRoutes);
 router.use('/exportDB', exportDBRoutes);
 router.use('/auth', authRoutes);
-router.use('/wehbook', wehbookRoutes);
+router.use('/webhook', webhookRoutes);
 router.use('/add-user', addUserRoute);
 router.use('/add-logo', addLogoRoute);
 module.exports = router;
