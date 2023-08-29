@@ -934,6 +934,8 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         }),
         isHtml: true,
         headers,
+        isSendDeal: true,
+        replyTo: req.user.email,
       });
     });
     // );
@@ -1037,6 +1039,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     isHtml: false,
     // Headers: [{ Name: 'In-Reply-To', Value: 'originalMessageId@example.com' }],
     headers,
+    replyTo: req.user.email,
   });
   await lenderPlacementService.updateLenderPlacement(
     { _id: lenderPlacementId },

@@ -246,3 +246,31 @@ export const createThumbnails = async ({ url, resolutions = [] }) => {
     return data;
   });
 };
+
+/**
+ * upload the email attachment to s3 which we get from the postmark's webhook
+ * @param attachment
+ * @return {Promise<string>}
+ */
+export const uploadEmailAttachmentToS3 = async (attachment) => {
+  const decodedContent = Buffer.from(attachment.Content, 'base64');
+
+  const bucketName = config.aws.bucket;
+
+  const key = `users/${attachment.userId}/${mongoose.Types.ObjectId()}/${attachment.Name}`;
+
+  const { ContentType } = attachment;
+
+  // Set up the parameters for the S3 upload
+  const params = {
+    Bucket: bucketName,
+    Key: key,
+    Body: decodedContent,
+    ContentType,
+    ACL: 'public-read',
+  };
+
+  await s3.putObject(params).promise();
+
+  return `https://${bucketName}.s3.amazonaws.com/${encodeURI(params.Key)}`;
+};
