@@ -41,7 +41,10 @@ export const list = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['limit', 'page']),
-    populate: [{ path: 'createdBy' }, { path: 'deal' }],
+    populate: [
+      { path: 'createdBy', select: ['profilePhoto', 'firstName', 'lastName'] },
+      { path: 'deal', select: ['dealName'] },
+    ],
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
