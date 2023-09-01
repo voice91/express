@@ -889,6 +889,11 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         Value: `${placementId}`,
       },
     ];
+    const result = await lenderPlacementService.getOne({ _id: placementId });
+    // for sending email in the thread we need to pass this header
+    if (isFollowUp) {
+      headers.push({ Name: 'In-Reply-To', Value: result.postmarkMessageId[0] });
+    }
 
     // todo : make function for this one, and make synchronize so we can handle error coming from that.
     // await Promise.allSettled(
@@ -910,7 +915,8 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         to: item.sendTo,
         cc: ccList,
         bcc: bccList,
-        subject: getEmailTemplate.subject,
+        // for sending email in the thread we need to change subject like this
+        subject: isFollowUp ? `RE: ${getEmailTemplate.subject}` : getEmailTemplate.subject,
         ...(emailPresentingPostmark && { from: req.user.email }),
         text: getTextFromTemplate({
           lenderName: item.name,
@@ -940,7 +946,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
     });
     // );
 
-    const result = await lenderPlacementService.getOne({ _id: placementId });
+    // const result = await lenderPlacementService.getOne({ _id: placementId });
 
     if (result.isEmailSent === enumModel.EnumOfEmailStatus.SEND_DEAL) {
       const stage = enumModel.EnumStageOfLenderPlacement.SENT;
@@ -1018,6 +1024,8 @@ export const sendMessage = catchAsync(async (req, res) => {
     {
       Value: `${lenderPlacementId}`,
     },
+    // for sending email in the thread we need to pass this header
+    { Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] },
   ];
   // send email to lender in reply of send-deal mail
   const emailTemplate = await emailTemplateService.getOne({
@@ -1026,7 +1034,8 @@ export const sendMessage = catchAsync(async (req, res) => {
   });
   await emailService.sendEmail({
     to: lenderContact.email,
-    subject: emailTemplate.subject,
+    // for sending email in the thread we need to change subject like this
+    subject: `Re: ${emailTemplate.subject}`,
     ...(emailPresentingPostmark && { from: req.user.email }),
     text: body.message,
     attachments: emailAttachments.map((item) => {
