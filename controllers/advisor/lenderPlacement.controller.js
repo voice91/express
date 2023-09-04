@@ -20,6 +20,7 @@ import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import {
   asyncForEach,
+  checkTermAdded,
   encodeUrl,
   getTextFromTemplate,
   manageDealStageTimeline,
@@ -267,6 +268,12 @@ export const update = catchAsync(async (req, res) => {
     ],
   };
   const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
+
+  // check & throw error if term is not added
+  // bcs we have requirement that if term is added than only we can add term-sheet
+  if (body.termSheet) {
+    checkTermAdded(beforeLenderPlacementResult);
+  }
 
   const oldStage = beforeLenderPlacementResult.stage;
 

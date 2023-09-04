@@ -1,4 +1,5 @@
 import { Mongoose } from 'mongoose';
+import httpStatus from 'http-status';
 import {
   EnumAssetTypeOfDeal,
   EnumLenderTypeOfLendingInstitution,
@@ -6,6 +7,7 @@ import {
   EnumStatesOfDeal,
 } from 'models/enum.model';
 import _ from 'lodash';
+import ApiError from './ApiError';
 import contentType from './content-type.json';
 import { lenderPlacementStageToStageNumberMapping } from './enumStageOfLenderPlacement';
 import { dealStageToStageNumberMapping } from './enumStageForDeal';
@@ -559,4 +561,11 @@ export const manageLenderPlacementStageTimeline = (oldStage, updatedStage, timel
 export const manageDealStageTimeline = (oldStage, updatedStage, timeline) => {
   const updatedTimeline = manageTimeLine(oldStage, updatedStage, timeline, dealStageToStageNumberMapping);
   return updatedTimeline;
+};
+
+// check & throw error if term is not added
+export const checkTermAdded = (lenderPlacement) => {
+  if (_.isEmpty(lenderPlacement.terms)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Can not add term-sheet without adding terms');
+  }
 };
