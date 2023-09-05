@@ -106,6 +106,9 @@ export async function sendDeal(filterToFindContact, filterToFindPlacement, filte
       path: 'lendingInstitution',
     },
     {
+      path: 'lenderContact',
+    },
+    {
       path: 'deal',
       populate: {
         path: 'dealSummary',

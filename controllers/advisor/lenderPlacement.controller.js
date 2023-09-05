@@ -23,6 +23,7 @@ import {
   asyncForEach,
   checkTermAdded,
   encodeUrl,
+  getStateFullName,
   getTextFromTemplate,
   manageDealStageTimeline,
   manageLenderPlacementStageTimeline,
@@ -422,7 +423,8 @@ export const sendDeal = catchAsync(async (req, res) => {
     lenderInstitute,
   };
   const filterToFindPlacement = {
-    lendingInstitution: lenderInstitute,
+    // lendingInstitution: lenderInstitute,
+    _id: lenderPlacement,
   };
   const filterToFindDeal = {
     deal,
@@ -447,24 +449,26 @@ export const sendDeal = catchAsync(async (req, res) => {
   }
 
   if (lenderPlacement) {
-    const contact = lenderContact.lenderContact.map((lc) => {
-      return {
-        sendTo: lc.email,
-        name: lc.firstName,
-      };
-    });
-
+    // now we have only on contact in placement so no need to add all contact
+    const contact = [
+      {
+        sendTo: lenderContact.lenderPlacement.lenderContact.email,
+        name: lenderContact.lenderPlacement.lenderContact.firstName,
+      },
+    ];
     const staticEmailTemplateData = sendDealTemplate1Text();
     const templateData = await EmailTemplate.find({
       lenderPlacement,
       isFirstTime: true,
     });
     if (!templateData.length) {
+      // TODO : we can remove the template things when we get time
       const defaultTemplate = await EmailTemplate.create({
         from: advisorEmail,
         advisorName,
         contact,
-        subject: '547 Valley Road - $1.5m Acquisition Financing',
+        // subject: '547 Valley Road - $1.5m Acquisition Financing',
+        subject: `${lenderContact.lenderPlacement.deal.dealName}-$${lenderContact.lenderPlacement.deal.loanAmount}m Financing Request`,
         dealDocument: docIds,
         emailContent: staticEmailTemplateData,
         lenderPlacement,
@@ -475,22 +479,24 @@ export const sendDeal = catchAsync(async (req, res) => {
         totalLoanAmount,
         templateName: `defaultTemplate - ${lenderName}`,
       });
-      const blankTemplate = await EmailTemplate.create({
-        from: advisorEmail,
-        advisorName,
-        contact,
-        subject: '',
-        dealDocument: docIds,
-        emailContent: '',
-        lenderPlacement,
-        deal,
-        emailAttachments: [],
-        isFirstTime: true,
-        isEmailSent: false,
-        isBlankTemplate: true,
-        templateName: `blankTemplate - ${lenderName}`,
-      });
-      createTemplates.push(defaultTemplate, blankTemplate);
+      // create only one template for now
+      // const blankTemplate = await EmailTemplate.create({
+      //   from: advisorEmail,
+      //   advisorName,
+      //   contact,
+      //   subject: '',
+      //   dealDocument: docIds,
+      //   emailContent: '',
+      //   lenderPlacement,
+      //   deal,
+      //   emailAttachments: [],
+      //   isFirstTime: true,
+      //   isEmailSent: false,
+      //   isBlankTemplate: true,
+      //   templateName: `blankTemplate - ${lenderName}`,
+      // });
+      // createTemplates.push(defaultTemplate, blankTemplate);
+      createTemplates.push(defaultTemplate);
     }
   }
   return res.status(httpStatus.OK).send({ createTemplates });
@@ -512,10 +518,33 @@ export const getTemplateByTemplateId = catchAsync(async (req, res) => {
   const filter = {
     _id: emailTemplateId,
   };
-  const getEmailTemplate = await EmailTemplate.findOne(filter).populate('deal');
+  const options = {
+    populate: [
+      {
+        path: 'deal',
+        populate: {
+          path: 'dealSummary',
+        },
+      },
+    ],
+  };
+  const getEmailTemplate = await EmailTemplate.findOne(filter, {}, options);
   if (!getEmailTemplate) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id!');
   }
+  // need to send attachment so getting all attachment of dealSummary
+  const dealSummaryDocs = [];
+  if (getEmailTemplate.deal.dealSummary.documents && getEmailTemplate.deal.dealSummary.documents.length) {
+    dealSummaryDocs.push(...getEmailTemplate.deal.dealSummary.documents);
+  }
+  const emailAttachments = dealSummaryDocs.map((item) => {
+    return {
+      fileName: item.fileName,
+      path: item.url,
+      fileType: item.url.split('.').pop(),
+    };
+  });
+  getEmailTemplate.emailAttachments = emailAttachments;
   return res.status(httpStatus.OK).send({ getEmailTemplate });
 });
 
@@ -682,12 +711,34 @@ export const sendEmail = catchAsync(async (req, res) => {
   if (sendToIsEmpty.length === 0) {
     return res.status(httpStatus.OK).send({ results: 'No email addresses to send to.' });
   }
+  const dealDetail = emailTemplate.deal
   if (sendToAdvisor) {
     const isAdvisor = _.template(getEmailTemplate.emailContent)({
-      userFirstName: req.user.firstName,
-      totalLoanAmount: getEmailTemplate.totalLoanAmount,
-      advisorName: req.user.firstName,
-      advisorEmail: req.user.email,
+      // userFirstName: req.user.firstName,
+      // totalLoanAmount: getEmailTemplate.totalLoanAmount,
+      // advisorName: req.user.firstName,
+      // advisorEmail: req.user.email,
+      sponsorName: emailTemplate.advisorName || '[Sponsor Name]',
+      amount: (parseFloat(String(dealDetail.loanAmount)?.replaceAll(/[$,]/g, '')) || 0) / 1000000 || '[amount]',
+      loanPurpose: dealDetail.loanPurpose || '[loan purpose]',
+      dealName: dealDetail.dealName || '[deal name]',
+      unitCount: dealDetail.unitCount || '[unitCount]',
+      propertyType: dealDetail.assetType || '[propertyType]',
+      toBeBuilt: '[to-be-built]',
+      address: dealDetail.address || '[address]',
+      city: dealDetail.city || '[city]',
+      state: getStateFullName[dealDetail.state] || '[state]',
+      purchasePrice:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx purchasePrice]',
+      inPlaceNOI:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      stabilizedNOI:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      passLink:"",
+      dealSummaryLink: "",
     });
     const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
       return {
@@ -708,26 +759,59 @@ export const sendEmail = catchAsync(async (req, res) => {
     });
     return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
   }
-  const getText = (userFirstName, totalLoanAmount, advisorName, advisorEmail) => {
+  const getText = (passLink, dealSummaryLink) => {
+    // const getText = (userFirstName, totalLoanAmount, advisorName, advisorEmail) => {
     const data = _.template(getEmailTemplate.emailContent)({
-      userFirstName,
-      totalLoanAmount,
-      advisorName,
-      advisorEmail,
+      // userFirstName,
+      // totalLoanAmount,
+      // advisorName,
+      // advisorEmail,
+      sponsorName: emailTemplate.advisorName || '[Sponsor Name]',
+      amount: (parseFloat(String(dealDetail?.loanAmount)?.replaceAll(/[$,]/g, '')) || 0) / 1000000 || '[x.xx]',
+      loanPurpose: dealDetail?.loanPurpose || '[loan purpose]',
+      dealName: dealDetail?.dealName || '[deal name]',
+      unitCount: dealDetail?.unitCount || '[unitCount]',
+      propertyType: dealDetail?.assetType || '[propertyType]',
+      toBeBuilt: '[to-be-built]',
+      address: dealDetail?.address || '[address]',
+      city: dealDetail?.city || '[city]',
+      state: getStateFullName[dealDetail.state] || '[state]',
+      purchasePrice:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      inPlaceNOI:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      stabilizedNOI:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
+      passLink:`<a href=${passLink}>Pass</a>`,
     });
     return data;
   };
 
   // todo : make function for this one, and make synchronize so we can handle error coming from that.
   await Promise.allSettled(
-    getEmailTemplate.contact.map((item) => {
+    getEmailTemplate.contact.map(async (item) => {
+      const frontEndUrl = config.front.url || 'http://54.196.81.18';
+
+      // need to send passLink & dealSummaryLink based on user is register or not
+      let dealSummaryLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary`;
+      let passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true`;
+      const user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
+      if (!user) {
+        dealSummaryLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
+        passLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
+      }
       return emailService.sendEmail({
         to: item.sendTo,
         cc: ccList,
         bcc: bccList,
         subject: getEmailTemplate.subject,
         ...(emailPresentingPostmark && { from: req.user.email }),
-        text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from),
+        // text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from, passLink, dealSummaryLink),
+        text: getText(passLink, dealSummaryLink),
         // eslint-disable-next-line no-shadow
         attachments: getEmailTemplate.emailAttachments.map((item) => {
           return {
