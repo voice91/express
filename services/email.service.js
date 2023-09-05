@@ -36,7 +36,7 @@ export const transport = new postmark.ServerClient(config.postmarkAPIToken);
  * @param emailParams
  */
 export const sendEmail = async (emailParams) => {
-  const { to, cc, bcc, from, subject, text, isHtml, attachments, headers } = emailParams;
+  const { to, cc, bcc, from, subject, text, isHtml, attachments, headers, isSendDeal = false, replyTo = '' } = emailParams;
   const msg = {
     from: from || config.email.from,
     to,
@@ -76,7 +76,8 @@ export const sendEmail = async (emailParams) => {
 
   const senderName = msg.from.split('@').reverse().pop();
 
-  msg.ReplyTo = `${senderName}@${config.postmarkInboundDomain}`;
+  // we have requirement that when lender reply to email than advisor should get email so for that need to add that email to here
+  msg.ReplyTo = `${senderName}@${config.postmarkInboundDomain}, ${replyTo}`;
 
   let placement = [];
   if (msg.headers) {
@@ -87,12 +88,12 @@ export const sendEmail = async (emailParams) => {
   }
   const response = await transport.sendEmail(msg);
   const messageId = response.MessageID;
-
-  await LenderPlacement.findOneAndUpdate(
-    { _id: placement[0] },
-    { $addToSet: { postmarkMessageId: messageId } },
-    { new: true }
-  );
+  const update = { $addToSet: { postmarkMessageId: messageId } };
+  // add messageId in this new field, so we can differentiate the reply & store message or lender note accordingly
+  if (isSendDeal) {
+    update.$addToSet.sendEmailPostmarkMessageId = messageId;
+  }
+  await LenderPlacement.findOneAndUpdate({ _id: placement[0] }, update, { new: true });
 };
 
 /**

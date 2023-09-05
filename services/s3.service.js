@@ -47,7 +47,7 @@ export const validateExtensionForPutObject = async (preSignedReq, user) => {
   const ssExtensionsContentType = allowedContentType.map((ele) => ele.mimeType);
   const ssExtensions = allowedContentType.map((ele) => ele.key);
   // this is the number of unwanted file that is not used in system but uploaded in server
-  const maxTanglingFilesAllowed = 4000;
+  const maxTanglingFilesAllowed = 6000;
   let extensionOfKey = preSignedReq.key.split('.');
   extensionOfKey = extensionOfKey[extensionOfKey.length - 1];
   if (!extensionOfKey) {
@@ -245,4 +245,32 @@ export const createThumbnails = async ({ url, resolutions = [] }) => {
     fs.rmdirSync(writePath, { recursive: true });
     return data;
   });
+};
+
+/**
+ * upload the email attachment to s3 which we get from the postmark's webhook
+ * @param attachment
+ * @return {Promise<string>}
+ */
+export const uploadEmailAttachmentToS3 = async (attachment) => {
+  const decodedContent = Buffer.from(attachment.Content, 'base64');
+
+  const bucketName = config.aws.bucket;
+
+  const key = `users/${attachment.userId}/${mongoose.Types.ObjectId()}/${attachment.Name}`;
+
+  const { ContentType } = attachment;
+
+  // Set up the parameters for the S3 upload
+  const params = {
+    Bucket: bucketName,
+    Key: key,
+    Body: decodedContent,
+    ContentType,
+    ACL: 'public-read',
+  };
+
+  await s3.putObject(params).promise();
+
+  return `https://${bucketName}.s3.amazonaws.com/${encodeURI(params.Key)}`;
 };

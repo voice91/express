@@ -36,7 +36,8 @@ if (config.env !== 'test') {
 // set security HTTP headers
 app.use(helmet());
 // parse json request body
-app.use(express.json());
+// we need to set limit to 50 mb bcs in webhook when attachment is attached than it will give error like request entity too large
+app.use(express.json({ limit: '50mb' }));
 app.use(fileUpload());
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));

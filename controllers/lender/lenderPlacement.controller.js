@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach, encodeUrl, manageLenderPlacementStageTimeline } from 'utils/common';
+import { asyncForEach, encodeUrl, checkTermAdded, manageLenderPlacementStageTimeline } from 'utils/common';
 import { pick } from '../../utils/pick';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 import enumModel, { EnumOfActivityType, EnumStageOfLenderPlacement } from '../../models/enum.model';
@@ -182,6 +182,12 @@ export const update = catchAsync(async (req, res) => {
   const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
 
   const oldStage = beforeLenderPlacementResult.stage;
+
+  // check & throw error if term is not added
+  // bcs we have requirement that if term is added than only we can add term-sheet
+  if (body.termSheet) {
+    checkTermAdded(beforeLenderPlacementResult);
+  }
 
   if (body.stage) {
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);

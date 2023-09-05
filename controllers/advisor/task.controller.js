@@ -11,6 +11,7 @@ import TempS3 from 'models/tempS3.model';
 import { asyncForEach, encodeUrl } from 'utils/common';
 // eslint-disable-next-line no-unused-vars
 import { pick } from '../../utils/pick';
+import ApiError from '../../utils/ApiError';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -243,18 +244,21 @@ export const remove = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: task });
 });
 
-// removing single document from task documents array
+// removing single document from task-reply's task document
 export const removeTaskDocument = catchAsync(async (req, res) => {
   const { taskDocumentId } = req.params;
   const filter = {
-    'taskDocuments._id': taskDocumentId,
+    'taskAnswer.taskDocuments._id': taskDocumentId,
   };
   const updateDocument = {
-    $pull: { taskDocuments: { _id: taskDocumentId } },
+    $pull: { 'taskAnswer.$[].taskDocuments': { _id: taskDocumentId } },
   };
   const options = {
     new: true,
   };
-  const dealDocument = await taskService.updateTask(filter, updateDocument, options);
-  return res.status(httpStatus.OK).send({ results: dealDocument });
+  const updatedTask = await taskService.updateTask(filter, updateDocument, options);
+  if (!updatedTask) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Task document is not available');
+  }
+  return res.status(httpStatus.OK).send({ results: updatedTask });
 });

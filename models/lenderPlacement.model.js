@@ -267,6 +267,10 @@ const LenderPlacementSchema = new mongoose.Schema(
     postmarkMessageId: {
       type: [String],
     },
+    // when we send email of send deal that time we store that id here & also storing in the above field so old flow will not break & not need to change many things
+    sendEmailPostmarkMessageId: {
+      type: [String],
+    },
     isFavourite: {
       type: Boolean,
       default: false,

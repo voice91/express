@@ -13,6 +13,7 @@ import {
   dealService,
   userService,
   invitationService,
+  taskService,
 } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
@@ -20,7 +21,9 @@ import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import {
   asyncForEach,
+  checkTermAdded,
   encodeUrl,
+  getStateFullName,
   getTextFromTemplate,
   manageDealStageTimeline,
   manageLenderPlacementStageTimeline,
@@ -268,12 +271,29 @@ export const update = catchAsync(async (req, res) => {
   };
   const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
 
+  // check & throw error if term is not added
+  // bcs we have requirement that if term is added than only we can add term-sheet
+  if (body.termSheet) {
+    checkTermAdded(beforeLenderPlacementResult);
+  }
+
   const oldStage = beforeLenderPlacementResult.stage;
 
   if (body.stage) {
     // we change the isEmailSent to same as what we have when we add lender bcs if we don't change than it will not chane stage of deal & timeline when we send the deal after changing stage
     if (body.stage === enumModel.EnumStageOfDeal.NEW) {
       body.isEmailSent = enumModel.EnumOfEmailStatus.SEND_DEAL;
+      // When we change the status from sent to new then all the messages , contact, task, postmarkMessageId and sendEmailPostmarkMessageId should get removed
+      body.messages = [];
+      body.$unset = { lenderContact: '' };
+      body.postmarkMessageId = [];
+      body.sendEmailPostmarkMessageId = [];
+      // remove task related to particular lenderPlacement
+      const filterForTask = {
+        askingPartyInstitute: beforeLenderPlacementResult.lendingInstitution,
+        deal: beforeLenderPlacementResult.deal,
+      };
+      await taskService.removeManyTask(filterForTask);
     }
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
     body.nextStep = body.nextStep ? body.nextStep : enumModel.EnumNextStepOfLenderPlacement[body.stage];
@@ -403,7 +423,8 @@ export const sendDeal = catchAsync(async (req, res) => {
     lenderInstitute,
   };
   const filterToFindPlacement = {
-    lendingInstitution: lenderInstitute,
+    // lendingInstitution: lenderInstitute,
+    _id: lenderPlacement,
   };
   const filterToFindDeal = {
     deal,
@@ -428,24 +449,32 @@ export const sendDeal = catchAsync(async (req, res) => {
   }
 
   if (lenderPlacement) {
-    const contact = lenderContact.lenderContact.map((lc) => {
-      return {
-        sendTo: lc.email,
-        name: lc.firstName,
-      };
-    });
-
+    // now we have only on contact in placement so no need to add all contact
+    const contact = [
+      {
+        sendTo: lenderContact.lenderPlacement.lenderContact.email,
+        name: lenderContact.lenderPlacement.lenderContact.firstName,
+      },
+    ];
     const staticEmailTemplateData = sendDealTemplate1Text();
     const templateData = await EmailTemplate.find({
       lenderPlacement,
       isFirstTime: true,
     });
+
+    let totalLoanAmountForSubject = lenderContact.lenderPlacement.deal.loanAmount.replace(/[$,]/g, '') * 1;
+    // totalLoanAmount is converted into millions so if 1000000 then it should be 1
+    totalLoanAmountForSubject /= 1000000;
+    totalLoanAmountForSubject.toFixed(2);
+
     if (!templateData.length) {
+      // TODO : we can remove the template things when we get time
       const defaultTemplate = await EmailTemplate.create({
         from: advisorEmail,
         advisorName,
         contact,
-        subject: '547 Valley Road - $1.5m Acquisition Financing',
+        // subject: '547 Valley Road - $1.5m Acquisition Financing',
+        subject: `${lenderContact.lenderPlacement.deal.dealName}-$${totalLoanAmountForSubject}m Financing Request`,
         dealDocument: docIds,
         emailContent: staticEmailTemplateData,
         lenderPlacement,
@@ -456,22 +485,24 @@ export const sendDeal = catchAsync(async (req, res) => {
         totalLoanAmount,
         templateName: `defaultTemplate - ${lenderName}`,
       });
-      const blankTemplate = await EmailTemplate.create({
-        from: advisorEmail,
-        advisorName,
-        contact,
-        subject: '',
-        dealDocument: docIds,
-        emailContent: '',
-        lenderPlacement,
-        deal,
-        emailAttachments: [],
-        isFirstTime: true,
-        isEmailSent: false,
-        isBlankTemplate: true,
-        templateName: `blankTemplate - ${lenderName}`,
-      });
-      createTemplates.push(defaultTemplate, blankTemplate);
+      // create only one template for now
+      // const blankTemplate = await EmailTemplate.create({
+      //   from: advisorEmail,
+      //   advisorName,
+      //   contact,
+      //   subject: '',
+      //   dealDocument: docIds,
+      //   emailContent: '',
+      //   lenderPlacement,
+      //   deal,
+      //   emailAttachments: [],
+      //   isFirstTime: true,
+      //   isEmailSent: false,
+      //   isBlankTemplate: true,
+      //   templateName: `blankTemplate - ${lenderName}`,
+      // });
+      // createTemplates.push(defaultTemplate, blankTemplate);
+      createTemplates.push(defaultTemplate);
     }
   }
   return res.status(httpStatus.OK).send({ createTemplates });
@@ -493,10 +524,33 @@ export const getTemplateByTemplateId = catchAsync(async (req, res) => {
   const filter = {
     _id: emailTemplateId,
   };
-  const getEmailTemplate = await EmailTemplate.findOne(filter).populate('deal');
+  const options = {
+    populate: [
+      {
+        path: 'deal',
+        populate: {
+          path: 'dealSummary',
+        },
+      },
+    ],
+  };
+  const getEmailTemplate = await EmailTemplate.findOne(filter, {}, options);
   if (!getEmailTemplate) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'no EmailTemplate found with this id!');
   }
+  // need to send attachment so getting all attachment of dealSummary
+  const dealSummaryDocs = [];
+  if (getEmailTemplate.deal.dealSummary.documents && getEmailTemplate.deal.dealSummary.documents.length) {
+    dealSummaryDocs.push(...getEmailTemplate.deal.dealSummary.documents);
+  }
+  const emailAttachments = dealSummaryDocs.map((item) => {
+    return {
+      fileName: item.fileName,
+      path: item.url,
+      fileType: item.url.split('.').pop(),
+    };
+  });
+  getEmailTemplate.emailAttachments = emailAttachments;
   return res.status(httpStatus.OK).send({ getEmailTemplate });
 });
 
@@ -663,12 +717,34 @@ export const sendEmail = catchAsync(async (req, res) => {
   if (sendToIsEmpty.length === 0) {
     return res.status(httpStatus.OK).send({ results: 'No email addresses to send to.' });
   }
+  const dealDetail = emailTemplate.deal
   if (sendToAdvisor) {
     const isAdvisor = _.template(getEmailTemplate.emailContent)({
-      userFirstName: req.user.firstName,
-      totalLoanAmount: getEmailTemplate.totalLoanAmount,
-      advisorName: req.user.firstName,
-      advisorEmail: req.user.email,
+      // userFirstName: req.user.firstName,
+      // totalLoanAmount: getEmailTemplate.totalLoanAmount,
+      // advisorName: req.user.firstName,
+      // advisorEmail: req.user.email,
+      sponsorName: emailTemplate.advisorName || '[Sponsor Name]',
+      amount: (parseFloat(String(dealDetail.loanAmount)?.replaceAll(/[$,]/g, '')) || 0) / 1000000 || '[amount]',
+      loanPurpose: dealDetail.loanPurpose || '[loan purpose]',
+      dealName: dealDetail.dealName || '[deal name]',
+      unitCount: dealDetail.unitCount || '[unitCount]',
+      propertyType: dealDetail.assetType || '[propertyType]',
+      toBeBuilt: '[to-be-built]',
+      address: dealDetail.address || '[address]',
+      city: dealDetail.city || '[city]',
+      state: getStateFullName[dealDetail.state] || '[state]',
+      purchasePrice:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx purchasePrice]',
+      inPlaceNOI:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      stabilizedNOI:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      passLink:"",
+      dealSummaryLink: "",
     });
     const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
       return {
@@ -689,26 +765,59 @@ export const sendEmail = catchAsync(async (req, res) => {
     });
     return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
   }
-  const getText = (userFirstName, totalLoanAmount, advisorName, advisorEmail) => {
+  const getText = (passLink, dealSummaryLink) => {
+    // const getText = (userFirstName, totalLoanAmount, advisorName, advisorEmail) => {
     const data = _.template(getEmailTemplate.emailContent)({
-      userFirstName,
-      totalLoanAmount,
-      advisorName,
-      advisorEmail,
+      // userFirstName,
+      // totalLoanAmount,
+      // advisorName,
+      // advisorEmail,
+      sponsorName: emailTemplate.advisorName || '[Sponsor Name]',
+      amount: (parseFloat(String(dealDetail?.loanAmount)?.replaceAll(/[$,]/g, '')) || 0) / 1000000 || '[x.xx]',
+      loanPurpose: dealDetail?.loanPurpose || '[loan purpose]',
+      dealName: dealDetail?.dealName || '[deal name]',
+      unitCount: dealDetail?.unitCount || '[unitCount]',
+      propertyType: dealDetail?.assetType || '[propertyType]',
+      toBeBuilt: '[to-be-built]',
+      address: dealDetail?.address || '[address]',
+      city: dealDetail?.city || '[city]',
+      state: getStateFullName[dealDetail.state] || '[state]',
+      purchasePrice:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      inPlaceNOI:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      stabilizedNOI:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
+      passLink:`<a href=${passLink}>Pass</a>`,
     });
     return data;
   };
 
   // todo : make function for this one, and make synchronize so we can handle error coming from that.
   await Promise.allSettled(
-    getEmailTemplate.contact.map((item) => {
+    getEmailTemplate.contact.map(async (item, index) => {
+      const frontEndUrl = config.front.url || 'http://54.196.81.18';
+
+      // need to send passLink & dealSummaryLink based on user is register or not
+      let dealSummaryLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary`;
+      let passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true`;
+      const user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
+      if (!user) {
+        dealSummaryLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
+        passLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
+      }
       return emailService.sendEmail({
         to: item.sendTo,
-        cc: ccList,
-        bcc: bccList,
+        // bcs we want that email to cc & bcc will go to only once
+        ...(index === 0 && {cc: ccList, bcc: bccList}),
         subject: getEmailTemplate.subject,
         ...(emailPresentingPostmark && { from: req.user.email }),
-        text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from),
+        // text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from, passLink, dealSummaryLink),
+        text: getText(passLink, dealSummaryLink),
         // eslint-disable-next-line no-shadow
         attachments: getEmailTemplate.emailAttachments.map((item) => {
           return {
@@ -719,6 +828,7 @@ export const sendEmail = catchAsync(async (req, res) => {
         }),
         isHtml: true,
         headers,
+        isSendDeal: true,
       });
     })
   );
@@ -733,6 +843,8 @@ export const sendEmail = catchAsync(async (req, res) => {
       isEmailSentFirstTime: true,
       stage,
       stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+      nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
+      timeLine: manageLenderPlacementStageTimeline(result.stage, stage, result.timeLine),
     });
   } else {
     await LenderPlacement.findByIdAndUpdate(placementId, {
@@ -889,6 +1001,11 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         Value: `${placementId}`,
       },
     ];
+    const result = await lenderPlacementService.getOne({ _id: placementId });
+    // for sending email in the thread we need to pass this header
+    if (isFollowUp) {
+      headers.push({ Name: 'In-Reply-To', Value: result.postmarkMessageId[0] });
+    }
 
     // todo : make function for this one, and make synchronize so we can handle error coming from that.
     // await Promise.allSettled(
@@ -910,7 +1027,8 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         to: item.sendTo,
         cc: ccList,
         bcc: bccList,
-        subject: getEmailTemplate.subject,
+        // for sending email in the thread we need to change subject like this
+        subject: isFollowUp ? `RE: ${getEmailTemplate.subject}` : getEmailTemplate.subject,
         ...(emailPresentingPostmark && { from: req.user.email }),
         text: getTextFromTemplate({
           lenderName: item.name,
@@ -934,11 +1052,13 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         }),
         isHtml: true,
         headers,
+        isSendDeal: true,
+        replyTo: req.user.email,
       });
     });
     // );
 
-    const result = await lenderPlacementService.getOne({ _id: placementId });
+    // const result = await lenderPlacementService.getOne({ _id: placementId });
 
     if (result.isEmailSent === enumModel.EnumOfEmailStatus.SEND_DEAL) {
       const stage = enumModel.EnumStageOfLenderPlacement.SENT;
@@ -1016,15 +1136,20 @@ export const sendMessage = catchAsync(async (req, res) => {
     {
       Value: `${lenderPlacementId}`,
     },
+    // for sending email in the thread we need to pass this header
+    { Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] },
   ];
+  const lenderName = lenderContact.lenderInstitute.lenderNameVisible;
   // send email to lender in reply of send-deal mail
   const emailTemplate = await emailTemplateService.getOne({
     lenderPlacement: lenderPlacementId,
-    templateName: `advisorSendDealTemplate - ${lenderContact.lenderInstitute.lenderNameVisible}`,
+    templateName: `defaultTemplate - ${lenderName}`
+    // templateName: `advisorSendDealTemplate - ${lenderContact.lenderInstitute.lenderNameVisible}`,
   });
   await emailService.sendEmail({
     to: lenderContact.email,
-    subject: emailTemplate.subject,
+    // for sending email in the thread we need to change subject like this
+    subject: `Re: ${emailTemplate.subject}`,
     ...(emailPresentingPostmark && { from: req.user.email }),
     text: body.message,
     attachments: emailAttachments.map((item) => {
@@ -1037,6 +1162,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     isHtml: false,
     // Headers: [{ Name: 'In-Reply-To', Value: 'originalMessageId@example.com' }],
     headers,
+    replyTo: req.user.email,
   });
   await lenderPlacementService.updateLenderPlacement(
     { _id: lenderPlacementId },
