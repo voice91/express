@@ -522,16 +522,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
               program.propertyType = [CsvLenderPropertyTypeMapping[property.value]];
             }
           }
-          const propertyTagColNo = currentCell.col + 10
+          const propertyTagColNo = currentCell.col + 10;
           const propertyTag = lenderWorksheet.getCell(currentCell.row + 2, propertyTagColNo);
           if (typeof propertyTag.value !== 'number') {
             if (propertyTag.value) {
               program.propTypeArrTag = propertyTag.value.split(', ').map((item) => {
                 if (item < 1 || item > 5) {
                   throw new Error(
-                    `propertyTypeArrTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${
-                      propertyTagColNo
-                    }`
+                    `propertyTypeArrTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${propertyTagColNo}`
                   );
                 }
                 return parseInt(item, 10);
@@ -576,16 +574,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           }
 
           const loanTypeTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 14);
-          const loanTypeTagColNo = currentCell.col + 14
+          const loanTypeTagColNo = currentCell.col + 14;
 
           if (typeof loanTypeTag.value !== 'number') {
             if (loanTypeTag.value) {
               program.loanTypeArrTag = loanTypeTag.value.split(',').map((item) => {
                 if (item < 1 || item > 5) {
                   throw new Error(
-                    `loanTypeTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${
-                      loanTypeTagColNo
-                    }`
+                    `loanTypeTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${loanTypeTagColNo}`
                   );
                 }
                 return parseInt(item, 10);
