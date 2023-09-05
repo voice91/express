@@ -799,7 +799,7 @@ export const sendEmail = catchAsync(async (req, res) => {
 
   // todo : make function for this one, and make synchronize so we can handle error coming from that.
   await Promise.allSettled(
-    getEmailTemplate.contact.map(async (item) => {
+    getEmailTemplate.contact.map(async (item, index) => {
       const frontEndUrl = config.front.url || 'http://54.196.81.18';
 
       // need to send passLink & dealSummaryLink based on user is register or not
@@ -812,8 +812,8 @@ export const sendEmail = catchAsync(async (req, res) => {
       }
       return emailService.sendEmail({
         to: item.sendTo,
-        cc: ccList,
-        bcc: bccList,
+        // bcs we want that email to cc & bcc will go to only once
+        ...(index === 0 && {cc: ccList, bcc: bccList}),
         subject: getEmailTemplate.subject,
         ...(emailPresentingPostmark && { from: req.user.email }),
         // text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from, passLink, dealSummaryLink),
@@ -1139,10 +1139,12 @@ export const sendMessage = catchAsync(async (req, res) => {
     // for sending email in the thread we need to pass this header
     { Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] },
   ];
+  const lenderName = lenderContact.lenderInstitute.lenderNameVisible;
   // send email to lender in reply of send-deal mail
   const emailTemplate = await emailTemplateService.getOne({
     lenderPlacement: lenderPlacementId,
-    templateName: `advisorSendDealTemplate - ${lenderContact.lenderInstitute.lenderNameVisible}`,
+    templateName: `defaultTemplate - ${lenderName}`
+    // templateName: `advisorSendDealTemplate - ${lenderContact.lenderInstitute.lenderNameVisible}`,
   });
   await emailService.sendEmail({
     to: lenderContact.email,
