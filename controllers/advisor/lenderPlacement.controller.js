@@ -461,6 +461,12 @@ export const sendDeal = catchAsync(async (req, res) => {
       lenderPlacement,
       isFirstTime: true,
     });
+
+    let totalLoanAmountForSubject = lenderContact.lenderPlacement.deal.loanAmount.replace(/[$,]/g, '') * 1;
+    // totalLoanAmount is converted into millions so if 1000000 then it should be 1
+    totalLoanAmountForSubject /= 1000000;
+    totalLoanAmountForSubject.toFixed(2);
+
     if (!templateData.length) {
       // TODO : we can remove the template things when we get time
       const defaultTemplate = await EmailTemplate.create({
@@ -468,7 +474,7 @@ export const sendDeal = catchAsync(async (req, res) => {
         advisorName,
         contact,
         // subject: '547 Valley Road - $1.5m Acquisition Financing',
-        subject: `${lenderContact.lenderPlacement.deal.dealName}-$${lenderContact.lenderPlacement.deal.loanAmount}m Financing Request`,
+        subject: `${lenderContact.lenderPlacement.deal.dealName}-$${totalLoanAmountForSubject}m Financing Request`,
         dealDocument: docIds,
         emailContent: staticEmailTemplateData,
         lenderPlacement,
@@ -822,6 +828,7 @@ export const sendEmail = catchAsync(async (req, res) => {
         }),
         isHtml: true,
         headers,
+        isSendDeal: true,
       });
     })
   );
@@ -836,6 +843,8 @@ export const sendEmail = catchAsync(async (req, res) => {
       isEmailSentFirstTime: true,
       stage,
       stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+      nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
+      timeLine: manageLenderPlacementStageTimeline(result.stage, stage, result.timeLine),
     });
   } else {
     await LenderPlacement.findByIdAndUpdate(placementId, {
