@@ -13,6 +13,7 @@ import {
   dealService,
   userService,
   invitationService,
+  taskService,
 } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
@@ -281,6 +282,17 @@ export const update = catchAsync(async (req, res) => {
     // we change the isEmailSent to same as what we have when we add lender bcs if we don't change than it will not chane stage of deal & timeline when we send the deal after changing stage
     if (body.stage === enumModel.EnumStageOfDeal.NEW) {
       body.isEmailSent = enumModel.EnumOfEmailStatus.SEND_DEAL;
+      // When we change the status from sent to new then all the messages , contact, task, postmarkMessageId and sendEmailPostmarkMessageId should get removed
+      body.messages = [];
+      body.$unset = { lenderContact: '' };
+      body.postmarkMessageId = [];
+      body.sendEmailPostmarkMessageId = [];
+      // remove task related to particular lenderPlacement
+      const filterForTask = {
+        askingPartyInstitute: beforeLenderPlacementResult.lendingInstitution,
+        deal: beforeLenderPlacementResult.deal,
+      };
+      await taskService.removeManyTask(filterForTask);
     }
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
     body.nextStep = body.nextStep ? body.nextStep : enumModel.EnumNextStepOfLenderPlacement[body.stage];
