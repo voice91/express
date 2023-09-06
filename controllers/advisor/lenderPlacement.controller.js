@@ -264,6 +264,12 @@ export const update = catchAsync(async (req, res) => {
     populate: [
       { path: 'lendingInstitution' },
       { path: 'lenderContact' },
+      // TODO : check & add condition here like in the getlist API & also check for outstanding task bcs it will be 0 when we change status to new & after changing status FE is calling getList API so they are getting updated data
+      {
+        path: 'internalNotes',
+        populate: [{ path: 'user' }],
+        match: { notesType: enumModel.EnumOfNotesTypeOfLenderNotes.INTERNAL_NOTE },
+      },
       { path: 'notes' },
       { path: 'lenderAllContacts' },
       { path: 'deal' },
