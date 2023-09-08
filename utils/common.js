@@ -585,3 +585,16 @@ export const getStateFullName = (stateAbbreviation) => {
   // If no match is found, return an appropriate null.
   return null;
 };
+
+/**
+ * this will return the subject for email
+ * @param deal
+ * @return {`${string}-$${number}m Financing Request`}
+ */
+export const getEmailSubjectForDeal = (deal) => {
+  let totalLoanAmountForSubject = deal.loanAmount.replace(/[$,]/g, '') * 1;
+  // totalLoanAmount is converted into millions so if 1000000 then it should be 1
+  totalLoanAmountForSubject /= 1000000;
+  totalLoanAmountForSubject.toFixed(2);
+  return `${deal.dealName}-$${totalLoanAmountForSubject}m Financing Request`;
+};

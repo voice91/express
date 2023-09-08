@@ -24,6 +24,7 @@ import {
   asyncForEach,
   checkTermAdded,
   encodeUrl,
+  getEmailSubjectForDeal,
   getStateFullName,
   getTextFromTemplate,
   manageDealStageTimeline,
@@ -89,6 +90,259 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
     }
   });
 };
+
+/**
+ * we send the necessary data in this API so FE can show the template to user
+ * @type {(function(*, *, *): void)|*}
+ */
+export const getEmailDataV3 = catchAsync(async (req, res) => {
+  const { lenderPlacementId } = req.query;
+  const filter = {
+    _id: {$in:lenderPlacementId},
+  };
+  const options = {
+    populate: [
+      { path: 'lenderContact' },
+      { path: 'deal',
+        populate: {
+          path: 'dealSummary',
+        },
+      },
+    ],
+  };
+  const lenderPlacements = await lenderPlacementService.getLenderPlacementList(filter, options);
+  if(lenderPlacementId.length !== lenderPlacements.length) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Some lender placement is not available');
+  }
+  const hasSameDealId = lenderPlacements.every(
+      (placement) => placement.deal.id === lenderPlacements[0].deal.id && placement.lenderContact
+  );
+
+  if(!hasSameDealId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Contact should be selected to send the deal & deal should be same for all the placements');
+  }
+  const dealSummaryDocs = [];
+  if (lenderPlacements[0].deal.dealSummary.documents && lenderPlacements[0].deal.dealSummary.documents.length) {
+    dealSummaryDocs.push(...lenderPlacements[0].deal.dealSummary.documents);
+  }
+  const emailAttachments = dealSummaryDocs.map((item) => {
+    return {
+      fileName: item.fileName,
+      path: item.url,
+      fileType: item.url.split('.').pop(),
+    };
+  });
+
+  const subject = getEmailSubjectForDeal(lenderPlacements[0].deal)
+  const response = {
+    subject,
+    emailAttachments,
+    deal: lenderPlacements[0].deal,
+    sendTo: lenderPlacements.map((lenderPlacement)=> {
+      return {
+        name: lenderPlacement.lenderContact.firstName,
+        email: lenderPlacement.lenderContact.email
+      }}),
+    advisorName: req.user.firstName
+  }
+  return res.status(httpStatus.OK).send({ results: response });
+});
+
+/**
+ * we are sending email for send deal to lender with email template
+ * @type {(function(*, *, *): void)|*}
+ */
+export const sendEmailV3 = catchAsync(async (req, res) => {
+  const { sendToAdvisor } = req.body;
+
+  const { emailPresentingPostmark } = req.user;
+
+  req.body.emailContent = he.decode(req.body.emailContent);
+
+  _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+  const dealDetail = await dealService.getOne({_id: req.body.deal})
+  const dealId = dealDetail._id;
+  if (sendToAdvisor) {
+    let firstName = 'lenderName'
+    // if we send to multiple placement than send generic lender name else selected lender name
+    if(req.body.lenderPlacementIds.length === 1){
+      const options = {
+        populate: [
+          {
+            path: 'lenderContact'
+          },
+        ]
+      }
+      const lenderPlacement = await lenderPlacementService.getOne({ _id: req.body.lenderPlacementIds[0] }, options);
+      firstName = lenderPlacement.lenderContact.firstName
+    }
+    const isAdvisor = _.template(req.body.emailContent)({
+      lenderFirstName: _.startCase(firstName),
+      advisorName:_.startCase(req.user.firstName),
+      sponsorName: req.user.firstName || '[Sponsor Name]',
+      amount: (parseFloat(String(dealDetail.loanAmount)?.replaceAll(/[$,]/g, '')) || 0) / 1000000 || '[amount]',
+      loanPurpose: dealDetail.loanPurpose || '[loan purpose]',
+      dealName: dealDetail.dealName || '[deal name]',
+      unitCount: dealDetail.unitCount || '[unitCount]',
+      propertyType: dealDetail.assetType || '[propertyType]',
+      toBeBuilt: '[to-be-built]',
+      address: dealDetail.address || '[address]',
+      city: dealDetail.city || '[city]',
+      state: getStateFullName[dealDetail.state] || '[state]',
+      purchasePrice:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx purchasePrice]',
+      inPlaceNOI:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      stabilizedNOI:
+          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      dealSummaryLink: `<a href='#'>Deal Summary</a>`,
+      passLink:`<a href='#'>Pass</a>`,
+    });
+    const emailAttachments = req.body.emailAttachments.map((item) => {
+      return {
+        fileName: item.fileName,
+        path: item.url ? item.url : item.path,
+        fileType: item.fileType,
+      };
+    });
+
+    await emailService.sendEmail({
+      to: req.user.email,
+      subject: `TEST - ${req.body.subject}`,
+      ...(emailPresentingPostmark && { from: req.user.email }),
+      text: isAdvisor,
+      attachments: emailAttachments,
+      isHtml: true,
+      //TODO: check that we need to send placementIds or not bcs now we get array in placementId
+      // headers,
+    });
+    return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
+  }
+  const getText = (passLink, dealSummaryLink, firstName) => {
+    const data = _.template(req.body.emailContent)({
+      lenderFirstName: _.startCase(firstName),
+      advisorName:_.startCase(req.user.firstName),
+      sponsorName: _.startCase(req.user.firstName) || '[Sponsor Name]',
+      amount: (parseFloat(String(dealDetail?.loanAmount)?.replaceAll(/[$,]/g, '')) || 0) / 1000000 || '[x.xx]',
+      loanPurpose: dealDetail?.loanPurpose || '[loan purpose]',
+      dealName: dealDetail?.dealName || '[deal name]',
+      unitCount: dealDetail?.unitCount || '[unitCount]',
+      propertyType: dealDetail?.assetType || '[propertyType]',
+      toBeBuilt: '[to-be-built]',
+      address: dealDetail?.address || '[address]',
+      city: dealDetail?.city || '[city]',
+      state: getStateFullName[dealDetail.state] || '[state]',
+      purchasePrice:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      inPlaceNOI:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      stabilizedNOI:
+          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
+          1000000 || '[x.xx]',
+      dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
+      passLink:`<a href=${passLink}>Pass</a>`,
+    });
+    return data;
+  };
+
+  // we send email to all selected placement & if we have one than also we are taking in the array
+  await Promise.all(
+      req.body.lenderPlacementIds.map(async (lenderPlacementId) => {
+        const options = {
+          populate: [
+          { path: 'lenderContact' },
+          ]
+      }
+        const lenderPlacement = await lenderPlacementService.getOne({ _id: lenderPlacementId }, options);
+        const frontEndUrl = config.front.url || 'http://54.196.81.18';
+
+        let user = await userService.getOne({ email: lenderPlacement.lenderContact.email, role: enumModel.EnumRoleOfUser.LENDER });
+        if (!user) {
+          const isLenderContact = await lenderContactService.getOne({ email: lenderPlacement.lenderContact.email }, { populate: 'lenderInstitute' });
+          // create user if user has not register
+          const userBody = {
+            firstName: isLenderContact.firstName,
+            companyName: isLenderContact.lenderInstitute.lenderNameVisible,
+            lastName: isLenderContact.lastName,
+            role: enumModel.EnumRoleOfUser.LENDER,
+            enforcePassword: true,
+            email: lenderPlacement.lenderContact.email,
+            emailVerified: true,
+            password: Math.random().toString(36).slice(-10)
+          }
+          user = await userService.createUser(userBody);
+        }
+        const tokens = await tokenService.generateAuthTokens(user);
+        const dealSummaryLink =`${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&token=${tokens.access.token}`
+        const passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true&token=${tokens.access.token}`;
+        const headers = [
+          {
+            Value: `${lenderPlacementId}`,
+          },
+        ];
+        await emailService.sendEmail({
+          to: lenderPlacement.lenderContact.email,
+          subject: req.body.subject,
+          // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
+          from: req.user.sendEmailFrom,
+          text: getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
+          attachments: req.body.emailAttachments.map((item) => {
+            return {
+              fileName: item.fileName,
+              path: item.url ? item.url : item.path,
+              fileType: item.fileType,
+            };
+          }),
+          isHtml: true,
+          headers,
+          isSendDeal: true,
+        });
+        if (lenderPlacement.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
+          const stage = EnumStageOfLenderPlacement.SENT;
+          await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
+            followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
+            isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
+            isEmailSentFirstTime: true,
+            stage,
+            stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+            nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
+            timeLine: manageLenderPlacementStageTimeline(lenderPlacement.stage, stage, lenderPlacement.timeLine),
+          });
+        } else {
+          await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
+            followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
+            isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
+            isEmailSentFirstTime: false,
+          });
+        }
+      })
+  );
+
+  const stage = EnumStageOfDeal.OUT_IN_MARKET;
+  // TODO : need to change here so deal timeLine will update properly
+  const deal = await Deal.findByIdAndUpdate(dealId, {
+    stage,
+    orderOfStage: stageOfDealWithNumber(stage),
+    $push: { timeLine: { stage, updatedAt: new Date() } },
+    details: await detailsInDeal(stage, dealId),
+  }, {new: true});
+  const createActivityLogBody = {
+    createdBy: req.user._id,
+    updatedBy: req.user._id,
+    update: `${deal.dealName} was sent out to lenders`,
+    deal: dealId,
+    type: EnumOfActivityType.ACTIVITY,
+    user: config.activitySystemUser || 'system',
+  };
+  await activityLogService.createActivityLog(createActivityLogBody);
+  return res.status(httpStatus.OK).send({ results: 'Email sent....' });
+});
+
 export const get = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const filter = {
@@ -1144,7 +1398,12 @@ export const sendMessage = catchAsync(async (req, res) => {
   const filter = {
     _id: lenderPlacementId,
   };
-  const lenderPlacement = await lenderPlacementService.getOne(filter);
+  const options = {
+    populate: {
+      path: 'deal'
+    }
+  }
+  const lenderPlacement = await lenderPlacementService.getOne(filter, options);
   const lenderContact = await lenderContactService.getOne(
     {
       lenderInstitute: lenderPlacement.lendingInstitution,
@@ -1159,17 +1418,14 @@ export const sendMessage = catchAsync(async (req, res) => {
     // for sending email in the thread we need to pass this header
     { Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] },
   ];
-  const lenderName = lenderContact.lenderInstitute.lenderNameVisible;
-  // send email to lender in reply of send-deal mail
-  const emailTemplate = await emailTemplateService.getOne({
-    lenderPlacement: lenderPlacementId,
-    templateName: `defaultTemplate - ${lenderName}`
-    // templateName: `advisorSendDealTemplate - ${lenderContact.lenderInstitute.lenderNameVisible}`,
-  });
+
+  // now we are not storing email template in the code
+  const subject = getEmailSubjectForDeal(lenderPlacement.deal)
+
   await emailService.sendEmail({
     to: lenderContact.email,
     // for sending email in the thread we need to change subject like this
-    subject: `Re: ${emailTemplate.subject}`,
+    subject: `Re: ${subject}`,
     // ...(emailPresentingPostmark && { from: req.user.email }),
     // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
     from: req.user.sendEmailFrom,

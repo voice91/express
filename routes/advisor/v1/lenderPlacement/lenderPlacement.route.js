@@ -67,6 +67,16 @@ router
    * */
   .post(auth('advisor'), validate(lenderPlacementValidation.sendDeal), lenderPlacementController.sendDeal);
 
+/**
+ * send deal & multiple send deal flow
+ */
+router
+  .route('/sendDeal/v3')
+  // send necessary data to FE
+  .get(auth('advisor'), validate(lenderPlacementValidation.getEmailDataV3), lenderPlacementController.getEmailDataV3)
+  // send deal email to lender & also send to multiple lender
+  .post(auth('advisor'), validate(lenderPlacementValidation.sendEmailV3), lenderPlacementController.sendEmailV3);
+
 router
   .route('/message/:lenderPlacementId')
   /**

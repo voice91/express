@@ -214,6 +214,29 @@ export const sendEmail = {
   }),
 };
 
+/**
+ * take lenderPlacementId in query bcs we have to send multiple deal & we can not take array in the path params
+ * @type {{query: ObjectSchema}}
+ */
+export const getEmailDataV3 = {
+  query: Joi.object().keys({
+    // this will make sure we get minimum one id in this
+    lenderPlacementId: Joi.array().items(Joi.objectId()).min(1).single().required(),
+  }),
+};
+
+export const sendEmailV3 = {
+  body: Joi.object().keys({
+    subject: Joi.string().required(),
+    // send to all lenders which we get in this
+    lenderPlacementIds: Joi.array().items(Joi.objectId()).min(1).required(),
+    emailContent: Joi.string().required(),
+    deal: Joi.objectId().required(),
+    emailAttachments: Joi.array().items(Joi.object()),
+    sendToAdvisor: Joi.boolean(),
+  }),
+};
+
 export const getEmailTemplatesByLanderPlacementId = {
   params: Joi.object().keys({
     lenderPlacement: Joi.objectId().required(),
