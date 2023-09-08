@@ -250,11 +250,11 @@ export const updateDealSummary = {
         ),
       })
       .allow(''),
-    executiveSummary: Joi.string().allow(''),
+    executiveSummary: Joi.string().allow(null),
     url: Joi.string(),
     dealHighLights: Joi.array().items(Joi.string()).allow(''),
     marketSummary: Joi.string().allow(''),
-    sponserOverview: Joi.string(),
+    sponserOverview: Joi.string().allow(null),
     mainPhoto: PhotosSchema,
     dataSheet: PhotosSchema,
     otherPhotos: Joi.array().items(PhotosSchema),

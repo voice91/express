@@ -118,6 +118,13 @@ export const update = catchAsync(async (req, res) => {
     _id: dealSummaryId,
   };
 
+  Object.entries(body).forEach(([key, value]) => {
+    if (!value) {
+      body.$unset = { ...body.$unset, [key]: '' };
+      delete body[key];
+    }
+  });
+
   if (body.otherPhotos) {
     const fileName = otherPhotos.map((item) => item.fileName);
     body.otherPhotos = body.otherPhotos.map((item, index) => {
