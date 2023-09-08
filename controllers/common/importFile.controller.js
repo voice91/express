@@ -9,13 +9,31 @@ import {
   CsvStatesArrayMapping,
 } from 'utils/common';
 import { catchAsync } from 'utils/catchAsync';
-import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution } from '../../models';
-import { EnumAssetTypeOfDeal, EnumStatesOfDeal } from '../../models/enum.model';
+import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution } from 'models';
+import { EnumAssetTypeOfDeal, EnumStatesOfDeal } from 'models/enum.model';
 import ApiError from '../../utils/ApiError';
 
 const mongoose = require('mongoose');
 
 const workbook = new ExcelJS.Workbook();
+
+export const LenderWorkBookExcelEnum = {
+  PROGRAM_ID: 'ProgramId',
+  LENDER_NAME: 'Lender Name',
+};
+
+export const LenderWorkBookKeyColMapping = {
+  LENDER_NAME: 0,
+  LENDER_TYPE: 1,
+  PROGRAM_NAME: 2,
+  PROGRAM_MIN_LOAN_SIZE: 3,
+  PROGRAM_MIN_TAG: 4,
+  PROGRAM_MAX_LOAN_SIZE: 5,
+  PROGRAM_MAX_TAG: 6,
+  PROGRAM_STATES: 7,
+  PROGRAM_STATE_TAGS: 8,
+  PROGRAM_PROPERTY_TYPE: 9,
+};
 
 // eslint-disable-next-line import/prefer-default-export
 export const importDataFromFile = catchAsync(async (file, res) => {
@@ -34,11 +52,16 @@ export const importDataFromFile = catchAsync(async (file, res) => {
     const lenderWorkbookSheetName = lenderWorkbook.SheetNames[1];
     const lenderWorkbookSheet = lenderWorkbook.Sheets[lenderWorkbookSheetName];
 
-    const lenderIdValue = Object.entries(lenderWorkbookSheet).find(([, value]) => value.v === 'ProgramId');
-    const programValue = Object.entries(lenderWorkbookSheet).find(([, value]) => value.v === 'Lender Name');
+    const lenderIdValue = Object.entries(lenderWorkbookSheet).find(
+      ([, value]) => value.v === LenderWorkBookExcelEnum.PROGRAM_ID
+    );
+    const programValue = Object.entries(lenderWorkbookSheet).find(
+      ([, value]) => value.v === LenderWorkBookExcelEnum.LENDER_NAME
+    );
 
     if (lenderIdValue) {
       let currentCell = lenderWorksheet.getCell(programValue[0]);
+      const currentRowNo = currentCell.row + 1;
       while (true) {
         const allNation = Object.values(EnumStatesOfDeal);
         const program = {};
@@ -55,62 +78,78 @@ export const importDataFromFile = catchAsync(async (file, res) => {
         ];
 
         // eslint-disable-next-line no-await-in-loop
-        const lenderName = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col);
-        const lenderType = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 1);
+        const lenderName = lenderWorksheet.getCell(currentRowNo, currentCell.col + LenderWorkBookKeyColMapping.LENDER_NAME);
+        const lenderType = lenderWorksheet.getCell(currentRowNo, currentCell.col + LenderWorkBookKeyColMapping.LENDER_TYPE);
 
-        const programName = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 2);
+        const programName = lenderWorksheet.getCell(
+          currentRowNo,
+          currentCell.col + LenderWorkBookKeyColMapping.PROGRAM_NAME
+        );
         program.lenderProgramType = programName.value;
 
-        const min = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 3);
-        if (min.value) {
-          if (min.value < 100000 || min.value > 1000000000) {
-            throw new Error('minLoanSize must be a containing from 100000 to 1000000000');
+        const programMinLoanSizeCol = currentCell.col + LenderWorkBookKeyColMapping.PROGRAM_MIN_LOAN_SIZE;
+        const programMinLoanSize = lenderWorksheet.getCell(currentRowNo, programMinLoanSizeCol);
+        if (programMinLoanSize.value) {
+          if (programMinLoanSize.value < 100000 || programMinLoanSize.value > 1000000000) {
+            throw new Error(
+              `minLoanSize must be a containing from 100000 to 1000000000 row:${currentRowNo} col: ${programMinLoanSizeCol}`
+            );
           }
-          if (typeof min.value === 'number') {
-            program.minLoanSize = min.value;
+          if (typeof programMinLoanSize.value === 'number') {
+            program.minLoanSize = programMinLoanSize.value;
           } else {
-            program.minLoanSize = Number(min.value.replace(/[^0-9.-]+/g, ''));
+            program.minLoanSize = Number(programMinLoanSize.value.replace(/[^0-9.-]+/g, ''));
           }
         }
 
-        const minTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 4);
-        if (minTag.value) {
-          if (minTag.value < 1 || minTag.value > 5) {
-            throw new Error('minLoanSizeTag must be a containing numbers from 1 to 5');
+        const programMinTagColNo = currentCell.col + LenderWorkBookKeyColMapping.PROGRAM_MIN_TAG;
+        const programMinTag = lenderWorksheet.getCell(currentRowNo, programMinTagColNo);
+        if (programMinTag.value) {
+          if (programMinTag.value < 1 || programMinTag.value > 5) {
+            throw new Error(
+              `minLoanSizeTag must be a containing numbers from 1 to 5 row:${currentRowNo} col: ${programMinTagColNo}`
+            );
           }
         }
-        program.minLoanTag = minTag.value;
+        program.minLoanTag = programMinTag.value;
 
-        const max = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 5);
-        if (max.value) {
-          if (max.value < 100000 || max.value > 1000000000) {
-            throw new Error('maxLoanSize must be a containing from 100000 to 1000000000');
+        const programMaxLoanSizeColNo = LenderWorkBookKeyColMapping.PROGRAM_MAX_LOAN_SIZE + 5;
+        const programMaxLoanSize = lenderWorksheet.getCell(currentRowNo, programMaxLoanSizeColNo);
+        if (programMaxLoanSize.value) {
+          if (programMaxLoanSize.value < 100000 || programMaxLoanSize.value > 1000000000) {
+            throw new Error(
+              `maxLoanSize must be a containing from 100000 to 1000000000 row:${currentRowNo} col: ${programMaxLoanSizeColNo}`
+            );
           }
-          if (typeof max.value === 'number') {
-            program.maxLoanSize = max.value;
+          if (typeof programMaxLoanSize.value === 'number') {
+            program.maxLoanSize = programMaxLoanSize.value;
           } else {
-            program.maxLoanSize = Number(max.value.replace(/[^0-9.-]+/g, ''));
+            program.maxLoanSize = Number(programMaxLoanSize.value.replace(/[^0-9.-]+/g, ''));
           }
         }
 
-        const maxTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 6);
-        if (maxTag.value) {
-          if (maxTag.value < 1 || maxTag.value > 5) {
-            throw new Error('maxLoanSizeTag must be a containing numbers from 1 to 5');
+        const programMaxTagColNo = currentCell.col + LenderWorkBookKeyColMapping.PROGRAM_MAX_TAG;
+        const programMaxTag = lenderWorksheet.getCell(currentRowNo, programMaxTagColNo);
+        if (programMaxTag.value) {
+          if (programMaxTag.value < 1 || programMaxTag.value > 5) {
+            throw new Error(
+              `maxLoanSizeTag must be a containing numbers from 1 to 5 row:${currentRowNo} col: ${programMaxTagColNo}`
+            );
           }
         }
-        program.maxLoanTag = maxTag.value;
+        program.maxLoanTag = programMaxTag.value;
 
-        const state = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 7);
+        const programStatesColNo = currentCell.col + LenderWorkBookKeyColMapping.PROGRAM_STATES;
+        const programStates = lenderWorksheet.getCell(currentRowNo, programStatesColNo);
         // todo : make function for comman code for getting state value=
-        if (state.value) {
-          if (state.value === 'Nationwide') {
+        if (programStates.value) {
+          if (programStates.value === 'Nationwide') {
             program.statesArray = allNation;
-          } else if (state.value.includes('Nationwide')) {
-            if (state.value.includes('-')) {
+          } else if (programStates.value.includes('Nationwide')) {
+            if (programStates.value.includes('-')) {
               const valueToRemoveState = allNation;
               // eslint-disable-next-line array-callback-return
-              state.value.split('-').map((item) => {
+              programStates.value.split('-').map((item) => {
                 if (item !== 'Nationwide') {
                   const indexToRemove = valueToRemoveState.indexOf(CsvStatesArrayMapping[item]);
                   if (indexToRemove !== -1) {
@@ -120,42 +159,48 @@ export const importDataFromFile = catchAsync(async (file, res) => {
               });
               program.statesArray = valueToRemoveState.filter(Boolean);
             }
-          } else if (state.value.includes(', ')) {
-            program.statesArray = state.value.split(',').map((item) => CsvStatesArrayMapping[item.trim()]);
+          } else if (programStates.value.includes(', ')) {
+            program.statesArray = programStates.value.split(',').map((item) => CsvStatesArrayMapping[item.trim()]);
           } else {
-            program.statesArray = [CsvStatesArrayMapping[state.value]];
+            program.statesArray = [CsvStatesArrayMapping[programStates.value]];
           }
         }
 
-        const stateTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
-        if (typeof stateTag.value !== 'number') {
-          if (stateTag.value) {
-            program.statesArrTag = stateTag.value.split(', ').map((item) => {
+        const programStateTagsColNo = LenderWorkBookKeyColMapping.PROGRAM_STATE_TAGS + 8;
+        const programStateTags = lenderWorksheet.getCell(currentRowNo, programStateTagsColNo);
+        if (typeof programStateTags.value !== 'number') {
+          if (programStateTags.value) {
+            program.statesArrTag = programStateTags.value.split(', ').map((item) => {
               if (item < 1 || item > 5) {
-                throw new Error('stateTag must be an array containing numbers from 1 to 5');
+                throw new Error(
+                  `stateTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${programStateTagsColNo}`
+                );
               }
               return parseInt(item, 10);
             });
           }
         } else {
-          if (stateTag.value < 1 || stateTag.value > 5) {
-            throw new Error('stateTag must be an array containing numbers from 1 to 5');
+          if (programStateTags.value < 1 || programStateTags.value > 5) {
+            throw new Error(
+              `stateTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${programStateTagsColNo}`
+            );
           }
-          program.statesArrTag = stateTag.value;
+          program.statesArrTag = programStateTags.value;
         }
 
-        const property = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
+        const programPropertyTypeColNo = currentCell.col + LenderWorkBookKeyColMapping.PROGRAM_PROPERTY_TYPE;
+        const programPropertyType = lenderWorksheet.getCell(currentRowNo, programPropertyTypeColNo);
         // todo : make function for comman code for getting property value
-        if (property.value) {
-          if (property.value === 'All') {
+        if (programPropertyType.value) {
+          if (programPropertyType.value === 'All') {
             program.propertyType = CsvLenderPropertyTypeMapping.All;
-          } else if (property.value === 'Default') {
+          } else if (programPropertyType.value === 'Default') {
             program.propertyType = defaulAssetTypeOfDeal;
-          } else if (property.value.includes('Default')) {
-            if (property.value.includes('+')) {
+          } else if (programPropertyType.value.includes('Default')) {
+            if (programPropertyType.value.includes('+')) {
               const valueToAddInProperty = defaulAssetTypeOfDeal;
               // eslint-disable-next-line array-callback-return
-              property.value.split('+').map((item) => {
+              programPropertyType.value.split('+').map((item) => {
                 if (item !== 'Default') {
                   if (!valueToAddInProperty.includes(CsvLenderPropertyTypeMapping[item])) {
                     valueToAddInProperty.push(CsvLenderPropertyTypeMapping[item]);
@@ -163,10 +208,10 @@ export const importDataFromFile = catchAsync(async (file, res) => {
                 }
               });
               program.propertyType = valueToAddInProperty.filter(Boolean);
-            } else if (property.value.includes('-')) {
+            } else if (programPropertyType.value.includes('-')) {
               const valueToRemoveProperty = defaulAssetTypeOfDeal;
               // eslint-disable-next-line array-callback-return
-              property.value.split('-').map((item) => {
+              programPropertyType.value.split('-').map((item) => {
                 if (item !== 'Default') {
                   const indexToRemove = valueToRemoveProperty.indexOf(CsvLenderPropertyTypeMapping[item]);
                   if (indexToRemove !== -1) {
@@ -176,26 +221,36 @@ export const importDataFromFile = catchAsync(async (file, res) => {
               });
               program.propertyType = valueToRemoveProperty.filter(Boolean);
             }
-          } else if (property.value.includes(', ')) {
-            program.propertyType = property.value.split(',').map((item) => CsvLenderPropertyTypeMapping[item.trim()]);
+          } else if (programPropertyType.value.includes(', ')) {
+            program.propertyType = programPropertyType.value
+              .split(',')
+              .map((item) => CsvLenderPropertyTypeMapping[item.trim()]);
           } else {
-            program.propertyType = [CsvLenderPropertyTypeMapping[property.value]];
+            program.propertyType = [CsvLenderPropertyTypeMapping[programPropertyType.value]];
           }
         }
 
-        const propertyTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 10);
+        const propertyTag = lenderWorksheet.getCell(currentRowNo, currentCell.col + 10);
         if (typeof propertyTag.value !== 'number') {
           if (propertyTag.value) {
             program.propTypeArrTag = propertyTag.value.split(', ').map((item) => {
               if (item < 1 || item > 5) {
-                throw new Error('propertyTypeArrTag must be an array containing numbers from 1 to 5');
+                throw new Error(
+                  `propertyTypeArrTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${
+                    currentCell.col + 10
+                  }`
+                );
               }
               return parseInt(item, 10);
             });
           }
         } else {
           if (propertyTag.value < 1 || propertyTag.value > 5) {
-            throw new Error('propertyTypeArrTag must be an array containing numbers from 1 to 5');
+            throw new Error(
+              `propertyTypeArrTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${
+                currentCell.col + 10
+              }`
+            );
           }
           program.propTypeArrTag = propertyTag.value;
         }
@@ -206,15 +261,17 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           program.doesNotLandOn = actualArray.filter((item) => !propArray.includes(item));
         }
 
-        const doesNotTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 12);
+        const doesNotTag = lenderWorksheet.getCell(currentRowNo, currentCell.col + 12);
         if (doesNotTag.value) {
           if (doesNotTag.value < 1 || doesNotTag.value > 5) {
-            throw new Error('doesNotTag must be an array containing numbers from 1 to 5');
+            throw new Error(
+              `doesNotTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${currentCell.col + 12}`
+            );
           }
         }
         program.doesNotLandOnArrTag = doesNotTag.value;
 
-        const loanType = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 13);
+        const loanType = lenderWorksheet.getCell(currentRowNo, currentCell.col + 13);
         if (loanType.value) {
           if (loanType.value.includes(', ')) {
             program.loanType = loanType.value.split(',').map((item) => CsvLenderLoanTypeMapping[item.trim()]);
@@ -223,39 +280,44 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           }
         }
 
-        const loanTypeTag = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 14);
+        const loanTypeTagCol = currentCell.col + 14;
+        const loanTypeTag = lenderWorksheet.getCell(currentRowNo, loanTypeTagCol);
         if (typeof loanTypeTag.value !== 'number') {
           if (loanTypeTag.value) {
             program.loanTypeArrTag = loanTypeTag.value.split(',').map((item) => {
               if (item < 1 || item > 5) {
-                throw new Error('loanTypeTag must be an array containing numbers from 1 to 5');
+                throw new Error(
+                  `loanTypeTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${loanTypeTagCol}`
+                );
               }
               return parseInt(item, 10);
             });
           }
         } else {
           if (loanTypeTag.value < 1 || loanTypeTag.value > 5) {
-            throw new Error('loanTypeTag must be an array containing numbers from 1 to 5');
+            throw new Error(
+              `loanTypeTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${loanTypeTagCol}`
+            );
           }
           program.loanTypeArrTag = loanTypeTag.value;
         }
 
-        const index = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 15);
+        const index = lenderWorksheet.getCell(currentRowNo, currentCell.col + 15);
         program.indexUsed = index.value;
 
-        const spread = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 16);
+        const spread = lenderWorksheet.getCell(currentRowNo, currentCell.col + 16);
         program.spreadEstimate = spread.value;
 
-        const counties = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 17);
+        const counties = lenderWorksheet.getCell(currentRowNo, currentCell.col + 17);
         program.counties = counties.value;
 
-        const recourse = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 18);
+        const recourse = lenderWorksheet.getCell(currentRowNo, currentCell.col + 18);
         program.recourseRequired = recourse.value;
 
-        const nonRecourse = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 19);
+        const nonRecourse = lenderWorksheet.getCell(currentRowNo, currentCell.col + 19);
         program.nonRecourseLTV = nonRecourse.value;
 
-        const lenderId = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 22);
+        const lenderId = lenderWorksheet.getCell(currentRowNo, currentCell.col + 22);
         const obj = {
           lenderNameVisible: lenderName.value,
           lenderType: CsvLenderTypeMapping[lenderType.value],
@@ -280,8 +342,8 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           }
         }
 
-        const notes = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 20);
-        const notesId = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 21);
+        const notes = lenderWorksheet.getCell(currentRowNo, currentCell.col + 20);
+        const notesId = lenderWorksheet.getCell(currentRowNo, currentCell.col + 21);
         if (notesId.value) {
           // eslint-disable-next-line no-await-in-loop
           await LenderInstituteNotes.findByIdAndUpdate(notesId.value, { content: notes.value });
@@ -293,9 +355,9 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           });
         }
 
-        const programId = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col + 23);
+        const programId = lenderWorksheet.getCell(currentRowNo, currentCell.col + 23);
 
-        currentCell = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col);
+        currentCell = lenderWorksheet.getCell(currentRowNo, currentCell.col);
         if (!lenderName.value || lenderName.value === null) {
           break;
         }
@@ -321,11 +383,14 @@ export const importDataFromFile = catchAsync(async (file, res) => {
         }
       }
     } else {
-      const lenderValue = Object.entries(lenderWorkbookSheet).find(([, value]) => value.v === 'Lender Name');
+      const lenderValue = Object.entries(lenderWorkbookSheet).find(
+        ([, value]) => value.v === LenderWorkBookExcelEnum.LENDER_NAME
+      );
 
       const lenderProgram = [];
       if (lenderValue) {
         let currentCell = lenderWorksheet.getCell(lenderValue[0]);
+        const currentRowNo = currentCell.row + 1;
         while (true) {
           const program = {};
           const allNation = Object.values(EnumStatesOfDeal);
@@ -363,7 +428,9 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           const min = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 3);
           if (min.value) {
             if (min.value < 100000 || min.value > 1000000000) {
-              throw new Error('minLoanSize must be a containing from 100000 to 1000000000');
+              throw new Error(
+                `minLoanSize must be a containing from 100000 to 1000000000 row:${currentRowNo} col: ${currentCell.col + 3}`
+              );
             }
             if (typeof min.value === 'number') {
               program.minLoanSize = min.value;
@@ -375,7 +442,9 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           const minTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 4);
           if (minTag.value) {
             if (minTag.value < 1 || minTag.value > 5) {
-              throw new Error('minLoanSizeTag must be a containing numbers from 1 to 5');
+              throw new Error(
+                `minLoanSizeTag must be a containing numbers from 1 to 5 row:${currentRowNo} col: ${currentCell.col + 3}`
+              );
             }
           }
           program.minLoanTag = minTag.value;
@@ -383,7 +452,9 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           const max = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 5);
           if (max.value) {
             if (max.value < 100000 || max.value > 1000000000) {
-              throw new Error('maxLoanSize must be a containing from 100000 to 1000000000');
+              throw new Error(
+                `maxLoanSize must be a containing from 100000 to 1000000000 row:${currentRowNo} col: ${currentCell.col + 5}`
+              );
             }
             if (typeof max.value === 'number') {
               program.maxLoanSize = max.value;
@@ -397,7 +468,9 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           const maxTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 6);
           if (maxTag.value) {
             if (maxTag.value < 1 || maxTag.value > 5) {
-              throw new Error('maxLoanSizeTag must be a containing numbers from 1 to 5');
+              throw new Error(
+                `maxLoanSizeTag must be a containing numbers from 1 to 5 row:${currentRowNo} col: ${currentCell.col + 6}`
+              );
             }
           }
 
@@ -441,7 +514,9 @@ export const importDataFromFile = catchAsync(async (file, res) => {
             }
           } else {
             if (stateTag.value < 1 || stateTag.value > 5) {
-              throw new Error('stateTag must be an array containing numbers from 1 to 5');
+              throw new Error(
+                `stateTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${currentCell.col + 8}`
+              );
             }
             program.statesArrTag = stateTag.value;
           }
@@ -483,19 +558,26 @@ export const importDataFromFile = catchAsync(async (file, res) => {
               program.propertyType = [CsvLenderPropertyTypeMapping[property.value]];
             }
           }
-          const propertyTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 10);
+          const propertyTagColNo = currentCell.col + 10;
+          const propertyTag = lenderWorksheet.getCell(currentCell.row + 2, propertyTagColNo);
           if (typeof propertyTag.value !== 'number') {
             if (propertyTag.value) {
               program.propTypeArrTag = propertyTag.value.split(', ').map((item) => {
                 if (item < 1 || item > 5) {
-                  throw new Error('propertyTypeArrTag must be an array containing numbers from 1 to 5');
+                  throw new Error(
+                    `propertyTypeArrTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${propertyTagColNo}`
+                  );
                 }
                 return parseInt(item, 10);
               });
             }
           } else {
             if (propertyTag.value < 1 || propertyTag.value > 5) {
-              throw new Error('propertyTypeArrTag must be an array containing numbers from 1 to 5');
+              throw new Error(
+                `propertyTypeArrTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${
+                  currentCell.col + 10
+                }`
+              );
             }
             program.propTypeArrTag = propertyTag.value;
           }
@@ -510,7 +592,9 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           const doesNotTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 12);
           if (doesNotTag.value) {
             if (doesNotTag.value < 1 || doesNotTag.value > 5) {
-              throw new Error('doesNotTag must be an array containing numbers from 1 to 5');
+              throw new Error(
+                `doesNotTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${currentCell.col + 12}`
+              );
             }
           }
           program.doesNotLandOnArrTag = doesNotTag.value;
@@ -526,19 +610,26 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           }
 
           const loanTypeTag = lenderWorksheet.getCell(currentCell.row + 2, currentCell.col + 14);
+          const loanTypeTagColNo = currentCell.col + 14;
 
           if (typeof loanTypeTag.value !== 'number') {
             if (loanTypeTag.value) {
               program.loanTypeArrTag = loanTypeTag.value.split(',').map((item) => {
                 if (item < 1 || item > 5) {
-                  throw new Error('loanTypeTag must be an array containing numbers from 1 to 5');
+                  throw new Error(
+                    `loanTypeTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${loanTypeTagColNo}`
+                  );
                 }
                 return parseInt(item, 10);
               });
             }
           } else {
             if (loanTypeTag.value < 1 || loanTypeTag.value > 5) {
-              throw new Error('loanTypeTag must be an array containing numbers from 1 to 5');
+              throw new Error(
+                `loanTypeTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${
+                  currentCell.col + 14
+                }`
+              );
             }
             program.loanTypeArrTag = loanTypeTag.value;
           }
@@ -566,7 +657,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
             });
           }
 
-          currentCell = lenderWorksheet.getCell(currentCell.row + 1, currentCell.col);
+          currentCell = lenderWorksheet.getCell(currentRowNo, currentCell.col);
           if (!lenderName.value || !lenderType.value || lenderName.value === null || lenderType.value === null) {
             break;
           }
@@ -592,23 +683,24 @@ export const importDataFromFile = catchAsync(async (file, res) => {
 
     if (lenderContactIdValue) {
       let currentCell = lenderContactWorksheet.getCell(lenderValue[0]);
+      const currentRowNo = currentCell.row + 1;
       while (true) {
         const contact = {};
-        const lender = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
+        const lender = lenderContactWorksheet.getCell(currentRowNo, currentCell.col);
         if (lender.value) {
-          const firstName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 1);
+          const firstName = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 1);
           contact.firstName = firstName.value;
 
-          const lastName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 2);
+          const lastName = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 2);
           contact.lastName = lastName.value;
 
-          const program = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 3);
+          const program = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 3);
           contact.programs = program.value;
 
-          const nickName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 4);
+          const nickName = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 4);
           contact.nickName = nickName.value;
 
-          const email = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 5);
+          const email = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 5);
           if (email.value) {
             if (typeof email.value === 'string') {
               contact.email = email.value;
@@ -617,29 +709,32 @@ export const importDataFromFile = catchAsync(async (file, res) => {
                 contact.email = email.value.text;
               }
             } else {
-              throw new Error(httpStatus.BAD_REQUEST, 'Please provide valid Email');
+              throw new Error(
+                httpStatus.BAD_REQUEST,
+                `Please provide valid Email row:${currentRowNo} col: ${currentCell.col + 5}`
+              );
             }
           }
 
-          const mainPhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 6);
+          const mainPhone = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 6);
           contact.phoneNumberDirect = mainPhone.value;
 
-          const mobilePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 7);
+          const mobilePhone = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 7);
           contact.phoneNumberCell = mobilePhone.value;
 
-          const officePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
+          const officePhone = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 8);
           contact.phoneNumberOffice = officePhone.value;
 
-          const title = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
-          contact.title = title.value;
+          const title = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 9);
+          contact.title = title.text;
 
-          const city = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 10);
+          const city = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 10);
           contact.city = city.value;
 
-          const state = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 11);
+          const state = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 11);
           contact.state = state.value;
 
-          const contactTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 12);
+          const contactTag = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 12);
           if (contactTag.value) {
             if (contactTag.value < 1 || contactTag.value > 5) {
               throw new Error('contactTag must be a containing numbers from 1 to 5');
@@ -647,7 +742,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           }
           contact.contactTag = contactTag.value;
 
-          const emailTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 13);
+          const emailTag = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 13);
           if (emailTag.value) {
             if (emailTag.value < 1 || emailTag.value > 5) {
               throw new Error('emailTag must be a containing numbers from 1 to 5');
@@ -655,12 +750,12 @@ export const importDataFromFile = catchAsync(async (file, res) => {
           }
           contact.emailTag = emailTag.value;
 
-          const contactId = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 14);
+          const contactId = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 14);
           if (contactId.value) {
             contact.contactId = mongoose.Types.ObjectId(contactId.value);
           }
 
-          const lenderId = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 15);
+          const lenderId = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 15);
           if (lenderId.value) {
             contact.lenderInstitute = lenderId.value;
             // eslint-disable-next-line no-await-in-loop
@@ -671,7 +766,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
             }
           }
         }
-        currentCell = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
+        currentCell = lenderContactWorksheet.getCell(currentRowNo, currentCell.col);
         if (!lender.value || lender.value === null) {
           break;
         }
@@ -700,28 +795,29 @@ export const importDataFromFile = catchAsync(async (file, res) => {
       const notAvailableLender = [];
       if (lenderContactValue) {
         let currentCell = lenderContactWorksheet.getCell(lenderContactValue[0]);
+        const currentRowNo = currentCell.row + 1;
         while (true) {
           const contact = {};
-          const lender = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
+          const lender = lenderContactWorksheet.getCell(currentRowNo, currentCell.col);
           if (lender.value) {
             // eslint-disable-next-line no-await-in-loop
             const lenderInstitute = await LendingInstitution.findOne({ lenderNameVisible: lender.value });
             if (lenderInstitute) {
               contact.lenderInstitute = lenderInstitute._id;
 
-              const firstName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 1);
+              const firstName = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 1);
               contact.firstName = firstName.value;
 
-              const lastName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 2);
+              const lastName = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 2);
               contact.lastName = lastName.value;
 
-              const program = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 3);
+              const program = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 3);
               contact.programs = program.value;
 
-              const nickName = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 4);
+              const nickName = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 4);
               contact.nickName = nickName.value;
 
-              const email = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 5);
+              const email = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 5);
               if (email.value) {
                 if (typeof email.value === 'string') {
                   contact.email = email.value;
@@ -734,25 +830,25 @@ export const importDataFromFile = catchAsync(async (file, res) => {
                 }
               }
 
-              const mainPhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 6);
+              const mainPhone = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 6);
               contact.phoneNumberDirect = mainPhone.value;
 
-              const mobilePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 7);
+              const mobilePhone = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 7);
               contact.phoneNumberCell = mobilePhone.value;
 
-              const officePhone = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 8);
+              const officePhone = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 8);
               contact.phoneNumberOffice = officePhone.value;
 
-              const title = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 9);
+              const title = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 9);
               contact.title = title.value;
 
-              const city = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 10);
+              const city = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 10);
               contact.city = city.value;
 
-              const state = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 11);
+              const state = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 11);
               contact.state = state.value;
 
-              const contactTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 12);
+              const contactTag = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 12);
               if (contactTag.value) {
                 if (contactTag.value < 1 || contactTag.value > 5) {
                   throw new Error('contactTag must be a containing numbers from 1 to 5');
@@ -760,7 +856,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
               }
               contact.contactTag = contactTag.value;
 
-              const emailTag = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col + 13);
+              const emailTag = lenderContactWorksheet.getCell(currentRowNo, currentCell.col + 13);
               if (emailTag.value) {
                 if (emailTag.value < 1 || emailTag.value > 5) {
                   throw new Error('emailTag must be a containing numbers from 1 to 5');
@@ -781,7 +877,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
             }
           }
 
-          currentCell = lenderContactWorksheet.getCell(currentCell.row + 1, currentCell.col);
+          currentCell = lenderContactWorksheet.getCell(currentRowNo, currentCell.col);
           if (!lender.value || lender.value === null) {
             break;
           }
