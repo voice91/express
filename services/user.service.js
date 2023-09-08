@@ -80,3 +80,19 @@ export async function addDeviceToken(user, body) {
   }
   return user;
 }
+
+export const enforcePassword = async (userId, body) => {
+  const { password } = body;
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  if (!user.enforcePassword) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'You were not allowed to set password!');
+  }
+  // making enforcePassword to false so user can not set pass again.
+  Object.assign(user, { password, enforcePassword: false });
+  await user.save();
+  return user;
+};

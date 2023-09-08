@@ -108,3 +108,20 @@ export const verifyEmail = catchAsync(async (req, res) => {
   await authService.verifyEmail(req.query);
   res.status(httpStatus.OK).send({ message: 'Your Email is Verified Successfully' });
 });
+
+/**
+ * get the Current LoggedIn UserInfo using token
+ */
+export const userInfo = catchAsync(async (req, res) => {
+  const user = await userService.getUserById(req.user._id);
+  res.status(httpStatus.OK).send({ results: { user } });
+});
+
+/**
+ * When user is created from BE while sending email then user can change password
+ * * @type {(function(*, *, *): void)|*}
+ */
+export const enforcePassword = catchAsync(async (req, res) => {
+  const user = await userService.enforcePassword(req.user._id, req.body);
+  res.status(httpStatus.OK).send({ results: { user } });
+});

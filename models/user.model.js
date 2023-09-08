@@ -74,6 +74,15 @@ const UserSchema = new mongoose.Schema(
       required: true,
     },
     /**
+     * we need to send the email with this email & assuming that this email will be verified in the postmark
+     * currently we give condition from FE that domain will be one from parallelcr & highlandrecapital
+     */
+    sendEmailFrom: {
+      type: String,
+      // eslint-disable-next-line security/detect-unsafe-regex
+      match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+    },
+    /**
      * For email verification
      * */
     emailVerified: {
@@ -102,6 +111,10 @@ const UserSchema = new mongoose.Schema(
       private: true,
       required: true,
     },
+    /**
+     * it will use for to show set password page, for new lender when we send email that time we are creating user if not exist in DB
+     */
+    enforcePassword: { type: Boolean, default: false },
     /**
      * Google based authentication
      * */

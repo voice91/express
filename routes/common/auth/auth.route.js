@@ -2,6 +2,7 @@ import express from 'express';
 import validate from 'middlewares/validate';
 import { authValidation } from 'validations/common';
 import { authController } from 'controllers/common';
+import auth from 'middlewares/auth';
 
 const router = express.Router();
 /**
@@ -22,5 +23,15 @@ router.get('/verify-email', validate(authValidation.verifyEmail), authController
  * If User is successfully signup and Verified OTP then can login with Credential.
  */
 router.post('/login', validate(authValidation.login), authController.login);
+
+/**
+ * get the Current LoggedIn UserInfo using token
+ */
+router.get('/me', auth(), authController.userInfo);
+
+/**
+ * When user is created from BE while sending email then user can change password
+ */
+router.post('/enforce-password', auth(), validate(authValidation.enforcePassword), authController.enforcePassword);
 
 module.exports = router;

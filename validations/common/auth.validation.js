@@ -55,6 +55,16 @@ export const login = {
   }),
 };
 
+/**
+ * When User is loggedIn using social login for the first time, then he can enforce his password
+ * @type {{body: Joi.ObjectSchema<any>}}
+ */
+export const enforcePassword = {
+  body: Joi.object().keys({
+    password: Joi.string().required(),
+  }),
+};
+
 export const verifyEmail = {
   query: Joi.object().keys({
     token: Joi.string().required(),

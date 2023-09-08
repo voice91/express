@@ -14,6 +14,7 @@ import {
   userService,
   invitationService,
   taskService,
+  tokenService,
 } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
@@ -808,20 +809,33 @@ export const sendEmail = catchAsync(async (req, res) => {
     getEmailTemplate.contact.map(async (item, index) => {
       const frontEndUrl = config.front.url || 'http://54.196.81.18';
 
-      // need to send passLink & dealSummaryLink based on user is register or not
-      let dealSummaryLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary`;
-      let passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true`;
-      const user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
+      let user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
       if (!user) {
-        dealSummaryLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
-        passLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
+        const isLenderContact = await lenderContactService.getOne({ email: item.sendTo }, { populate: 'lenderInstitute' });
+        // create user if user has not register
+        const userBody = {
+          firstName: isLenderContact.firstName,
+          companyName: isLenderContact.lenderInstitute.lenderNameVisible,
+          lastName: isLenderContact.lastName,
+          role: enumModel.EnumRoleOfUser.LENDER,
+          enforcePassword: true,
+          email: item.sendTo,
+          emailVerified: true,
+          password: Math.random().toString(36).slice(-10)
+        }
+        user = await userService.createUser(userBody);
       }
+      const tokens = await tokenService.generateAuthTokens(user);
+      const dealSummaryLink =`${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&token=${tokens.access.token}`
+      const passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true&token=${tokens.access.token}`;
       return emailService.sendEmail({
         to: item.sendTo,
         // bcs we want that email to cc & bcc will go to only once
         ...(index === 0 && {cc: ccList, bcc: bccList}),
         subject: getEmailTemplate.subject,
-        ...(emailPresentingPostmark && { from: req.user.email }),
+        // ...(emailPresentingPostmark && { from: req.user.sendEmailFrom }),
+        // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
+         from: req.user.sendEmailFrom,
         // text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from, passLink, dealSummaryLink),
         text: getText(passLink, dealSummaryLink),
         // eslint-disable-next-line no-shadow
@@ -1035,7 +1049,9 @@ export const sendDealV2 = catchAsync(async (req, res) => {
         bcc: bccList,
         // for sending email in the thread we need to change subject like this
         subject: isFollowUp ? `RE: ${getEmailTemplate.subject}` : getEmailTemplate.subject,
-        ...(emailPresentingPostmark && { from: req.user.email }),
+        // ...(emailPresentingPostmark && { from: req.user.email }),
+        // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
+        from: req.user.sendEmailFrom,
         text: getTextFromTemplate({
           lenderName: item.name,
           executiveSummary: emailBodyValues.executiveSummary,
@@ -1156,7 +1172,9 @@ export const sendMessage = catchAsync(async (req, res) => {
     to: lenderContact.email,
     // for sending email in the thread we need to change subject like this
     subject: `Re: ${emailTemplate.subject}`,
-    ...(emailPresentingPostmark && { from: req.user.email }),
+    // ...(emailPresentingPostmark && { from: req.user.email }),
+    // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
+    from: req.user.sendEmailFrom,
     text: body.message,
     attachments: emailAttachments.map((item) => {
       return {
