@@ -44,6 +44,9 @@ import config from '../../config/config';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 import { detailsInDeal } from '../../utils/detailsInDeal';
 import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
+import {
+  removeLenderPlacementAssociatedThings,
+} from "../../services/lenderPlacement.service";
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -295,12 +298,7 @@ export const update = catchAsync(async (req, res) => {
       body.$unset = { lenderContact: '' };
       body.postmarkMessageId = [];
       body.sendEmailPostmarkMessageId = [];
-      // remove task related to particular lenderPlacement
-      const filterForTask = {
-        askingPartyInstitute: beforeLenderPlacementResult.lendingInstitution,
-        deal: beforeLenderPlacementResult.deal,
-      };
-      await taskService.removeManyTask(filterForTask);
+      await removeLenderPlacementAssociatedThings(beforeLenderPlacementResult)
     }
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
     body.nextStep = body.nextStep ? body.nextStep : enumModel.EnumNextStepOfLenderPlacement[body.stage];

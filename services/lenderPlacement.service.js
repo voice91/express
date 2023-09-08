@@ -5,7 +5,7 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { DealDocument, LenderContact, LenderPlacement, LendingInstitution } from 'models';
-import { dealService, lenderContactService, taskService } from './index';
+import { dealService, lenderContactService, lenderNotesService, taskService } from './index';
 
 export async function getLenderPlacementById(id, options = {}) {
   const lenderPlacement = await LenderPlacement.findById(id, options.projection, options).populate('lendingInstitution');
@@ -71,15 +71,23 @@ export async function updateManyLenderPlacement(filter, body, options = {}) {
   return lenderPlacement;
 }
 
+// common function to remove internal notes and task from the lender placement when lender is remove from the placement or when status changes from 'sent' to 'new' in placement.
+export const removeLenderPlacementAssociatedThings = async (lenderPlacement) => {
+  const filterForTask = {
+    askingPartyInstitute: lenderPlacement.lendingInstitution,
+    deal: lenderPlacement.deal,
+  };
+
+  await Promise.all([
+    taskService.removeManyTask(filterForTask),
+    lenderNotesService.removeManyLenderNotes({ lenderPlacement: lenderPlacement._id }),
+  ]);
+};
+
 export async function removeLenderPlacement(filter) {
   const lenderPlacement = await LenderPlacement.findOneAndRemove(filter);
   if (lenderPlacement) {
-    // remove task related to particular lenderPlacement
-    const filterForTask = {
-      askingPartyInstitute: lenderPlacement.lendingInstitution,
-      deal: lenderPlacement.deal,
-    };
-    await taskService.removeManyTask(filterForTask);
+    await removeLenderPlacementAssociatedThings(lenderPlacement);
     // here removing lenderIds from the deal
     const lenders = await lenderContactService.getLenderContactList({ lenderInstitute: lenderPlacement.lendingInstitution });
     await dealService.updateDeal(
