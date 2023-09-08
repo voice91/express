@@ -1285,6 +1285,10 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       let dealSummaryLink = `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary`;
       let passLink = `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary&pass=true`;
       const user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
+      // TODO: for now done changes here & it will work bcs everytime we got user bcs in send deal if not user than we create the user so no need to create user here but need to move this in the new api of send deal /v3
+      const tokens = await tokenService.generateAuthTokens(user);
+      dealSummaryLink =`${frontEndUrl}/dealDetail/${deal}?tab=dealSummary&token=${tokens.access.token}`
+      passLink = `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary&pass=true&token=${tokens.access.token}`;
       if (!user) {
         dealSummaryLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
         passLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
