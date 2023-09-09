@@ -153,11 +153,11 @@ export const getEmailDataV3 = catchAsync(async (req, res) => {
  * @type {(function(*, *, *): void)|*}
  */
 export const sendEmailV3 = catchAsync(async (req, res) => {
-  const { sendToAdvisor } = req.body;
+  const { sendToAdvisor, isFollowUp } = req.body;
 
   const { emailPresentingPostmark } = req.user;
 
-  req.body.emailContent = he.decode(req.body.emailContent);
+  req.body.emailContent = req.body.emailContent && he.decode(req.body.emailContent);
 
   _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
   const dealDetail = await dealService.getOne({_id: req.body.deal})
@@ -285,13 +285,27 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
             Value: `${lenderPlacementId}`,
           },
         ];
+
+        // we have to send followup email in thread so need to add this header
+        if (isFollowUp) {
+          headers.push({ Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] });
+        }
         await emailService.sendEmail({
           to: lenderPlacement.lenderContact.email,
-          subject: req.body.subject,
+          subject: isFollowUp ? `RE: ${getEmailSubjectForDeal(dealDetail)}` : req.body.subject,
           // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
           from: req.user.sendEmailFrom,
-          text: getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
-          attachments: req.body.emailAttachments.map((item) => {
+          // for followup, we use this template
+          text: isFollowUp ? getTextFromTemplate({
+            lenderName: _.startCase(lenderPlacement.lenderContact.firstName),
+            dealSummaryLink,
+            passLink,
+            advisorName: _.startCase(req.user.firstName),
+            followUpContent: req.body.followUpContent || `following up, did you have any feedback on this deal.`,
+            emailTemplate: followUpEmailContent(),
+          }) :
+          getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
+          attachments: req.body.emailAttachments && req.body.emailAttachments.map((item) => {
             return {
               fileName: item.fileName,
               path: item.url ? item.url : item.path,
