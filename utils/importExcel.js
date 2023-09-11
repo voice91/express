@@ -18,6 +18,10 @@ function formatMathFormulaFormValue({ val, key, tableName }) {
       if (val.result && val.result.error) {
         throw new Error(`Error in dataSheet in table "${tableName}" in key "${key}" : ${val.result.error}`);
       }
+      // if result of val is string type then no need to evaluate using math.evaluate
+      if (typeof val.result === 'string') {
+        return val.result;
+      }
       const expression = val.formula.replace(val.formula, val.result);
       return math.evaluate(expression);
     }
