@@ -198,7 +198,7 @@ const DealSchema = new mongoose.Schema(
       default: 5,
     },
     squareFootage: {
-      type: Number,
+      type: String,
     },
     unitCount: {
       type: Number,

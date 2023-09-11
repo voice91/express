@@ -52,7 +52,7 @@ export const createDeal = {
     lenderPlacement: Joi.array().items(Joi.objectId()),
     documents: Joi.array().items(Joi.objectId()),
     dealSummary: Joi.objectId(),
-    squareFootage: Joi.number(),
+    squareFootage: Joi.string(),
     unitCount: Joi.number(),
     occupancy: Joi.string(),
     loanInformation: Joi.array().items(
@@ -128,7 +128,7 @@ export const updateDeal = {
     dealNotes: Joi.array().items(Joi.objectId()),
     lenderPlacement: Joi.array().items(Joi.objectId()),
     documents: Joi.array().items(Joi.objectId()),
-    squareFootage: Joi.number().allow(null),
+    squareFootage: Joi.string().allow(null),
     unitCount: Joi.number().allow(null),
     occupancy: Joi.string().allow(null),
     loanInformation: Joi.array().items(
