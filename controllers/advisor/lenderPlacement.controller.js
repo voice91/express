@@ -338,11 +338,14 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
   );
 
   const stage = EnumStageOfDeal.OUT_IN_MARKET;
-  // TODO : need to change here so deal timeLine will update properly
   const deal = await Deal.findByIdAndUpdate(dealId, {
     stage,
     orderOfStage: stageOfDealWithNumber(stage),
-    $push: { timeLine: { stage, updatedAt: new Date() } },
+    timeLine: manageDealStageTimeline(
+        dealDetail.stage,
+        stage,
+        dealDetail.timeLine
+    ),
     details: await detailsInDeal(stage, dealId),
   }, {new: true});
   const createActivityLogBody = {
