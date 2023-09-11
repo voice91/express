@@ -56,7 +56,17 @@ export const get = catchAsync(async (req, res) => {
   const filter = {
     _id: taskId,
   };
-  const options = { populate: [{ path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }] };
+  // populating user's first name as had to display name of user who has given the answer
+  const options = {
+    populate: [
+      { path: 'askingPartyInstitute' },
+      { path: 'askingPartyAdvisor' },
+      {
+        path: 'taskAnswer.answeredBy',
+        select: ['firstName'],
+      },
+    ],
+  };
   const task = await taskService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: task });
 });
@@ -139,6 +149,7 @@ export const listByDeal = catchAsync(async (req, res) => {
   }
   const options = {
     ...pick(query, ['limit', 'page']),
+    // populating user's first name as had to display name of user who has given the answer
     populate: [{ path: 'user' }, { path: 'askingPartyInstitute' }, { path: 'askingPartyAdvisor' }],
   };
   if (sortingObj.sort) {
@@ -205,7 +216,15 @@ export const update = catchAsync(async (req, res) => {
       return { url: encodeUrl(item), fileName: fileName[index] };
     });
   }
-  const options = { new: true };
+  // populating user's first name as had to display name of user who has given the answer
+  const options = {
+    new: true,
+    populate: {
+      path: 'taskAnswer.answeredBy',
+      select: ['firstName'],
+    },
+  };
+
   if (body.askingPartyInstitute) {
     body.$unset = { askingPartyAdvisor: '' };
   } else if (body.askingPartyAdvisor) {
@@ -215,11 +234,10 @@ export const update = catchAsync(async (req, res) => {
     body.$unset = { taskAnswer: '' };
     delete body.taskAnswer;
   }
-
   if (body.taskAnswer && body.taskAnswer.length) {
     body.taskAnswer.forEach((answer) => {
       if (!answer.answeredBy) {
-        Object.assign(answer, { answeredBy: user.firstName });
+        Object.assign(answer, { answeredBy: user._id }); // passing user id instead of name
       }
     });
   }

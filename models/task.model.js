@@ -30,7 +30,8 @@ const TaskAnswerSchema = new mongoose.Schema({
     default: new Date(),
   },
   answeredBy: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   },
   taskDocuments: {
     type: [TaskDocumentSchema],
