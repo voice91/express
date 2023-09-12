@@ -220,9 +220,9 @@ export const remove = catchAsync(async (req, res) => {
 });
 
 // removing single document from task-reply's task document
-// TODO: we need to give condition that user can only delete the document which user has send not of other user
 export const removeTaskDocument = catchAsync(async (req, res) => {
   const { taskDocumentId } = req.params;
+  const { user } = req;
   const filter = {
     'taskAnswer.taskDocuments._id': taskDocumentId,
   };
@@ -232,9 +232,20 @@ export const removeTaskDocument = catchAsync(async (req, res) => {
   const options = {
     new: true,
   };
-  const updatedTask = await taskService.updateTask(filter, updateDocument, options);
-  if (!updatedTask) {
+  const task = await taskService.getOne(filter);
+  // if the task document is not found in the task
+  if (!task) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Task document is not available');
   }
+  // finding the task answer which will have the task document in it
+  const taskAnswer = task.taskAnswer.find((answer) =>
+    answer.taskDocuments.some((doc) => doc._id.toString() === taskDocumentId)
+  );
+
+  // if the user who has uploaded the document in the task is not the same then it'll throw the error.
+  if (user._id.toString() !== taskAnswer.answeredBy.toString()) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'You are not authorized to delete this document');
+  }
+  const updatedTask = await taskService.updateTask(filter, updateDocument, options);
   return res.status(httpStatus.OK).send({ results: updatedTask });
 });
