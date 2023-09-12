@@ -74,7 +74,7 @@ export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
   const { user } = req;
   const queryParams = getDealFilterQuery(query);
-  const lenderContact = await lenderContactService.getOne({ email: user.email });
+  // const lenderContact = await lenderContactService.getOne({ email: user.email });
   const sortingObj = pick(query, ['sort', 'order']);
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
@@ -83,8 +83,10 @@ export const paginate = catchAsync(async (req, res) => {
   if (sortingObj.sort === 'orderOfStage') {
     sortObj.dealName = 'asc';
   }
+  // TODO: change this whole thing & use lender placement instead of deal
   const filter = {
-    'involvedUsers.lenders': lenderContact,
+    // 'involvedUsers.lenders': lenderContact,
+    'involvedUsers.lenders': user._id,
     ...queryParams,
   };
   // populating lender placement as we need now two fields placement stage and date at which the deal received also from deal summary we need only logo only selecting main photo field

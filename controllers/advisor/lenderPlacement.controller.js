@@ -249,7 +249,8 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
     });
     return data;
   };
-
+  // for adding lender's userid in the deal when we send deal to them
+  const lenderUserIdsToAddInDeal= []
   // we send email to all selected placement & if we have one than also we are taking in the array
   await Promise.all(
       req.body.lenderPlacementIds.map(async (lenderPlacementId) => {
@@ -277,6 +278,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
           }
           user = await userService.createUser(userBody);
         }
+        lenderUserIdsToAddInDeal.push(user._id)
         const tokens = await tokenService.generateAuthTokens(user);
         const dealSummaryLink =`${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&token=${tokens.access.token}`
         const passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true&token=${tokens.access.token}`;
@@ -340,6 +342,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
   const stage = EnumStageOfDeal.OUT_IN_MARKET;
   const deal = await Deal.findByIdAndUpdate(dealId, {
     stage,
+    $addToSet: { 'involvedUsers.lenders': { $each: lenderUserIdsToAddInDeal } },
     orderOfStage: stageOfDealWithNumber(stage),
     timeLine: manageDealStageTimeline(
         dealDetail.stage,
@@ -550,7 +553,14 @@ export const update = catchAsync(async (req, res) => {
       { path: 'deal' },
     ],
   };
-  const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId);
+  const optionForGetPlacement = {
+    populate: [
+      {
+        path: 'lenderContact'
+      }
+    ]
+  }
+  const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId, optionForGetPlacement);
 
   // check & throw error if term is not added
   // bcs we have requirement that if term is added than only we can add term-sheet

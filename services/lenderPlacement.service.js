@@ -5,7 +5,7 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { DealDocument, LenderContact, LenderPlacement, LendingInstitution } from 'models';
-import { dealService, lenderContactService, lenderNotesService, taskService } from './index';
+import { dealService, lenderNotesService, taskService, userService } from './index';
 
 export async function getLenderPlacementById(id, options = {}) {
   const lenderPlacement = await LenderPlacement.findById(id, options.projection, options).populate('lendingInstitution');
@@ -47,13 +47,14 @@ export async function createLenderPlacement(body) {
   }
   const lenderPlacement = await LenderPlacement.create(body);
   // here updating lenderIds in the deal
-  if (lenderPlacement) {
-    const lenders = await lenderContactService.getLenderContactList({ lenderInstitute: body.lendingInstitution });
-    await dealService.updateDeal(
-      { _id: body.deal },
-      { $addToSet: { 'involvedUsers.lenders': { $each: lenders.map((lender) => lender._id) } } }
-    );
-  }
+  // do not add all lender contact ids only add when we send deal to that lender
+  // if (lenderPlacement) {
+  // const lenders = await lenderContactService.getLenderContactList({ lenderInstitute: body.lendingInstitution });
+  // await dealService.updateDeal(
+  //   { _id: body.deal },
+  //   { $addToSet: { 'involvedUsers.lenders': { $each: lenders.map((lender) => lender._id) } } }
+  // );
+  // }
   return lenderPlacement;
 }
 
@@ -77,7 +78,12 @@ export const removeLenderPlacementAssociatedThings = async (lenderPlacement) => 
     askingPartyInstitute: lenderPlacement.lendingInstitution,
     deal: lenderPlacement.deal,
   };
-
+  // remove lender's userId from the deal
+  if (lenderPlacement.lenderContact) {
+    const user = await userService.getOne({ email: lenderPlacement.lenderContact.email });
+    // here removing userIds from the deal
+    await dealService.updateDeal({ _id: lenderPlacement.deal }, { $pull: { 'involvedUsers.lenders': { $in: [user._id] } } });
+  }
   await Promise.all([
     taskService.removeManyTask(filterForTask),
     lenderNotesService.removeManyLenderNotes({ lenderPlacement: lenderPlacement._id }),
@@ -85,15 +91,21 @@ export const removeLenderPlacementAssociatedThings = async (lenderPlacement) => 
 };
 
 export async function removeLenderPlacement(filter) {
-  const lenderPlacement = await LenderPlacement.findOneAndRemove(filter);
+  const options = {
+    populate: {
+      path: 'lenderContact',
+      select: ['email'],
+    },
+  };
+  const lenderPlacement = await LenderPlacement.findOneAndRemove(filter, options);
   if (lenderPlacement) {
     await removeLenderPlacementAssociatedThings(lenderPlacement);
     // here removing lenderIds from the deal
-    const lenders = await lenderContactService.getLenderContactList({ lenderInstitute: lenderPlacement.lendingInstitution });
-    await dealService.updateDeal(
-      { _id: lenderPlacement.deal },
-      { $pull: { 'involvedUsers.lenders': { $in: lenders.map((lender) => lender._id) } } }
-    );
+    // const lenders = await lenderContactService.getLenderContactList({ lenderInstitute: lenderPlacement.lendingInstitution });
+    //   await dealService.updateDeal(
+    //     { _id: lenderPlacement.deal },
+    //     { $pull: { 'involvedUsers.lenders': { $in: lenders.map((lender) => lender._id) } } }
+    //   );
   }
   return lenderPlacement;
 }
