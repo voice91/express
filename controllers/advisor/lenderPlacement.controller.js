@@ -188,7 +188,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       toBeBuilt: '[to-be-built]',
       address: dealDetail.address || '[address]',
       city: dealDetail.city || '[city]',
-      state: getStateFullName[dealDetail.state] || '[state]',
+      state: getStateFullName(dealDetail.state) || '[state]',
       purchasePrice:
           (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
           1000000 || '[x.xx purchasePrice]',
@@ -234,7 +234,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       toBeBuilt: '[to-be-built]',
       address: dealDetail?.address || '[address]',
       city: dealDetail?.city || '[city]',
-      state: getStateFullName[dealDetail.state] || '[state]',
+      state: getStateFullName(dealDetail.state) || '[state]',
       purchasePrice:
           (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
           1000000 || '[x.xx]',
@@ -1009,7 +1009,7 @@ export const sendEmail = catchAsync(async (req, res) => {
       toBeBuilt: '[to-be-built]',
       address: dealDetail.address || '[address]',
       city: dealDetail.city || '[city]',
-      state: getStateFullName[dealDetail.state] || '[state]',
+      state: getStateFullName(dealDetail.state) || '[state]',
       purchasePrice:
           (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
           1000000 || '[x.xx purchasePrice]',
@@ -1057,7 +1057,7 @@ export const sendEmail = catchAsync(async (req, res) => {
       toBeBuilt: '[to-be-built]',
       address: dealDetail?.address || '[address]',
       city: dealDetail?.city || '[city]',
-      state: getStateFullName[dealDetail.state] || '[state]',
+      state: getStateFullName(dealDetail.state) || '[state]',
       purchasePrice:
           (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
           1000000 || '[x.xx]',

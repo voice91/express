@@ -579,7 +579,8 @@ export const getStateFullName = (stateAbbreviation) => {
   // eslint-disable-next-line no-restricted-syntax
   for (const state in EnumStatesOfDeal) {
     if (EnumStatesOfDeal[state] === stateAbbreviation) {
-      return state;
+      // We were getting the state value in the email in UPPERCASE, so making it Startcase
+      return _.startCase(_.lowerCase(state));
     }
   }
   // If no match is found, return an appropriate null.
