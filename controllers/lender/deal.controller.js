@@ -87,9 +87,13 @@ export const paginate = catchAsync(async (req, res) => {
     'involvedUsers.lenders': lenderContact,
     ...queryParams,
   };
+  // populating lender placement as we need now two fields placement stage and date at which the deal received also from deal summary we need only logo only selecting main photo field
   const options = {
     ...pick(query, ['limit', 'page']),
-    populate: [{ path: 'notes' }, { path: 'documents' }, { path: 'dealSummary' }],
+    populate: [
+      { path: 'dealSummary', select: ['mainPhoto'] },
+      { path: 'lenderPlacement', select: ['stage', 'timeLine'] },
+    ],
   };
   if (sortingObj.sort) {
     options.sort = sortObj;

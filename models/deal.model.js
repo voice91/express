@@ -184,13 +184,6 @@ const DealSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    /**
-     * placement ids (respective entries in LenderPlacement collection(table)
-     * */
-    lenderPlacement: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'LenderPlacement',
-    },
     orderOfStage: {
       type: Number,
       min: 0,
@@ -252,6 +245,14 @@ DealSchema.virtual('documents', {
 
 DealSchema.virtual('task', {
   ref: 'Task',
+  localField: '_id',
+  foreignField: 'deal',
+  justOne: false,
+});
+
+// Lender now will only have 2 fields the date at which the deal received and the stage of the placement
+DealSchema.virtual('lenderPlacement', {
+  ref: 'LenderPlacement',
   localField: '_id',
   foreignField: 'deal',
   justOne: false,
