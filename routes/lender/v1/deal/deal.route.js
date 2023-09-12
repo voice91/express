@@ -16,6 +16,10 @@ router
   /**
    * getDealPaginated
    * */
+  /**
+   * @deprecated
+   * Not using this route anymore, as per the latest requirement we need placement stage and timeline on lender page
+   * */
   .get(auth('lender'), validate(dealValidation.paginatedDeal), dealController.paginate);
 router
   .route('/:dealId')

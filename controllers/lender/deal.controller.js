@@ -70,6 +70,10 @@ export const list = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: deal });
 });
 
+/**
+ * @deprecated
+ * Not using this route anymore, as per the latest requirement we need placement stage and timeline on lender page
+ * */
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;
   const { user } = req;

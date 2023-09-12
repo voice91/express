@@ -20,6 +20,9 @@ router
   /**
    * getLenderPlacementPaginated
    * */
+  /**
+   * From now on have to use this route for showing deal, status and timeline for the placement.
+   * */
   .get(auth('lender'), validate(lenderPlacementValidation.paginatedLenderPlacement), lenderPlacementController.paginate);
 router
   .route('/message/:lenderPlacementId')

@@ -117,9 +117,21 @@ export const paginate = catchAsync(async (req, res) => {
   const sortObj = {
     [sortingObj.sort]: sortingObj.order,
   };
-  const filter = {};
+  // as we need placement stage and timeline for particular lender only so we are adding the below condition for this
+  const lenderContact = await lenderContactService.getOne({ email: req.user.email });
+  const filter = {
+    lenderContact: lenderContact._id,
+  };
+  // populating deal and deal summary for showing particular fields
   const options = {
     ...pick(query, ['limit', 'page']),
+    populate: [
+      {
+        path: 'deal',
+        select: ['dealName', 'city', 'state', 'address', 'zipcode'],
+        populate: { path: 'dealSummary', select: ['mainPhoto'] },
+      },
+    ],
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
