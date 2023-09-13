@@ -119,8 +119,11 @@ export const paginate = catchAsync(async (req, res) => {
   };
   // as we need placement stage and timeline for particular lender only so we are adding the below condition for this
   const lenderContact = await lenderContactService.getOne({ email: req.user.email });
+  // we are adding lenders in the deal so have to check whether the user is in the involved user lender of the deal or not if it's there then only show that deal to the lender
+  const deal = await dealService.getDealList({ 'involvedUsers.lenders': req.user._id });
   const filter = {
     lenderContact: lenderContact._id,
+    deal: deal.map((item) => item._id),
   };
   // populating deal and deal summary for showing particular fields
   const options = {
