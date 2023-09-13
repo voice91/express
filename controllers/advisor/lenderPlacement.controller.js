@@ -217,8 +217,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       text: isAdvisor,
       attachments: emailAttachments,
       isHtml: true,
-      //TODO: check that we need to send placementIds or not bcs now we get array in placementId
-      // headers,
+      // headers - if you want the functionality like advisor can also reply its own email then we can pass the headers
     });
     return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
   }
@@ -293,7 +292,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
         if (isFollowUp) {
           headers.push({ Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] });
         }
-        await emailService.sendEmail({
+        const response = await emailService.sendEmail({
           to: lenderPlacement.lenderContact.email,
           subject: isFollowUp ? `RE: ${getEmailSubjectForDeal(dealDetail)}` : req.body.subject,
           // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
@@ -317,24 +316,33 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
           }),
           isHtml: true,
           headers,
-          isSendDeal: true,
         });
+        //Adding postmark message id in placement while updating lender placement when deal is sent
         if (lenderPlacement.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
           const stage = EnumStageOfLenderPlacement.SENT;
           await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
             followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
             isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
             isEmailSentFirstTime: true,
+            $addToSet: {
+              postmarkMessageId: response.MessageID,
+              sendEmailPostmarkMessageId: response.MessageID
+            },
             stage,
             stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
             nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
             timeLine: manageLenderPlacementStageTimeline(lenderPlacement.stage, stage, lenderPlacement.timeLine),
           });
         } else {
+          //Adding postmark message id in placement while updating lender placement when we follow up for deal
           await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
             followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
             isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
             isEmailSentFirstTime: false,
+            $addToSet: {
+              postmarkMessageId: response.MessageID,
+              sendEmailPostmarkMessageId: response.MessageID
+            },
           });
         }
       })
@@ -1452,7 +1460,7 @@ export const sendMessage = catchAsync(async (req, res) => {
   // now we are not storing email template in the code
   const subject = getEmailSubjectForDeal(lenderPlacement.deal)
 
-  await emailService.sendEmail({
+  const response = await emailService.sendEmail({
     to: lenderPlacement.lenderContact.email,
     // for sending email in the thread we need to change subject like this
     subject: `Re: ${subject}`,
@@ -1472,11 +1480,15 @@ export const sendMessage = catchAsync(async (req, res) => {
     headers,
     replyTo: req.user.email,
   });
+  //Adding postmark message id in placement while updating lender placement when we send message to the lender
   await lenderPlacementService.updateLenderPlacement(
     { _id: lenderPlacementId },
     {
       $push: {
         messages: { sender: advisor.firstName, updatedAt: new Date(), message: body.message, documents: body.documents },
+      },
+      $addToSet: {
+        postmarkMessageId: response.MessageID,
       },
     }
   );

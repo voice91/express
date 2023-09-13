@@ -5,7 +5,6 @@
 import config from 'config/config';
 import { logger } from 'config/logger';
 import axios from 'axios';
-import { LenderPlacement } from '../models';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const postmark = require('postmark');
@@ -79,21 +78,12 @@ export const sendEmail = async (emailParams) => {
   // we have requirement that when lender reply to email than advisor should get email so for that need to add that email to here
   msg.ReplyTo = `${senderName}@${config.postmarkInboundDomain}, ${replyTo}`;
 
-  let placement = [];
-  if (msg.headers) {
-    placement = msg.headers.map((item) => item.Value);
-  }
   if (!msg.subject) {
     msg.subject = '';
   }
   const response = await transport.sendEmail(msg);
-  const messageId = response.MessageID;
-  const update = { $addToSet: { postmarkMessageId: messageId } };
-  // add messageId in this new field, so we can differentiate the reply & store message or lender note accordingly
-  if (isSendDeal) {
-    update.$addToSet.sendEmailPostmarkMessageId = messageId;
-  }
-  await LenderPlacement.findOneAndUpdate({ _id: placement[0] }, update, { new: true });
+  logger.info(`Email sent successfully to ${msg.to}}`);
+  return response;
 };
 
 /**
