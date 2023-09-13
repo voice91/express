@@ -48,6 +48,7 @@ import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
 import {
   removeLenderPlacementAssociatedThings,
 } from "../../services/lenderPlacement.service";
+import { logger } from "../../config/logger";
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -1430,17 +1431,15 @@ export const sendMessage = catchAsync(async (req, res) => {
     _id: lenderPlacementId,
   };
   const options = {
-    populate: {
-      path: 'deal'
-    }
-  }
+    populate: [
+      {
+        path: 'deal',
+      },
+      { path: 'lenderContact' },
+    ],
+  };
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
-  const lenderContact = await lenderContactService.getOne(
-    {
-      lenderInstitute: lenderPlacement.lendingInstitution,
-    },
-    { populate: 'lenderInstitute' }
-  );
+
   const emailAttachments = body.documents ? body.documents : [];
   const headers = [
     {
@@ -1454,7 +1453,7 @@ export const sendMessage = catchAsync(async (req, res) => {
   const subject = getEmailSubjectForDeal(lenderPlacement.deal)
 
   await emailService.sendEmail({
-    to: lenderContact.email,
+    to: lenderPlacement.lenderContact.email,
     // for sending email in the thread we need to change subject like this
     subject: `Re: ${subject}`,
     // ...(emailPresentingPostmark && { from: req.user.email }),
@@ -1481,6 +1480,7 @@ export const sendMessage = catchAsync(async (req, res) => {
       },
     }
   );
+  logger.info(`Message successfully sent to ${lenderPlacement.lenderContact.email} `);
   return res.status(httpStatus.OK).send({ results: 'Message sent...' });
 });
 
