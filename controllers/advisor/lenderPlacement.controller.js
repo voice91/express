@@ -576,8 +576,9 @@ export const update = catchAsync(async (req, res) => {
     if (body.stage === enumModel.EnumStageOfDeal.NEW) {
       body.isEmailSent = enumModel.EnumOfEmailStatus.SEND_DEAL;
       // When we change the status from sent to new then all the messages , contact, task, postmarkMessageId and sendEmailPostmarkMessageId should get removed
+      body.isEmailSentFirstTime = false
       body.messages = [];
-      body.$unset = { lenderContact: '' };
+      body.$unset = { lenderContact: '', terms: '', termSheet: '', followOnDate: '' };
       body.postmarkMessageId = [];
       body.sendEmailPostmarkMessageId = [];
       await removeLenderPlacementAssociatedThings(beforeLenderPlacementResult)
@@ -666,7 +667,6 @@ export const update = catchAsync(async (req, res) => {
       nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
     });
   }
-
   return res.status(httpStatus.OK).send({ results: lenderPlacementResult });
 });
 
