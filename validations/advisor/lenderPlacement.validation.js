@@ -228,6 +228,7 @@ export const getEmailDataV3 = {
 export const sendEmailV3 = {
   body: Joi.object().keys({
     subject: Joi.string().when('isFollowUp', { is: true, then: Joi.forbidden(), otherwise: Joi.required() }),
+    ccList: Joi.array().items(Joi.string().email()),
     // send to all lenders which we get in this
     lenderPlacementIds: Joi.array().items(Joi.objectId()).min(1).required(),
     emailContent: Joi.string().when('isFollowUp', { is: true, then: Joi.forbidden(), otherwise: Joi.required() }),

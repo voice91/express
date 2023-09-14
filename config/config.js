@@ -45,6 +45,7 @@ const envVarsSchema = Joi.object()
     ADMIN_EMAIL_ID: Joi.string().description('Admin Email Id'),
     POSTMARK_API_TOKEN: Joi.string().required().description('Postmark API Token is Required'),
     POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
+    ENCRYPTION_PASSWORD: Joi.string().description('Password for encrypt text'),
   })
   .unknown();
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -63,6 +64,7 @@ export default {
   postmarkInboundDomain: envVars.POSTMARK_INBOUND_DOMAIN,
   adminEmails: JSON.parse(envVars.ADMIN_EMAILS),
   defaultAdvisorToAddDeal: JSON.parse(envVars.DEFAULT_ADVISORS_TO_ADD_DEAL),
+  encryptionPassword: envVars.ENCRYPTION_PASSWORD,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {

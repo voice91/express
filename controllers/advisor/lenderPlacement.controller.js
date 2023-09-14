@@ -49,6 +49,7 @@ import {
   removeLenderPlacementAssociatedThings,
 } from "../../services/lenderPlacement.service";
 import { logger } from "../../config/logger";
+import {decrypt} from "../../utils/encrypt-decrypt-text";
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -154,7 +155,7 @@ export const getEmailDataV3 = catchAsync(async (req, res) => {
  * @type {(function(*, *, *): void)|*}
  */
 export const sendEmailV3 = catchAsync(async (req, res) => {
-  const { sendToAdvisor, isFollowUp } = req.body;
+  const { sendToAdvisor, isFollowUp, ccList } = req.body;
 
   const { emailPresentingPostmark } = req.user;
 
@@ -210,8 +211,10 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       };
     });
 
-    await emailService.sendEmail({
+    await emailService.sendEmailUsingGmail({
       to: req.user.email,
+      from: req.user.sendEmailFrom,
+      pass: decrypt(req.user.appPassword, config.encryptionPassword),
       subject: `TEST - ${req.body.subject}`,
       ...(emailPresentingPostmark && { from: req.user.email }),
       text: isAdvisor,
@@ -292,11 +295,13 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
         if (isFollowUp) {
           headers.push({ Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] });
         }
-        const response = await emailService.sendEmail({
+        const response = await emailService.sendEmailUsingGmail({
           to: lenderPlacement.lenderContact.email,
+          cc: ccList,
           subject: isFollowUp ? `RE: ${getEmailSubjectForDeal(dealDetail)}` : req.body.subject,
           // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
           from: req.user.sendEmailFrom,
+          pass: decrypt(req.user.appPassword, config.encryptionPassword),
           // for followup, we use this template
           text: isFollowUp ? getTextFromTemplate({
             lenderName: _.startCase(lenderPlacement.lenderContact.firstName),
@@ -1460,13 +1465,14 @@ export const sendMessage = catchAsync(async (req, res) => {
   // now we are not storing email template in the code
   const subject = getEmailSubjectForDeal(lenderPlacement.deal)
 
-  const response = await emailService.sendEmail({
+  const response = await emailService.sendEmailUsingGmail({
     to: lenderPlacement.lenderContact.email,
     // for sending email in the thread we need to change subject like this
     subject: `Re: ${subject}`,
     // ...(emailPresentingPostmark && { from: req.user.email }),
     // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
     from: req.user.sendEmailFrom,
+    pass: decrypt(req.user.appPassword, config.encryptionPassword),
     text: body.message,
     attachments: emailAttachments.map((item) => {
       return {
