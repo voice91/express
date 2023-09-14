@@ -1,11 +1,15 @@
-import { EnumStageOfDeal } from '../models/enum.model';
+import { EnumStageOfDeal, EnumStageOfLenderPlacement } from '../models/enum.model';
 import LenderPlacement from '../models/lenderPlacement.model';
+import { stageOfLenderPlacementWithNumber } from './enumStageOfLenderPlacement';
 
 // eslint-disable-next-line import/prefer-default-export
 export const detailsInDeal = async (stageName, dealId) => {
   let lenderPlacementNumber;
   if (stageName === EnumStageOfDeal.OUT_IN_MARKET) {
-    lenderPlacementNumber = await LenderPlacement.find({ deal: dealId }).count();
+    lenderPlacementNumber = await LenderPlacement.find({
+      deal: dealId,
+      stageEnumWiseNumber: { $lte: stageOfLenderPlacementWithNumber(EnumStageOfLenderPlacement.SENT) },
+    }).count();
   }
   let lenderPlacementQuotes;
   if (stageName === EnumStageOfDeal.SELECTING_LENDER) {

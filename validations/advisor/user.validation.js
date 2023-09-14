@@ -42,6 +42,7 @@ export const createUser = {
 export const updateUser = {
   body: Joi.object().keys({
     name: Joi.string(),
+    appPassword: Joi.string(),
     email: Joi.string().email(),
     sendEmailFrom: Joi.string().email(),
     role: Joi.string().valid(...Object.values(enumFields.EnumRoleOfUser)),

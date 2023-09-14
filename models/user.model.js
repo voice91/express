@@ -112,6 +112,13 @@ const UserSchema = new mongoose.Schema(
       required: true,
     },
     /**
+     * appPassword for access Google Account
+     * */
+    appPassword: {
+      type: String,
+      private: true,
+    },
+    /**
      * it will use for to show set password page, for new lender when we send email that time we are creating user if not exist in DB
      */
     enforcePassword: { type: Boolean, default: false },
