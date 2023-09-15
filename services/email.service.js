@@ -143,6 +143,13 @@ export const sendEmailUsingGmail = async (emailParams) => {
   }
 
   const response = await transporter.sendMail(mailOptions);
+  const { messageId } = response;
+  // here we are extracting only messageIdString part from the whole messageId getting in response
+  // In the response we are getting messageId like "<messageIdString@inbounddomain.com>" but we required to store only part "messageIdString".
+  // we required only messageIdString for the webhook API instead of whole messageId including domain
+  const messageIdParts = messageId.split('@'); // split messageId from @, so we get ["<messageIdString", "inbounddomain.com>"]
+  const extractedMessageId = messageIdParts[0].slice(1); // removing < from the starting of the messageIdString
+  Object.assign(response, { messageId: extractedMessageId });
   logger.info(`Email sent successfully to ${mailOptions.to}}`);
   return response;
 };
