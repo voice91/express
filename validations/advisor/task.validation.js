@@ -14,7 +14,10 @@ const taskDocumentSchema = Joi.object().keys({
 });
 const taskAnswerSchema = Joi.object().keys({
   answer: Joi.string(),
-  receivedAt: Joi.date().default(new Date()),
+  // if we do this than it will take the time of same time everytime which project run
+  // receivedAt: Joi.date().default(new Date()),
+  // set the receivedAt field to a function that returns the current date and time
+  receivedAt: Joi.date().default(() => new Date()),
   taskDocuments: Joi.array().items(taskDocumentSchema),
   answeredBy: Joi.string(),
   fileDescription: Joi.string(),
