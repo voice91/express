@@ -37,7 +37,7 @@ export const processEmailMessage = catchAsync(async (req, res) => {
   }
 
   const placement = await LenderPlacement.findOne({ postmarkMessageId: { $elemMatch: { $eq: msgId[0] } } });
-
+  logger.info(`MessageId of email received : ${msgId}`);
   if (placement) {
     const user = await userService.getOne({ email: req.body.From });
     const documents = [];

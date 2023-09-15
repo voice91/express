@@ -31,7 +31,7 @@ export const encrypt = (plainText, password) => {
     // Return the IV and encrypted data as a single string, separated by a colon.
     return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
   } catch (error) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `Error in decrypt text : ${error.message}`);
+    throw new ApiError(httpStatus.BAD_REQUEST, `Error in encrypt text : ${error.message}`);
   }
 };
 

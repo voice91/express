@@ -323,6 +323,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
           headers,
         });
         //Adding postmark message id in placement while updating lender placement when deal is sent
+        const postmarkMessageId = response.MessageID || response.messageId;
         if (lenderPlacement.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
           const stage = EnumStageOfLenderPlacement.SENT;
           await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
@@ -330,8 +331,8 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
             isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
             isEmailSentFirstTime: true,
             $addToSet: {
-              postmarkMessageId: response.MessageID,
-              sendEmailPostmarkMessageId: response.MessageID
+              postmarkMessageId,
+              sendEmailPostmarkMessageId: postmarkMessageId
             },
             stage,
             stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
@@ -345,8 +346,8 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
             isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
             isEmailSentFirstTime: false,
             $addToSet: {
-              postmarkMessageId: response.MessageID,
-              sendEmailPostmarkMessageId: response.MessageID
+              postmarkMessageId,
+              sendEmailPostmarkMessageId: postmarkMessageId
             },
           });
         }
@@ -1486,6 +1487,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     headers,
     replyTo: req.user.email,
   });
+  const postmarkMessageId = response.MessageID || response.messageId;
   //Adding postmark message id in placement while updating lender placement when we send message to the lender
   await lenderPlacementService.updateLenderPlacement(
     { _id: lenderPlacementId },
@@ -1494,7 +1496,7 @@ export const sendMessage = catchAsync(async (req, res) => {
         messages: { sender: advisor.firstName, updatedAt: new Date(), message: body.message, documents: body.documents },
       },
       $addToSet: {
-        postmarkMessageId: response.MessageID,
+        postmarkMessageId,
       },
     }
   );
