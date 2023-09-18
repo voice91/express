@@ -118,7 +118,8 @@ export function dealSummeryDto(dealSummary) {
       if (['Stabilized DY', 'Estimated LTV', 'In-Place DY'].includes(item.key)) {
         return changeData(item, 1, 'type', 'value');
       }
-      if (['Stabilized DSCR'].includes(item.key)) {
+      // In-Place DSCR also need to send in the 2 decimal with x
+      if (['Stabilized DSCR', 'In-Place DSCR'].includes(item.key)) {
         if (typeof item.value === 'string' && item.value.includes('x')) {
           return item;
         }
