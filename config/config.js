@@ -45,7 +45,7 @@ const envVarsSchema = Joi.object()
     ADMIN_EMAIL_ID: Joi.string().description('Admin Email Id'),
     POSTMARK_API_TOKEN: Joi.string().required().description('Postmark API Token is Required'),
     POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
-    POSTMARK_INBOUND_SENDERNAME: Joi.string().required().description('Postmark Inbound name'),
+    POSTMARK_INBOUND_SENDERNAME: Joi.string().description('Postmark Inbound name'),
     ENCRYPTION_PASSWORD: Joi.string().description('Password for encrypt text'),
   })
   .unknown();
