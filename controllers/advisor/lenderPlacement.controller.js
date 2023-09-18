@@ -157,7 +157,7 @@ export const getEmailDataV3 = catchAsync(async (req, res) => {
 export const sendEmailV3 = catchAsync(async (req, res) => {
   const { sendToAdvisor, isFollowUp, ccList } = req.body;
 
-  const { emailPresentingPostmark } = req.user;
+  // const { emailPresentingPostmark } = req.user;
 
   req.body.emailContent = req.body.emailContent && he.decode(req.body.emailContent);
 
@@ -216,7 +216,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       from: req.user.sendEmailFrom,
       pass: decrypt(req.user.appPassword, config.encryptionPassword),
       subject: `TEST - ${req.body.subject}`,
-      ...(emailPresentingPostmark && { from: req.user.email }),
+      // ...(emailPresentingPostmark && { from: req.user.email }),
       text: isAdvisor,
       attachments: emailAttachments,
       isHtml: true,
@@ -321,6 +321,8 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
           }),
           isHtml: true,
           headers,
+          // when we reply than it should go to sender also & sender is sendEmailFrom
+          replyTo: req.user.sendEmailFrom,
         });
         //Adding postmark message id in placement while updating lender placement when deal is sent
         const postmarkMessageId = response.MessageID || response.messageId;
@@ -1485,7 +1487,8 @@ export const sendMessage = catchAsync(async (req, res) => {
     isHtml: false,
     // Headers: [{ Name: 'In-Reply-To', Value: 'originalMessageId@example.com' }],
     headers,
-    replyTo: req.user.email,
+    // when we reply than it should go to sender also & sender is sendEmailFrom
+    replyTo: req.user.sendEmailFrom,
   });
   const postmarkMessageId = response.MessageID || response.messageId;
   //Adding postmark message id in placement while updating lender placement when we send message to the lender
