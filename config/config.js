@@ -45,6 +45,7 @@ const envVarsSchema = Joi.object()
     ADMIN_EMAIL_ID: Joi.string().description('Admin Email Id'),
     POSTMARK_API_TOKEN: Joi.string().required().description('Postmark API Token is Required'),
     POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
+    POSTMARK_INBOUND_SENDERNAME: Joi.string().required().description('Postmark Inbound name'),
     ENCRYPTION_PASSWORD: Joi.string().description('Password for encrypt text'),
   })
   .unknown();
@@ -62,6 +63,7 @@ export default {
   adminEmailId: envVars.ADMIN_EMAIL_ID,
   postmarkAPIToken: envVars.POSTMARK_API_TOKEN,
   postmarkInboundDomain: envVars.POSTMARK_INBOUND_DOMAIN,
+  postmarkInboundSenderName: envVars.POSTMARK_INBOUND_SENDERNAME,
   adminEmails: JSON.parse(envVars.ADMIN_EMAILS),
   defaultAdvisorToAddDeal: JSON.parse(envVars.DEFAULT_ADVISORS_TO_ADD_DEAL),
   encryptionPassword: envVars.ENCRYPTION_PASSWORD,

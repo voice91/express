@@ -132,8 +132,8 @@ export const sendEmailUsingGmail = async (emailParams) => {
       };
     });
   }
-  //
-  const senderName = from.split('@').reverse().pop();
+  // if we have this variable in env than take that else take sender name
+  const senderName = config.postmarkInboundSenderName || from.split('@').reverse().pop();
   // remove this thing bcs in gmail we do not need this one was for postmark conform & remove this
   // // we have requirement that when lender reply to email than advisor should get email so for that need to add that email to here
   mailOptions.replyTo = `${senderName}@${config.postmarkInboundDomain}, ${replyTo}`;
