@@ -1,9 +1,8 @@
 import httpStatus from 'http-status';
 import { catchAsync } from '../../utils/catchAsync';
 import { LenderPlacement } from '../../models';
-import { lenderNotesService, lenderPlacementService, userService } from '../../services';
+import { lenderPlacementService, userService } from '../../services';
 import { uploadEmailAttachmentToS3 } from '../../services/s3.service';
-import { EnumOfNotesTypeOfLenderNotes } from '../../models/enum.model';
 import { logger } from '../../config/logger';
 
 const he = require('he');
@@ -49,38 +48,40 @@ export const processEmailMessage = catchAsync(async (req, res) => {
         documents.push({ url, fileName: attachment.Name, fileType: attachment.ContentType });
       })
     );
-    if (placement.sendEmailPostmarkMessageId.includes(msgId[0])) {
-      const createLenderNotesBody = {
-        createdBy: placement.createdBy,
-        updatedBy: placement.updatedBy,
-        user: placement.createdBy,
-        content: message,
-        lenderInstitute: placement.lendingInstitution,
-        lenderPlacement: placement._id,
-        notesType: EnumOfNotesTypeOfLenderNotes.INTERNAL_NOTE,
-        // TODO: need to add condition when we don't have user in out DB
-        responseSenderName: user.firstName,
-      };
-      await lenderNotesService.createLenderNotes(createLenderNotesBody);
-      logger.info(`lender note created for ${message} bcs ${user.firstName} reply to send deal email`);
-    } else {
-      await lenderPlacementService.updateLenderPlacement(
-        { _id: placement._id },
-        {
-          $push: {
-            messages: {
-              // TODO: need to add condition when we don't have user in out DB
-              sender: user.firstName,
-              updatedAt: new Date(),
-              message,
-              documents,
-            },
+    // if (placement.sendEmailPostmarkMessageId.includes(msgId[0])) {
+    //   const createLenderNotesBody = {
+    //     createdBy: placement.createdBy,
+    //     updatedBy: placement.updatedBy,
+    //     user: placement.createdBy,
+    //     content: message,
+    //     lenderInstitute: placement.lendingInstitution,
+    //     lenderPlacement: placement._id,
+    //     notesType: EnumOfNotesTypeOfLenderNotes.INTERNAL_NOTE,
+    //     // TODO: need to add condition when we don't have user in out DB
+    //     responseSenderName: user.firstName,
+    //   };
+    //   await lenderNotesService.createLenderNotes(createLenderNotesBody);
+    //   logger.info(`lender note created for ${message} bcs ${user.firstName} reply to send deal email`);
+    // } else {
+    // as per the client requirement we all reply should store as message not lenderNotes
+    // TODO: remove sendEmailPostmarkMessageId bcs we will not use it anymore
+    await lenderPlacementService.updateLenderPlacement(
+      { _id: placement._id },
+      {
+        $push: {
+          messages: {
+            // TODO: need to add condition when we don't have user in out DB
+            sender: user.firstName,
+            updatedAt: new Date(),
+            message,
+            documents,
           },
-        }
-      );
-      logger.info(`message created for ${message} bcs ${user.firstName} reply to email`);
-    }
+        },
+      }
+    );
+    logger.info(`message created for ${message} bcs ${user.firstName} reply to email`);
   }
+  // }
 
   return res.status(httpStatus.OK).send({ success: true });
 });
