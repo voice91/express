@@ -128,6 +128,8 @@ export const sendEmailUsingGmail = async (emailParams) => {
   if (attachments) {
     mailOptions.attachments = attachments.map((item) => {
       return {
+        // need to send attachment with the name
+        filename: item.fileName,
         path: item.path,
       };
     });
