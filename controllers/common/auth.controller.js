@@ -125,3 +125,24 @@ export const enforcePassword = catchAsync(async (req, res) => {
   const user = await userService.enforcePassword(req.user._id, req.body);
   res.status(httpStatus.OK).send({ results: { user } });
 });
+
+/**
+ * send email to user for resetting the password
+ */
+export const forgotPassword = catchAsync(async (req, res) => {
+  const user = await userService.getOne({ email: req.body.email });
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "User doesn't exist");
+  }
+  const resetPasswordToken = await tokenService.generateResetPasswordToken(req.body.email);
+  await emailService.sendResetPasswordEmail(req.body.email, resetPasswordToken);
+  res.status(httpStatus.OK).send({ success: true, message: 'Link to forgot password has been sent' });
+});
+
+/**
+ * Set new password for the user
+ */
+export const resetPassword = catchAsync(async (req, res) => {
+  await authService.resetPasswordToken(req.body);
+  res.status(httpStatus.OK).send({ success: true, message: 'Password has been reset successfully' });
+});

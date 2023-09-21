@@ -83,6 +83,11 @@ export const verifyCode = async (verificationRequest) => {
   if (!tokenDoc) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Incorrect code');
   }
+  // to check whether the token is expired or not
+  const currentTime = new Date();
+  if (tokenDoc.expires <= currentTime) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Token expired');
+  }
   return tokenDoc;
 };
 

@@ -34,4 +34,14 @@ router.get('/me', auth(), authController.userInfo);
  */
 router.post('/enforce-password', auth(), validate(authValidation.enforcePassword), authController.enforcePassword);
 
+/**
+ *User gets the verification email to reset Password
+ */
+router.post('/forgot-password', validate(authValidation.forgotPassword), authController.forgotPassword);
+
+/**
+ * Reset the password for the user
+ */
+router.post('/reset-password', validate(authValidation.resetPassword), authController.resetPassword);
+
 module.exports = router;

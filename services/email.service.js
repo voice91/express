@@ -94,7 +94,7 @@ export const sendEmail = async (emailParams) => {
  */
 export const sendEmailUsingGmail = async (emailParams) => {
   // TODO : check how can we pass headers in the mail
-  const { to, subject, text, isHtml, attachments, headers, from, pass, cc, bcc, replyTo = '' } = emailParams;
+  const { to, subject, text, isHtml, attachments, from, pass, cc, bcc, replyTo = '' } = emailParams;
   // const msg = { from: config.email.from, to, subject, text };
   const transporter = nodemailer.createTransport({
     host: config.email.smtp.host,
@@ -204,10 +204,10 @@ const sendAdminEmail = async (from, to, subject, text) => {
  */
 export const sendResetPasswordEmail = async (to, token) => {
   const subject = 'Reset password';
-  // replace this url with the link to the reset password page of your front-end app
-  // const resetPasswordUrl = `http://link-to-app/reset-password?token=${token}`;
+  const resetPasswordUrl = `http://localhost:5173/forgotPassword?email=${to}&token=${token}`;
+  // Todo: Directly sending the reset password url right now, will change once design is set from FE side
   const text = `Dear user,
-  To reset your password, Copy this Code: ${token}
+  To reset your password, Click on this link: ${resetPasswordUrl} 
   If you did not request any password resets, then ignore this email.`;
   await sendEmail({ to, subject, text });
 };

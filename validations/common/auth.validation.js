@@ -4,6 +4,7 @@
  */
 import Joi from 'joi';
 import enumFields from 'models/enum.model';
+import config from '../../config/config';
 
 export const register = {
   body: Joi.object()
@@ -73,5 +74,25 @@ export const verifyEmail = {
 export const sendVerifyEmail = {
   body: Joi.object().keys({
     email: Joi.string().email().required(),
+  }),
+};
+
+/**
+ * validation for sending forgot password email to the user
+ */
+export const forgotPassword = {
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+  }),
+};
+
+/**
+ * validation for setting the new password
+ */
+export const resetPassword = {
+  body: Joi.object().keys({
+    password: Joi.string().required(),
+    email: Joi.string().email().required(),
+    code: Joi.string().length(config.jwt.resetPasswordCodeSize).required(),
   }),
 };

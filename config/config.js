@@ -47,6 +47,9 @@ const envVarsSchema = Joi.object()
     POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
     POSTMARK_INBOUND_SENDERNAME: Joi.string().description('Postmark Inbound name'),
     ENCRYPTION_PASSWORD: Joi.string().description('Password for encrypt text'),
+    RESET_PASSWORD_EXPIRATION_MINUTES: Joi.number()
+      .default(60)
+      .description('minutes after which password reset tokens expires'),
   })
   .unknown();
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -80,7 +83,7 @@ export default {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
     refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
-    resetPasswordExpirationMinutes: 10,
+    resetPasswordExpirationMinutes: envVars.RESET_PASSWORD_EXPIRATION_MINUTES,
     verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
     resetPasswordCodeSize: envVars.RESET_PASSWORD_CODE_SIZE,
   },
