@@ -1,6 +1,7 @@
 // import axios from 'axios';
 import httpStatus from 'http-status';
 import { Rates } from '../models';
+import { EnumOfRatesName } from '../models/enum.model';
 
 const moment = require('moment');
 
@@ -62,15 +63,30 @@ export async function ratesList(res, req, next) {
     const lastMonth = calculateSumAndAverageByNames(lastMonthRecord);
 
     // Combine rates with lastMonth and lastWeek data
-    const filalResult = rates.map((item) => {
+    const finalResult = rates.map((item) => {
       return {
         ...item._doc,
         lastMonth: lastMonth[item.name],
         lastWeek: lastWeek[item.name],
       };
     });
+    // Array to set the custom order of the data as per requirements of client
+    const customSortOrderArray = [
+      EnumOfRatesName.PRIME_RATE,
+      EnumOfRatesName.SOFR,
+      EnumOfRatesName.TREASURY_5_YEAR,
+      EnumOfRatesName.TREASURY_7_YEAR,
+      EnumOfRatesName.TREASURY_10_YEAR,
+      EnumOfRatesName.SOFR_1_MONTH_AVG,
+      EnumOfRatesName.SOFR_SWAP_2_YEAR,
+      EnumOfRatesName.SOFR_SWAP_5_YEAR,
+      EnumOfRatesName.SOFR_SWAP_7_YEAR,
+      EnumOfRatesName.SOFR_SWAP_10_YEAR,
+    ];
+    // sort the data as custom order of rates name as per requirements
+    finalResult.sort((a, b) => customSortOrderArray.indexOf(a.name) - customSortOrderArray.indexOf(b.name));
 
-    return res.status(httpStatus.OK).send({ results: filalResult });
+    return res.status(httpStatus.OK).send({ results: finalResult });
   } catch (error) {
     return next(error);
   }

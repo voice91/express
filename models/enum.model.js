@@ -285,6 +285,18 @@ const EnumOfSectionName = {
   FINANCIAL_SUMMARY: 'financialSummary',
   DOCUMENTS: 'documents',
 };
+const EnumOfRatesName = {
+  PRIME_RATE: 'Prime Rate',
+  SOFR: 'SOFR',
+  TREASURY_5_YEAR: 'Treasury 5-Year',
+  TREASURY_7_YEAR: 'Treasury 7-Year',
+  TREASURY_10_YEAR: 'Treasury 10-Year',
+  SOFR_1_MONTH_AVG: 'SOFR 1-Month Avg',
+  SOFR_SWAP_2_YEAR: 'SOFR Swap 2-Year',
+  SOFR_SWAP_5_YEAR: 'SOFR Swap 5-Year',
+  SOFR_SWAP_7_YEAR: 'SOFR Swap 7-Year',
+  SOFR_SWAP_10_YEAR: 'SOFR Swap 10-Year',
+};
 
 module.exports = {
   EnumPrePaymentTypeOfTerms,
@@ -317,4 +329,5 @@ module.exports = {
   EnumOfTypeOfValue,
   EnumOfSectionName,
   EnumNextStepOfLenderPlacement,
+  EnumOfRatesName,
 };
