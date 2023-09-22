@@ -158,8 +158,9 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
   const { sendToAdvisor, isFollowUp, ccList } = req.body;
 
   // const { emailPresentingPostmark } = req.user;
-
+  //a function call that decodes HTML-encoded text. It's commonly used to decode HTML entities like &lt; (represents <), &gt; (represents >), &amp; (represents &), and so on.
   req.body.emailContent = req.body.emailContent && he.decode(req.body.emailContent);
+  req.body.followUpContent = req.body.followUpContent && he.decode(req.body.followUpContent);
 
   _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
   const dealDetail = await dealService.getOne({_id: req.body.deal})
@@ -291,6 +292,16 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
           },
         ];
 
+        // It generates email text with placeholders replaced by actual parameter values for follow-up mail
+        const getFollowUpContent = () => {
+          return _.template(req.body.followUpContent)({
+            lenderFirstName: _.startCase(lenderPlacement.lenderContact.firstName) || 'Lender',
+            dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
+            advisorName: _.startCase(req.user.firstName) || 'Advisor',
+            passLink: `<a href=${passLink}>Pass</a>`,
+          });
+        };
+
         // we have to send followup email in thread so need to add this header
         if (isFollowUp) {
           headers.push({ Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] });
@@ -303,14 +314,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
           from: req.user.sendEmailFrom,
           pass: decrypt(req.user.appPassword, config.encryptionPassword),
           // for followup, we use this template
-          text: isFollowUp ? getTextFromTemplate({
-            lenderName: _.startCase(lenderPlacement.lenderContact.firstName),
-            dealSummaryLink,
-            passLink,
-            advisorName: _.startCase(req.user.firstName),
-            followUpContent: req.body.followUpContent || `following up, did you have any feedback on this deal.`,
-            emailTemplate: followUpEmailContent(),
-          }) :
+          text: isFollowUp ? getFollowUpContent() :
           getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
           attachments: req.body.emailAttachments && req.body.emailAttachments.map((item) => {
             return {
