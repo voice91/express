@@ -135,7 +135,8 @@ export const forgotPassword = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "User doesn't exist");
   }
   const resetPasswordToken = await tokenService.generateResetPasswordToken(req.body.email);
-  await emailService.sendResetPasswordEmail(req.body.email, resetPasswordToken);
+  // todo: we have to set the email infohighlender one and check
+  await emailService.sendResetPasswordEmail(resetPasswordToken, user);
   res.status(httpStatus.OK).send({ success: true, message: 'Link to forgot password has been sent' });
 });
 

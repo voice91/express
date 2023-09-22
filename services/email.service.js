@@ -202,14 +202,54 @@ const sendAdminEmail = async (from, to, subject, text) => {
  * @param {string} token
  * @returns {Promise}
  */
-export const sendResetPasswordEmail = async (to, token) => {
+export const sendResetPasswordEmail = async (token, user) => {
+  const { email: to, firstName } = user;
   const subject = 'Reset password';
-  const resetPasswordUrl = `http://localhost:5173/forgotPassword?email=${to}&token=${token}`;
-  // Todo: Directly sending the reset password url right now, will change once design is set from FE side
-  const text = `Dear user,
-  To reset your password, Click on this link: ${resetPasswordUrl} 
-  If you did not request any password resets, then ignore this email.`;
-  await sendEmail({ to, subject, text });
+  const resetPasswordUrl = `${config.front.url}/resetPassword?email=${to}&token=${token}`;
+  const text = `
+<html lang="en">
+<head>
+<style>
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  color: #ffffff !important;
+  background-color: #007bff;
+  border: 1px solid #007bff;
+  box-shadow: none;
+  text-decoration: none;
+}
+.text-center {
+text-align: center
+}
+</style>
+</head>
+<body>
+<div>
+<div>Hi ${firstName},</div>
+<br>
+  <div>Forgot your password?</div>
+  <div>We received a request to reset the password for your account.</div><br>
+  <div>To reset your password, click on the button below:</div>
+  <div><a   target="_blank" href="${resetPasswordUrl}" id="verifyButton" class="btn btn-primary" >Reset password</a></div><br><br>
+  <div>Or copy and paste the URL into your browser:</div>
+  <div>${resetPasswordUrl}</div>
+  </div>
+  </body>
+  </html>`;
+  await sendEmail({ to, subject, text, isHtml: true });
 };
 
 /**
