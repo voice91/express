@@ -91,6 +91,7 @@ export const createDealSummary = {
           inPlaceValue: Joi.alternatives().try(Joi.string(), Joi.number()),
           stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
           inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          note: Joi.string(),
         })
       ),
       expenses: Joi.array().items(
@@ -100,6 +101,7 @@ export const createDealSummary = {
           inPlaceValue: Joi.alternatives().try(Joi.string(), Joi.number()),
           stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
           inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+          note: Joi.string(),
         })
       ),
       netOperatingIncome: Joi.object().keys({
@@ -237,6 +239,7 @@ export const updateDealSummary = {
             inPlaceValue: Joi.string(),
             stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
             inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+            note: Joi.string(),
           })
         ),
         expenses: Joi.array().items(
@@ -246,6 +249,7 @@ export const updateDealSummary = {
             inPlaceValue: Joi.string(),
             stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
             inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+            note: Joi.string(),
           })
         ),
       })

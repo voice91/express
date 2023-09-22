@@ -135,6 +135,8 @@ const DealSummarySchema = new mongoose.Schema(
             type: String,
             enum: Object.values(enumModel.EnumOfTypeOfValue),
           },
+          // To store note for particular revenue field
+          note: String,
         },
       ],
       expenses: [
@@ -150,6 +152,8 @@ const DealSummarySchema = new mongoose.Schema(
             type: String,
             enum: Object.values(enumModel.EnumOfTypeOfValue),
           },
+          // To store note for particular expenses field
+          note: String,
         },
       ],
       netOperatingIncome: {
