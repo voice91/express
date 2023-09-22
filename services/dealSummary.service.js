@@ -72,8 +72,8 @@ function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
     }
   }
 
-  // adding comma separator at the end in all ammount section
-  if (data[keyToCheckType] !== EnumOfTypeOfValue.STRING) {
+  // Adding a comma separator at the end to format the numeric values in all sections that are neither of type string nor represent a year.
+  if (![EnumOfTypeOfValue.STRING, EnumOfTypeOfValue.YEAR].includes(data[keyToCheckType])) {
     if (typeof data[keyToAssign] === 'string') {
       if (data[keyToAssign].includes('$') && !/[,()%]/.test(data[keyToAssign])) {
         // Removing the dollar sign, if present

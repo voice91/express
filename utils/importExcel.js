@@ -35,13 +35,25 @@ function formatMathFormulaFormValue({ val, key, tableName }) {
   return val;
 }
 
-function typeOfValue(val, valueFromExcel) {
+/**
+ * This function determines the type of a given value based on its characteristics and context.
+ *
+ * @param {any} val - The value to be analyzed.
+ * @param {string} valueFromExcel - A string from Excel used to help identify the value type.
+ * @param {string} key - Name of field in the excel.
+ * @returns {string} - A string representing the determined type of the value.
+ */
+function typeOfValue(val, valueFromExcel, key = '') {
   if (typeof val === 'number') {
     if (valueFromExcel.includes('$')) {
       return EnumOfTypeOfValue.CURRENCY;
     }
     if (valueFromExcel.includes('%')) {
       return EnumOfTypeOfValue.PERCENTAGE;
+    }
+    // Year type has been implemented, ensuring that values categorized as such will not have comma separators added to them.
+    if (key.includes('Year')) {
+      return EnumOfTypeOfValue.YEAR;
     }
     return EnumOfTypeOfValue.NUMBER;
   }
@@ -83,7 +95,7 @@ export const importExcelFile = async (url) => {
             const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
             const result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Property Summary' });
             if (result) {
-              property.type = typeOfValue(result, '');
+              property.type = typeOfValue(result, '', key.value);
             }
             if (key.value) {
               property.key = key.value;

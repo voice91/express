@@ -275,6 +275,7 @@ const EnumOfTypeOfValue = {
   NUMBER: 'number',
   CURRENCY: 'currency',
   PERCENTAGE: 'percentage',
+  YEAR: 'year',
 };
 const EnumOfSectionName = {
   PROPERTY_SUMMARY: 'propertySummary',
