@@ -178,6 +178,8 @@ const messageSchema = new mongoose.Schema({
   },
   documents: { type: [documentSchema] },
   messageId: { type: String },
+  // to store the userId which has read the message
+  messageReadBy: { type: [mongoose.Schema.Types.ObjectId], ref: 'User' },
 });
 const LenderPlacementSchema = new mongoose.Schema(
   {

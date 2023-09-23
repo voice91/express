@@ -406,7 +406,7 @@ const getLenderPlacementFilterQuery = (query) => {
   return filter;
 };
 export const list = catchAsync(async (req, res) => {
-  const { query } = req;
+  const { query, user } = req;
   const queryParams = getLenderPlacementFilterQuery(query);
 
   const sortingObj = pick(query, ['sort', 'order']);
@@ -450,6 +450,9 @@ export const list = catchAsync(async (req, res) => {
         match: { notesType: enumModel.EnumOfNotesTypeOfLenderNotes.INTERNAL_NOTE },
       },
     ],
+    //by default messages field is set as select false in the model.
+    //we required messages field along with the other field so added + with the messages.
+    select: '+messages'
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
@@ -461,6 +464,18 @@ export const list = catchAsync(async (req, res) => {
   if (query.outstandingTask) {
     lenderPlacement = lenderPlacement.filter((placement) => placement.outstandingTaskCount > 0);
   }
+  //checking for the new messages is available or not .
+  //if current logged-in user's id is not available in messageReadBy array , then it is considered as this message is new, not read by user previously & hasNewMessagesAvailable marked as true.
+  //based on the hasNewMessagesAvailable , set the blue dot mark on the placement in FE.
+  lenderPlacement = lenderPlacement.map((placement)=> {
+    const hasNewMessage = placement.messages.some(message => !message.messageReadBy.includes(user._id))
+    if (hasNewMessage){
+      placement._doc.hasNewMessagesAvailable = true
+    } else {
+      placement._doc.hasNewMessagesAvailable = false
+    }
+    return placement
+  })
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 
@@ -1512,14 +1527,20 @@ export const sendMessage = catchAsync(async (req, res) => {
 });
 
 export const getMessages = catchAsync(async (req, res) => {
+  const { user } = req
   const { lenderPlacementId } = req.params;
   const filter = {
     _id: lenderPlacementId,
   };
   const options = {
     select: { messages: 1 },
+    new: true,
   };
-  const lenderPlacement = await lenderPlacementService.getOne(filter, options);
+  // Removed(commented) below line because we have to add the userId in messageReadBy array to mark as user read this message. so we are using update lenderPlacementService and pass the updated lenderPlacement data in the response.
+  // const lenderPlacement = await lenderPlacementService.getOne(filter, options);
+
+  // here updating the message is read by user, adding current userId to messageReadBy array so this message is marked as read by the current logged-in user.
+  const lenderPlacement = await lenderPlacementService.updateLenderPlacement(filter,  { $addToSet: { 'messages.$[].messageReadBy': user._id }}, options)
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 
