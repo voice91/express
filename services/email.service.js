@@ -226,7 +226,7 @@ export const sendResetPasswordEmail = async (token, user) => {
   border-radius: 0.25rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   color: #ffffff !important;
-  background-color: #007bff;
+  background-color: #051EA3;
   border: 1px solid #007bff;
   box-shadow: none;
   text-decoration: none;

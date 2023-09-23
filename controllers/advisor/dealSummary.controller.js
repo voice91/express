@@ -105,7 +105,7 @@ export const create = catchAsync(async (req, res) => {
 export const update = catchAsync(async (req, res) => {
   let { body } = req;
   const { otherPhotos } = body;
-  body.updatedBy = req.user;
+  body.updatedBy = req.user.id;
   const { dealSummaryId } = req.params;
   const { user } = req;
   // Validates the consistency of the requested loan amount across Sources, Deal Metrics and Financing Request
@@ -118,12 +118,21 @@ export const update = catchAsync(async (req, res) => {
     _id: dealSummaryId,
   };
 
-  Object.entries(body).forEach(([key, value]) => {
-    if (!value) {
-      body.$unset = { ...body.$unset, [key]: '' };
-      delete body[key];
-    }
-  });
+  // this for unsetting the field whose value is null in the body and also for the object that's in the body's object
+  const unsetting = (obj) => {
+    Object.entries(obj).forEach(([key, value]) => {
+      if (!value) {
+        // eslint-disable-next-line no-param-reassign
+        obj.$unset = { ...obj.$unset, [key]: '' };
+        // eslint-disable-next-line no-param-reassign
+        delete obj[key];
+      } else if (typeof value === 'object') {
+        unsetting(value);
+      }
+    });
+    return obj;
+  };
+  unsetting(body);
 
   if (body.otherPhotos) {
     const fileName = otherPhotos.map((item) => item.fileName);

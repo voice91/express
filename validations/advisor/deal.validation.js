@@ -20,6 +20,13 @@ const photoSchema = Joi.object().keys({
   url: Joi.string(),
   fileName: Joi.string(),
 });
+
+// validation for all the values in the heading field
+const headingSchema = Joi.object().keys({
+  dealName: Joi.string(),
+  cityState: Joi.string(),
+  dealInfo: Joi.string(),
+});
 export const createDeal = {
   body: Joi.object().keys({
     dealName: Joi.string().required(),
@@ -63,6 +70,7 @@ export const createDeal = {
       })
     ),
     dealSummaryBody: Joi.object({
+      heading: headingSchema,
       mainPhoto: photoSchema,
       propertySummary: Joi.array().items(
         Joi.object({

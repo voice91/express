@@ -12,6 +12,13 @@ const PhotosSchema = Joi.object().keys({
   fileName: Joi.string(),
 });
 
+// validation for all the values in the heading field
+const headingSchema = Joi.object().keys({
+  dealName: Joi.string().allow(null),
+  cityState: Joi.string().allow(null),
+  dealInfo: Joi.string().allow(null),
+});
+
 // eslint-disable-next-line import/prefer-default-export
 export const importFileForDealSummary = {
   query: Joi.object().keys({
@@ -314,6 +321,7 @@ export const updateDealSummary = {
       })
     ),
     isDealSummaryAddedFromDeal: Joi.boolean(),
+    heading: headingSchema,
   }),
   params: Joi.object().keys({
     dealSummaryId: Joi.objectId().required(),

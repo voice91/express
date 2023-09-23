@@ -17,6 +17,19 @@ const PhotosSchema = new mongoose.Schema({
     type: String,
   },
 });
+
+// heading schema as in the heading we need dealName, city, state, info: asset type, loan type, loan amount etc.
+const headingSchema = new mongoose.Schema({
+  dealName: {
+    type: String,
+  },
+  cityState: {
+    type: String,
+  },
+  dealInfo: {
+    type: String,
+  },
+});
 const DealSummarySchema = new mongoose.Schema(
   {
     /**
@@ -232,6 +245,8 @@ const DealSummarySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // this is for the heading the presentation tab
+    heading: headingSchema,
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
