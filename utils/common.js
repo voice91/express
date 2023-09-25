@@ -600,7 +600,8 @@ export const getEmailSubjectForDeal = (dealSummary) => {
 
   const dealNamePart = dealName ? `${dealName} - ` : '';
   const cityStatePart = cityState ? `${cityState} - ` : '';
-  const dealInfoPart = dealInfo || '';
+  const dealInfoPart = dealInfo ? `${dealInfo} - ` : '';
 
-  return `${dealNamePart}${cityStatePart}${dealInfoPart}`;
+  // The purpose of this .replace(/- $/, '') is to search for any trailing hyphen and space at the end of the generated string and remove it.
+  return `${dealNamePart}${cityStatePart}${dealInfoPart}`.replace(/- $/, '');
 };
