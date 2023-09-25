@@ -593,6 +593,14 @@ export const getStateFullName = (stateAbbreviation) => {
  * @return {`${string}-$${number}m Financing Request`}
  */
 export const getEmailSubjectForDeal = (dealSummary) => {
-  // as per new requirement now subject of mails should be heading of deal summary i.e., heading of presentation tab
-  return `${dealSummary.heading.dealName}, ${dealSummary.heading.dealInfo}`;
+  // As per new requirement now subject of mails should be heading of deal summary i.e., heading of presentation tab
+  // The field of heading are not required so have to add condition for which field is there in heading should be present in subject
+  // Also have to separate the field by -
+  const { dealName, cityState, dealInfo } = dealSummary.heading;
+
+  const dealNamePart = dealName ? `${dealName} - ` : '';
+  const cityStatePart = cityState ? `${cityState} - ` : '';
+  const dealInfoPart = dealInfo || '';
+
+  return `${dealNamePart}${cityStatePart}${dealInfoPart}`;
 };

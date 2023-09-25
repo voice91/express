@@ -70,7 +70,7 @@ export const createDeal = {
       })
     ),
     dealSummaryBody: Joi.object({
-      heading: headingSchema,
+      heading: headingSchema.required().min(1),
       mainPhoto: photoSchema,
       propertySummary: Joi.array().items(
         Joi.object({

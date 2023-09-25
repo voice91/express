@@ -321,7 +321,7 @@ export const updateDealSummary = {
       })
     ),
     isDealSummaryAddedFromDeal: Joi.boolean(),
-    heading: headingSchema,
+    heading: headingSchema.required().min(1),
   }),
   params: Joi.object().keys({
     dealSummaryId: Joi.objectId().required(),
