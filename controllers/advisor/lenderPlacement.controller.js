@@ -135,7 +135,7 @@ export const getEmailDataV3 = catchAsync(async (req, res) => {
     };
   });
 
-  const subject = getEmailSubjectForDeal(lenderPlacements[0].deal)
+  const subject = getEmailSubjectForDeal(lenderPlacements[0].deal.dealSummary._doc)
   const response = {
     subject,
     emailAttachments,
@@ -163,7 +163,8 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
   req.body.followUpContent = req.body.followUpContent && he.decode(req.body.followUpContent);
 
   _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
-  const dealDetail = await dealService.getOne({_id: req.body.deal})
+  // we need to populate the deal summary as for the email's subject we need heading field of the deal summary
+  const dealDetail = await dealService.getOne({_id: req.body.deal},{populate: {path: 'dealSummary'}} )
   const dealId = dealDetail._id;
   if (sendToAdvisor) {
     let firstName = 'lenderName'
@@ -216,7 +217,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       to: req.user.email,
       from: req.user.sendEmailFrom,
       pass: decrypt(req.user.appPassword, config.encryptionPassword),
-      subject: `TEST - ${req.body.subject}`,
+      subject: `TEST - ${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling commmon function for setting subject
       // ...(emailPresentingPostmark && { from: req.user.email }),
       text: isAdvisor,
       attachments: emailAttachments,
@@ -309,7 +310,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
         const response = await emailService.sendEmailUsingGmail({
           to: lenderPlacement.lenderContact.email,
           cc: ccList,
-          subject: isFollowUp ? `RE: ${getEmailSubjectForDeal(dealDetail)}` : req.body.subject,
+          subject: isFollowUp ? `RE: ${getEmailSubjectForDeal(dealDetail.dealSummary)}` : `${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling commmon function for setting subject
           // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
           from: req.user.sendEmailFrom,
           pass: decrypt(req.user.appPassword, config.encryptionPassword),
@@ -1469,6 +1470,9 @@ export const sendMessage = catchAsync(async (req, res) => {
     populate: [
       {
         path: 'deal',
+        populate: {
+          path: 'dealSummary'
+        }
       },
       { path: 'lenderContact' },
     ],
@@ -1485,7 +1489,7 @@ export const sendMessage = catchAsync(async (req, res) => {
   ];
 
   // now we are not storing email template in the code
-  const subject = getEmailSubjectForDeal(lenderPlacement.deal)
+  const subject = getEmailSubjectForDeal(lenderPlacement.deal.dealSummary._doc)
 
   const response = await emailService.sendEmailUsingGmail({
     to: lenderPlacement.lenderContact.email,

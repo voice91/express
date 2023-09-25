@@ -592,10 +592,7 @@ export const getStateFullName = (stateAbbreviation) => {
  * @param deal
  * @return {`${string}-$${number}m Financing Request`}
  */
-export const getEmailSubjectForDeal = (deal) => {
-  let totalLoanAmountForSubject = deal.loanAmount.replace(/[$,]/g, '') * 1;
-  // totalLoanAmount is converted into millions so if 1000000 then it should be 1
-  totalLoanAmountForSubject /= 1000000;
-  totalLoanAmountForSubject.toFixed(2);
-  return `${deal.dealName}-$${totalLoanAmountForSubject}m Financing Request`;
+export const getEmailSubjectForDeal = (dealSummary) => {
+  // as per new requirement now subject of mails should be heading of deal summary i.e., heading of presentation tab
+  return `${dealSummary.heading.dealName}, ${dealSummary.heading.dealInfo}`;
 };
