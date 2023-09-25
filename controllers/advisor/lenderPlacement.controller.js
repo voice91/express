@@ -224,6 +224,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       isHtml: true,
       // headers - if you want the functionality like advisor can also reply its own email then we can pass the headers
     });
+    logger.info(`Test email successfully sent to ${req.user.email} from ${req.user.sendEmailFrom}`);
     return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
   }
   const getText = (passLink, dealSummaryLink, firstName) => {
@@ -329,6 +330,12 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
           // when we reply than it should go to sender also & sender is sendEmailFrom
           replyTo: req.user.sendEmailFrom,
         });
+        if(isFollowUp){
+          logger.info(`Follow up mail sent successfully to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom}`);
+        }
+        else{
+          logger.info(`Email for deal sent successfully to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom}`);
+        }
         //Adding postmark message id in placement while updating lender placement when deal is sent
         const postmarkMessageId = response.MessageID || response.messageId;
         if (lenderPlacement.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
@@ -1526,7 +1533,7 @@ export const sendMessage = catchAsync(async (req, res) => {
       },
     }
   );
-  logger.info(`Message successfully sent to ${lenderPlacement.lenderContact.email} `);
+  logger.info(`Message successfully sent to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom} when advisor sent message from manage lender page`);
   return res.status(httpStatus.OK).send({ results: 'Message sent...' });
 });
 

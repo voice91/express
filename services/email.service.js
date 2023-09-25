@@ -152,7 +152,7 @@ export const sendEmailUsingGmail = async (emailParams) => {
   const messageIdParts = messageId.split('@'); // split messageId from @, so we get ["<messageIdString", "inbounddomain.com>"]
   const extractedMessageId = messageIdParts[0].slice(1); // removing < from the starting of the messageIdString
   Object.assign(response, { messageId: extractedMessageId });
-  logger.info(`Email sent successfully to ${mailOptions.to}}`);
+  logger.info(`Email sent successfully to ${mailOptions.to} from ${from}`);
   return response;
 };
 
