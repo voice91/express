@@ -398,9 +398,47 @@ Here are some coding practices which needs to follow in Node.js project:
 12. Utilize parameter destructuring to pass function parameters, promoting a professional and modern coding approach.
     ```javascript
     // Use
+    export const getUser = async ({userId, options}) => {
+      return User.findById(userId, options.projection, options);
+    };
     
+    // Don't use
+    const getUser = async (userId, options) => {
+      return User.findById(userId, options.projection, options);
+    };
     ```
-13. 
-
-
-
+13. Utilize the lodash isEmpty method to perform empty checks efficiently.
+    ```javascript
+    // Import isEmpty from lodash
+    import { isEmpty } from 'lodash';
+    
+    // Example 1: Check if an object is empty
+    const obj = {};
+    const isObjectEmpty = isEmpty(obj); // true
+    
+    // Example 2: Check if an array is empty
+    const array = [1, 2, 3];
+    const isArrayEmpty = isEmpty(array); // false
+    const isArrayEmpty = isEmpty([]); // true
+    ```
+14. Ensure that the code is committed without any ESLint errors in your project, provided that ESLint is set up. Do not suppress ESLint errors; only proceed with the commit if a solution is found. Prioritize resolving the issues before proceeding with the commit.
+15. Maintain an env.sample or example.env file in your project repository. Include all environment variables required for the application. Whenever you add new variables to the environment, update and commit this file.
+16. When using APIs for both web and mobile applications, consider creating new API versions (e.g., Version 2) to avoid breaking existing APIs. This allows you to introduce changes without disrupting the functionality for older clients.
+17. Ensure that any changes made to API responses are communicated to the frontend development team. This helps them make corresponding adjustments in their code.
+18. Create a new file named constants.js to store constant values. This approach ensures that when a change is required, it only needs to be made in a single location, thus preventing the need for modifications in multiple places.
+    ```javascript
+    // constants.js
+    export const TAX_RATE = 0.2; // 20% tax rate
+    
+    // Import the constant
+    import { TAX_RATE } from './constants.js';
+    
+    // Calculate tax for a given amount
+    const calculateTax = ({amount}) => {
+      const taxAmount = amount * TAX_RATE;
+      return taxAmount;
+    };
+    ```
+19. If we make any changes to the function, we need to ensure that the current process still works without any problems.
+20. When committing changes, it is standard procedure to create a pull request and request a review.
+21. When a pull request is merged, it is essential to conduct testing in either the staging or production environment.
