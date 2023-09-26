@@ -78,6 +78,7 @@ export const importExcelFile = async (url) => {
     const financingRequest = [];
     const sourcesAndUses = {};
     const rentRollSummary = [];
+    const customTableData = [];
     const financialSummary = {};
 
     workbook.eachSheet((excelSheetData) => {
@@ -508,15 +509,91 @@ export const importExcelFile = async (url) => {
             }
           }
         }
+      } else {
+        // TODO: make the common function for this to make reusable .
+        // Get the data for the current custom block table
+        const customBlockTableData = Workbook.Sheets[excelSheetData.name];
+        // Find the starting point in the sheet (skip the first entry which is usually "!" in Excel)
+        const startingPoint = Object.entries(customBlockTableData)[1];
+        if (startingPoint) {
+          // Initialize the current cell to the starting point
+          let currentCell = excelSheetData.getCell(startingPoint[0]);
+          const columnHeaders = [];
+          // Get the row number where the column headers are located
+          const columnHeaderRow = currentCell.row;
+          // use below columnHeaderRow value if header (title) added at the starting
+          // const columnHeaderRow = currentCell.row + 1;
+          // Retrieve column headers dynamically
+          while (true) {
+            // Get the cell for the current column header
+            const columnHeaderCell = excelSheetData.getCell(columnHeaderRow, currentCell.col);
+            // Break the loop if there are no more column headers
+            if (!columnHeaderCell.value) {
+              break;
+            }
+            // Add the column header to the array
+            columnHeaders.push(columnHeaderCell.value);
+            // Move to the next column
+            currentCell = excelSheetData.getCell(currentCell.row, currentCell.col + 1);
+          }
+          // Reset the current cell to the starting point
+          currentCell = excelSheetData.getCell(startingPoint[0]);
+          // Start processing data rows below the column headers
+          let dataRow = columnHeaderRow + 1;
+
+          // Process data rows dynamically
+          while (true) {
+            const rowData = [];
+            let hasData = false;
+
+            // Iterate through each column dynamically
+            // eslint-disable-next-line no-plusplus
+            for (let i = 0; i < columnHeaders.length; i++) {
+              const rowDataObject = {};
+              const columnValueCell = excelSheetData.getCell(dataRow, currentCell.col + i);
+              let columnValue = formatMathFormulaFormValue({
+                val: columnValueCell.value,
+                key: 'customTable',
+                tableName: 'customTable',
+              });
+              if (columnValue !== null) {
+                rowDataObject.key = columnHeaders[i];
+                rowDataObject.value = columnValue;
+                if (columnValue) {
+                  rowDataObject.type = typeOfValue(columnValue, columnValueCell.numFmt ? columnValueCell.numFmt : '');
+                }
+                if (columnValueCell.numFmt) {
+                  if (columnValueCell.numFmt.includes('%')) {
+                    columnValue *= 100;
+                  }
+                }
+                rowData.push(rowDataObject);
+                hasData = true;
+              }
+            }
+
+            if (hasData) {
+              customTableData.push(rowData);
+            }
+            // eslint-disable-next-line no-plusplus
+            dataRow++;
+            const checkEmptyCell = excelSheetData.getCell(dataRow, currentCell.col);
+
+            // Break the loop if the row is empty
+            if (!checkEmptyCell.value) {
+              break;
+            }
+          }
+        }
       }
     });
-
     data.propertySummary = propertySummary;
     data.dealMetrics = dealMetrics;
     data.financingRequest = financingRequest;
     data.sourcesAndUses = sourcesAndUses;
     data.rentRollSummary = rentRollSummary;
     data.financialSummary = financialSummary;
+    data.customTableData = customTableData;
     // Validates the consistency of the requested loan amount across Sources, Deal Metrics and Financing Request
     validateLoanAmount(data);
     return data;

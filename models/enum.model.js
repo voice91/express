@@ -268,6 +268,7 @@ const EnumOfDynamicFieldType = {
   TEXT: 'text',
   BULLET_TEXT: 'bulletText',
   FILE: 'file',
+  TABLE: 'table',
 };
 
 const EnumOfTypeOfValue = {

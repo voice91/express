@@ -19,6 +19,13 @@ const headingSchema = Joi.object().keys({
   dealInfo: Joi.string().allow(null),
 });
 
+// TODO : use this embed schema validation to reduce code duplication
+const dynamicFieldSchema = Joi.object().keys({
+  key: Joi.string(),
+  value: Joi.any(),
+  type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+});
+
 // eslint-disable-next-line import/prefer-default-export
 export const importFileForDealSummary = {
   query: Joi.object().keys({
@@ -134,6 +141,7 @@ export const createDealSummary = {
      * if type is text then in the response text is required ,
      * if type is bulletText then in the response bulletPoints and text are required ,
      * if type is file then in the response fileUrl and fileName are required ,
+     * if type is table then in the response fileUrl is required
      */
     dynamicField: Joi.array().items(
       Joi.object().keys({
@@ -141,6 +149,8 @@ export const createDealSummary = {
         type: Joi.string()
           .valid(...Object.values(enumFields.EnumOfDynamicFieldType))
           .required(),
+        // for tableType fields, if fileUrl is updated then isUpdated come true from FE, else false
+        isUpdated: Joi.boolean(),
         response: Joi.object()
           .when('type', {
             is: enumFields.EnumOfDynamicFieldType.BULLET,
@@ -166,6 +176,15 @@ export const createDealSummary = {
                     fileUrl: Joi.string().uri().required(),
                     fileName: Joi.string().required(),
                   }).required(),
+                  otherwise: Joi.object().when('type', {
+                    is: enumFields.EnumOfDynamicFieldType.TABLE,
+                    then: Joi.object({
+                      bulletPoints: Joi.optional(),
+                      fileUrl: Joi.string().uri().required(),
+                      fileName: Joi.string(),
+                      tableData: Joi.array().items(Joi.array().items(dynamicFieldSchema)),
+                    }).required(),
+                  }),
                 }),
               }),
             }),
@@ -279,6 +298,7 @@ export const updateDealSummary = {
      * if type is text then in the response text is required ,
      * if type is bulletText then in the response bulletPoints and text are required ,
      * if type is file then in the response fileUrl and fileName are required ,
+     * if type is table then in the response fileUrl is required ,
      */
     dynamicField: Joi.array().items(
       Joi.object().keys({
@@ -286,6 +306,8 @@ export const updateDealSummary = {
         type: Joi.string()
           .valid(...Object.values(enumFields.EnumOfDynamicFieldType))
           .required(),
+        // for tableType fields, if fileUrl is updated then isUpdated come true from FE, else false
+        isUpdated: Joi.boolean(),
         response: Joi.object()
           .when('type', {
             is: enumFields.EnumOfDynamicFieldType.BULLET,
@@ -311,6 +333,15 @@ export const updateDealSummary = {
                     fileUrl: Joi.string().uri().required(),
                     fileName: Joi.string().required(),
                   }).required(),
+                  otherwise: Joi.object().when('type', {
+                    is: enumFields.EnumOfDynamicFieldType.TABLE,
+                    then: Joi.object({
+                      bulletPoints: Joi.optional(),
+                      fileUrl: Joi.string().uri().required(),
+                      fileName: Joi.string(),
+                      tableData: Joi.array().items(Joi.array().items(dynamicFieldSchema)),
+                    }).required(),
+                  }),
                 }),
               }),
             }),

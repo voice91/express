@@ -11,6 +11,8 @@ import {
   validateLoanAmount,
 } from '../../utils/common';
 import FileFieldValidationEnum from '../../models/fileFieldValidation.model';
+import { EnumOfDynamicFieldType } from '../../models/enum.model';
+import { importExcelFile } from '../../utils/importExcel';
 
 // eslint-disable-next-line import/prefer-default-export
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
@@ -146,6 +148,17 @@ export const update = catchAsync(async (req, res) => {
 
   if (body.dynamicField && body.dynamicField.length) {
     body.dynamicField = addIndexForCustomBlocks(body.dynamicField);
+    // find the table type fields
+    const tableTypeDynamicFields = body.dynamicField.filter((block) => block.type === EnumOfDynamicFieldType.TABLE);
+    // if isUpdated field true then ,call importExcelFile function and import the data for each table type fields & update that data into tableData field
+    await Promise.all(
+      tableTypeDynamicFields.map(async (block) => {
+        if (block.isUpdated) {
+          const importDataFromFile = await importExcelFile(block.response.fileUrl);
+          Object.assign(block.response, { tableData: importDataFromFile.customTableData });
+        }
+      })
+    );
   }
   const options = { new: true };
 

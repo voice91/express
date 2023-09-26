@@ -30,6 +30,25 @@ const headingSchema = new mongoose.Schema({
     type: String,
   },
 });
+
+/**
+ * The 'key' field represents the name or identifier of the dynamic field.
+ * The 'value' field can store data of any type (Mixed) since it's dynamic.
+ * The 'type' field specifies the type of the 'value' field.
+ */
+const dynamicFieldSchema = new mongoose.Schema({
+  key: {
+    type: String,
+  },
+  value: {
+    type: Schema.Types.Mixed,
+  },
+  type: {
+    type: String,
+    enum: Object.values(enumModel.EnumOfTypeOfValue),
+  },
+});
+
 const DealSummarySchema = new mongoose.Schema(
   {
     /**
@@ -46,94 +65,14 @@ const DealSummarySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    propertySummary: [
-      {
-        key: {
-          type: String,
-        },
-        value: {
-          type: Schema.Types.Mixed,
-        },
-        type: {
-          type: String,
-          enum: Object.values(enumModel.EnumOfTypeOfValue),
-        },
-      },
-    ],
-    dealMetrics: [
-      {
-        key: {
-          type: String,
-        },
-        value: {
-          type: Schema.Types.Mixed,
-        },
-        type: {
-          type: String,
-          enum: Object.values(enumModel.EnumOfTypeOfValue),
-        },
-      },
-    ],
-    financingRequest: [
-      {
-        key: {
-          type: String,
-        },
-        value: {
-          type: Schema.Types.Mixed,
-        },
-        type: {
-          type: String,
-          enum: Object.values(enumModel.EnumOfTypeOfValue),
-        },
-      },
-    ],
+    propertySummary: [dynamicFieldSchema],
+    dealMetrics: [dynamicFieldSchema],
+    financingRequest: [dynamicFieldSchema],
     sourcesAndUses: {
-      sources: [
-        {
-          key: {
-            type: String,
-          },
-          value: {
-            type: String,
-          },
-          type: {
-            type: String,
-            enum: Object.values(enumModel.EnumOfTypeOfValue),
-          },
-        },
-      ],
-      uses: [
-        {
-          key: {
-            type: String,
-          },
-          value: {
-            type: String,
-          },
-          type: {
-            type: String,
-            enum: Object.values(enumModel.EnumOfTypeOfValue),
-          },
-        },
-      ],
+      sources: [dynamicFieldSchema],
+      uses: [dynamicFieldSchema],
     },
-    rentRollSummary: [
-      [
-        {
-          key: {
-            type: String,
-          },
-          value: {
-            type: Schema.Types.Mixed,
-          },
-          type: {
-            type: String,
-            enum: Object.values(enumModel.EnumOfTypeOfValue),
-          },
-        },
-      ],
-    ],
+    rentRollSummary: [[dynamicFieldSchema]],
     financialSummary: {
       revenue: [
         {
@@ -227,6 +166,13 @@ const DealSummarySchema = new mongoose.Schema(
           text: String,
           fileUrl: String,
           fileName: String,
+          /*
+           * The 'tableData' array is a nested array structure, used to store the data of table type dynamicFields.
+           * It contains an array of arrays where each inner array represents a row of data.
+           * Each row is an array of objects with three properties: 'key', 'value', and 'type'.
+           * tableData is imported from the url stored in fileUrl.
+           */
+          tableData: [[dynamicFieldSchema]],
         },
         // 'sectionName' property is a string representing the name of the section at below dynamicField added.
         sectionName: {
