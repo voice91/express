@@ -249,3 +249,158 @@ Here are some coding practices which needs to follow in Node.js project:
          }
         ```
    - we encourage developers to include links to external documentation, specifications, or relevant resources within their comments. These links should reference specific sections of external documentation that relate to the code in question, and it's essential to keep them up to date as external resources may evolve. By incorporating such documentation links, we enhance our codebase's comprehensibility and facilitate efficient development and collaboration
+
+5.  Linting and Formatting:
+    Integrate a linter and code formatter into the project to enforce the coding standards automatically. Popular tools for this in the React ecosystem include ESLint and Prettier.
+
+### Some common basic rules to be kept in mind to write clean code:
+
+1. Create multiple files instead of writing a big file.
+2. Use a linter to make your code easier to review. Follow strict linting rules. This in turn helps you write clean, consistent code.
+3. Replace all occurrences of console.log with the logger.info method, Retain crucial log statements, specifically those responsible for handling promise-related critical errors, ensure you utilize logger.error.
+    ```javascript
+    const resetPassword = catchAsync(async (req, res, next) => {
+      try {
+        logger.info(`Resetting the password for ${req.body.email} email`);
+        await authService.resetPasswordToken(req.body);
+        logger.info(`Password reset is successful for ${req.body.email} email`);
+        res.status(httpStatus.OK).send({success: true, message: 'Password has been reset successfully'});
+      } catch (error) {
+        logger.error(`Error in reset password: ${error}`);
+        next(new ApiError(httpStatus.BAD_REQUEST, error));
+      }
+    });
+    ```
+4. Before you commit your code, be sure to carefully check it to maintain high coding standards and professionalism.
+5. Create a set of utility files to eliminate redundant code across multiple files.
+6. Assign meaningful names to your files based on their respective functions and responsibilities.
+
+   ```javascript
+   // Example (file-name)
+   auth.service.js
+   
+   // Code
+   
+   // Import necessary modules
+   import User from '../models/user';
+       
+   // Function to register a new user
+   export async function registerUser(userData) {
+     try {
+       // Create a new user record in the database
+       const user = await User.create(userData);
+       return user;
+     } catch (error) {
+       throw error;
+     }
+   }
+    
+    // Function to log in a user
+    export async function loginUser(username, password) {
+      try {
+        // Check if the username and password match a user in the database
+        const user = await User.findOne({ username, password });
+        return user;
+      } catch (error) {
+        throw error;
+      }
+    }
+   ```
+
+7. Destructuring objects in code can contribute to improved code cleanliness and maintainability.
+   ```javascript
+     // good
+     const { user, body, params, query } = req;
+     const { page, limit } = query;
+     const { subscriptionId } = params;
+
+     // bad
+     const { firstName } = getUser;
+     const { sendEmailFrom } = getUser;
+     const { appPassword } = getUser;
+
+     // bad
+     const page = req.query.page;
+     const limit = req.query.limit;
+     const subscriptionId = req.params.subscriptionId;
+   ```
+
+8. Organizing Imports:- In your Node.js backend code, it's beneficial to organize imports in a structured and consistent manner. This practice helps in quickly identifying the source of dependencies and maintains a clean code structure.
+
+   We recommend the following order for organizing imports:
+   - Import built-in Node.js modules first. These modules are provided by Node.js itself.
+   - Import external packages or third-party libraries after built-in modules. These are packages you've installed using a package manager like npm or yarn.
+   - Import internal modules or files from your own project last. These could be custom modules or files you've created.
+
+       ```javascript
+       // Built-in Node.js modules
+       const fs = require('fs');
+       const http = require('http');
+       // External packages
+       const express = require('express');
+       const mongoose = require('mongoose');
+    
+       // Leave one blank line after external packages before importing internal modules.
+       // Internal modules or files
+       const userRoutes = require('./routes/userRoutes');
+       const database = require('./database');
+       ```
+  
+9. Import particular methods/functions from lodash lib, don’t import whole methods.
+
+    ```javascript
+    /* import only required methods excepts import whole lib */
+
+    // Use
+    import { get, map, filter, isEmpty } from 'lodash';
+
+    // Don't use
+    import * as _ from 'lodash';
+   
+    // Use
+    import { errorConverter, errorHandler } from 'middlewares/error';
+
+    // Don't use
+    import { errorHandler } from 'middlewares/error';
+    import { errorConverter } from 'middlewares/error'; 
+   
+    // Don't use
+    import error from 'middlewares/error';
+    error.errorConverter
+    ```
+10. Develop reusable module functions to facilitate consistent usage across your codebase. This approach not only enhances maintainability but also simplifies the process of updating these functions.
+
+    Example:
+    ```javascript
+    // common module function
+    const impactCalculations = ({ klixPoints }) => {
+      const carbon = klixPoints * 0.001;
+      const tree = Math.floor(klixPoints * 0.001);
+      const plastic = klixPoints * 0.002;
+      return ({ carbon, tree, plastic });
+    }
+    ```
+11. Use the export pattern of export const functionName rather than exporting as module.exports {} for a more professional and modern code structure.
+    ```javascript
+    // Use
+    export const getUser = async ({userId}) => {
+      return User.findById(userId);
+    };
+    
+    // Don't use
+    const getUser = async ({userId}) => {
+      return User.findById(userId);
+    };
+    module.exports = {
+      getUser
+    }
+    ```
+12. Utilize parameter destructuring to pass function parameters, promoting a professional and modern coding approach.
+    ```javascript
+    // Use
+    
+    ```
+13. 
+
+
+
