@@ -281,15 +281,14 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.user = req.user._id;
   let { role } = body;
   const userName = req.user.firstName;
-  const fromEmail = req.user.email;
   const getUser = await User.findOne({ _id: req.user._id });
-  const { emailPresentingPostmark } = getUser;
+  const { sendEmailFrom: fromEmail, appPassword: pass } = getUser;
   if (role === enumModel.EnumRoleOfUser.ADVISOR) {
     role = enumModel.EnumRoleOfUser.ADVISOR;
   } else {
     role = enumModel.EnumRoleOfUser.USER;
   }
   const deal = await Deal.findById({ _id: body.deal });
-  await dealService.InviteToDeal(fromEmail, body, role, userName, deal, emailPresentingPostmark);
+  await dealService.InviteToDeal(fromEmail, body, role, userName, deal, pass);
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
 });

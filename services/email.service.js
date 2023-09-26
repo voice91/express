@@ -5,6 +5,7 @@ import nodemailer from 'nodemailer';
 import config from 'config/config';
 import { logger } from 'config/logger';
 import axios from 'axios';
+import { decrypt } from '../utils/encrypt-decrypt-text';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const postmark = require('postmark');
@@ -308,15 +309,8 @@ text-align: center
 `;
   await sendEmail({ to, subject, text, isHtml: true });
 };
-export const sendInvitationEmail = async ({
-  emailPresentingPostmark,
-  fromEmail,
-  user,
-  dealName,
-  userName,
-  isDealCreated,
-  link,
-}) => {
+// as now, we don't want to use postmark email so removing it
+export const sendInvitationEmail = async ({ fromEmail, user, dealName, userName, isDealCreated, link, pass }) => {
   const invitee = user.split('@')[0];
   const to = user;
   const subject = `Parallel: ${isDealCreated ? 'New Deal Created' : 'Added to Deal'} - ${dealName}`;
@@ -364,8 +358,10 @@ text-align: center
   </body>
   </html>
 `;
-  await sendEmail({
-    ...(emailPresentingPostmark && { from: fromEmail }),
+  // as before we were sending mail from the sendEmailFrom set in the .env, but now we have to send it from the mail we set in our profile and whose app password we have set.
+  await sendEmailUsingGmail({
+    from: fromEmail,
+    pass: decrypt(pass, config.encryptionPassword), // as we have encrypted the app password while saving, so we have to decrypt here
     to,
     subject,
     text,

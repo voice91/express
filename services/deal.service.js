@@ -33,9 +33,7 @@ export async function getDealListWithPagination(filter, options = {}) {
 
 export async function createDeal(body) {
   const getUser = await User.findOne({ _id: body.user });
-  const userName = getUser.firstName;
-  const fromEmail = getUser.email;
-  const { emailPresentingPostmark } = getUser;
+  const { firstName: userName, sendEmailFrom: fromEmail, appPassword: pass } = getUser;
   if (body.involvedUsers && body.involvedUsers.advisors) {
     const advisor = body.involvedUsers.advisors;
     const advisors = await User.find({ _id: { $in: advisor } });
@@ -81,8 +79,8 @@ export async function createDeal(body) {
           userEmailNotExists.map(async (user) => {
             return emailService
               .sendInvitationEmail({
-                emailPresentingPostmark,
                 fromEmail,
+                pass,
                 user,
                 userName,
                 dealName: body.dealName,
@@ -117,8 +115,8 @@ export async function createDeal(body) {
       existingUsers.map(async (item) => {
         const user = item.email;
         return emailService.sendInvitationEmail({
-          emailPresentingPostmark,
           fromEmail,
+          pass,
           user,
           userName,
           dealName: body.dealName,
@@ -153,8 +151,8 @@ export async function createDeal(body) {
         body.dealMembers.map(async (user) => {
           return emailService
             .sendInvitationEmail({
-              emailPresentingPostmark,
               fromEmail,
+              pass,
               user,
               userName,
               dealName: body.dealName,
@@ -201,7 +199,7 @@ export async function createDeal(body) {
       const { role } = user;
       if (!dealCreate.involvedUsers.advisors.includes(user._id)) {
         // eslint-disable-next-line no-use-before-define
-        await InviteToDeal(fromEmail, body, role, userName, dealCreate, emailPresentingPostmark);
+        await InviteToDeal(fromEmail, body, role, userName, dealCreate, pass);
       }
     })
   );
@@ -248,7 +246,7 @@ export async function removeManyDeal(filter) {
   return deal;
 }
 
-export async function InviteToDeal(fromEmail, body, role, userName, deal, emailPresentingPostmark) {
+export async function InviteToDeal(fromEmail, body, role, userName, deal, pass) {
   const dealId = { _id: body.deal };
   const { email } = body;
 
@@ -292,8 +290,8 @@ export async function InviteToDeal(fromEmail, body, role, userName, deal, emailP
           userEmailNotExists.map(async (user) => {
             return emailService
               .sendInvitationEmail({
-                emailPresentingPostmark,
                 fromEmail,
+                pass,
                 user,
                 userName,
                 dealName: deal.dealName,
@@ -327,8 +325,8 @@ export async function InviteToDeal(fromEmail, body, role, userName, deal, emailP
       existingUsers.map(async (item) => {
         const user = item.email;
         return emailService.sendInvitationEmail({
-          emailPresentingPostmark,
           fromEmail,
+          pass,
           user,
           userName,
           dealName: deal.dealName,
@@ -361,8 +359,8 @@ export async function InviteToDeal(fromEmail, body, role, userName, deal, emailP
         email.map(async (user) => {
           return emailService
             .sendInvitationEmail({
-              emailPresentingPostmark,
               fromEmail,
+              pass,
               user,
               userName,
               dealName: deal.dealName,
