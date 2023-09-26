@@ -51,52 +51,14 @@ export const getDealSummaryById = {
 
 export const createDealSummary = {
   body: Joi.object().keys({
-    propertySummary: Joi.array().items(
-      Joi.object().keys({
-        key: Joi.string(),
-        value: Joi.any(),
-        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-      })
-    ),
-    dealMetrics: Joi.array().items(
-      Joi.object().keys({
-        key: Joi.string(),
-        value: Joi.any(),
-        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-      })
-    ),
-    financingRequest: Joi.array().items(
-      Joi.object().keys({
-        key: Joi.string(),
-        value: Joi.any(),
-        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-      })
-    ),
+    propertySummary: Joi.array().items(dynamicFieldSchema),
+    dealMetrics: Joi.array().items(dynamicFieldSchema),
+    financingRequest: Joi.array().items(dynamicFieldSchema),
     sourcesAndUses: Joi.object().keys({
-      sources: Joi.array().items(
-        Joi.object().keys({
-          key: Joi.string(),
-          value: Joi.string(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      ),
-      uses: Joi.array().items(
-        Joi.object().keys({
-          key: Joi.string(),
-          value: Joi.string(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      ),
+      sources: Joi.array().items(dynamicFieldSchema),
+      uses: Joi.array().items(dynamicFieldSchema),
     }),
-    rentRollSummary: Joi.array().items(
-      Joi.array().items(
-        Joi.object().keys({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      )
-    ),
+    rentRollSummary: Joi.array().items(Joi.array().items(dynamicFieldSchema)),
     financialSummary: Joi.object().keys({
       revenue: Joi.array().items(
         Joi.object().keys({
@@ -151,27 +113,33 @@ export const createDealSummary = {
           .required(),
         // for tableType fields, if fileUrl is updated then isUpdated come true from FE, else false
         isUpdated: Joi.boolean(),
+        // Added the tableData field as optional in validation of response in all(except table) type of dynamicField.
+        // Because get default added empty array in the response as it is defined in schema as array
         response: Joi.object()
           .when('type', {
             is: enumFields.EnumOfDynamicFieldType.BULLET,
             then: Joi.object({
+              tableData: Joi.optional(),
               bulletPoints: Joi.array().items(Joi.string()).min(1).required(),
             }).required(),
             otherwise: Joi.object().when('type', {
               is: enumFields.EnumOfDynamicFieldType.TEXT,
               then: Joi.object({
                 bulletPoints: Joi.optional(),
+                tableData: Joi.optional(),
                 text: Joi.string().required(),
               }).required(),
               otherwise: Joi.object().when('type', {
                 is: enumFields.EnumOfDynamicFieldType.BULLET_TEXT,
                 then: Joi.object({
+                  tableData: Joi.optional(),
                   bulletPoints: Joi.array().items(Joi.string()).min(1).required(),
                   text: Joi.string().required(),
                 }).required(),
                 otherwise: Joi.object().when('type', {
                   is: enumFields.EnumOfDynamicFieldType.FILE,
                   then: Joi.object({
+                    tableData: Joi.optional(),
                     bulletPoints: Joi.optional(),
                     fileUrl: Joi.string().uri().required(),
                     fileName: Joi.string().required(),
@@ -200,62 +168,16 @@ export const createDealSummary = {
 
 export const updateDealSummary = {
   body: Joi.object().keys({
-    propertySummary: Joi.array()
-      .items(
-        Joi.object().keys({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      )
-      .allow(''),
-    dealMetrics: Joi.array()
-      .items(
-        Joi.object().keys({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      )
-      .allow(''),
-    financingRequest: Joi.array()
-      .items(
-        Joi.object().keys({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      )
-      .allow(''),
+    propertySummary: Joi.array().items(dynamicFieldSchema).allow(''),
+    dealMetrics: Joi.array().items(dynamicFieldSchema).allow(''),
+    financingRequest: Joi.array().items(dynamicFieldSchema).allow(''),
     sourcesAndUses: Joi.object()
       .keys({
-        sources: Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            value: Joi.string(),
-            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          })
-        ),
-        uses: Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            value: Joi.string(),
-            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          })
-        ),
+        sources: Joi.array().items(dynamicFieldSchema),
+        uses: Joi.array().items(dynamicFieldSchema),
       })
       .allow(''),
-    rentRollSummary: Joi.array()
-      .items(
-        Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            value: Joi.any(),
-            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          })
-        )
-      )
-      .allow(''),
+    rentRollSummary: Joi.array().items(Joi.array().items(dynamicFieldSchema)).allow(''),
     financialSummary: Joi.object()
       .keys({
         revenue: Joi.array().items(
@@ -308,27 +230,33 @@ export const updateDealSummary = {
           .required(),
         // for tableType fields, if fileUrl is updated then isUpdated come true from FE, else false
         isUpdated: Joi.boolean(),
+        // Added the tableData field as optional in validation of response in all(except table) type of dynamicField.
+        // Because get default added empty array in the response as it is defined in schema as array
         response: Joi.object()
           .when('type', {
             is: enumFields.EnumOfDynamicFieldType.BULLET,
             then: Joi.object({
+              tableData: Joi.optional(),
               bulletPoints: Joi.array().items(Joi.string()).min(1).required(),
             }).required(),
             otherwise: Joi.object().when('type', {
               is: enumFields.EnumOfDynamicFieldType.TEXT,
               then: Joi.object({
+                tableData: Joi.optional(),
                 bulletPoints: Joi.optional(),
                 text: Joi.string().required(),
               }).required(),
               otherwise: Joi.object().when('type', {
                 is: enumFields.EnumOfDynamicFieldType.BULLET_TEXT,
                 then: Joi.object({
+                  tableData: Joi.optional(),
                   bulletPoints: Joi.array().items(Joi.string()).min(1).required(),
                   text: Joi.string().required(),
                 }).required(),
                 otherwise: Joi.object().when('type', {
                   is: enumFields.EnumOfDynamicFieldType.FILE,
                   then: Joi.object({
+                    tableData: Joi.optional(),
                     bulletPoints: Joi.optional(),
                     fileUrl: Joi.string().uri().required(),
                     fileName: Joi.string().required(),
