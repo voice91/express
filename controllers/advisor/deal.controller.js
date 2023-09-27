@@ -3,7 +3,17 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { activityLogService, dealService, dealSummaryService } from 'services';
+import {
+  activityLogService,
+  dealDocumentService,
+  dealNotesService,
+  dealService,
+  dealSummaryService,
+  invitationService,
+  lenderNotesService,
+  lenderPlacementService,
+  taskService,
+} from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
@@ -270,6 +280,30 @@ export const remove = catchAsync(async (req, res) => {
     _id: dealId,
     user,
   };
+  const filterToRemove = {
+    deal: dealId,
+  };
+  // finding lender placement as lender notes are related to them
+  const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filterToRemove);
+
+  // to remove all the data related to deal
+  try {
+    await Promise.allSettled([
+      dealSummaryService.removeDealSummary(filterToRemove),
+      dealDocumentService.removeDealDocument(filterToRemove),
+      dealNotesService.removeManyDealNotes(filterToRemove),
+      invitationService.removeManyInvitation(filterToRemove),
+      taskService.removeManyTask(filterToRemove),
+      // eslint-disable-next-line array-callback-return
+      ...lenderPlacement.map((item) => {
+        lenderNotesService.removeManyLenderNotes({ lenderPlacement: item._id });
+      }),
+      lenderPlacementService.removeManyLenderPlacement(filterToRemove),
+    ]);
+  } catch (error) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `Error with promise settled : ${error.message}`);
+  }
+
   const deal = await dealService.removeDeal(filter);
   return res.status(httpStatus.OK).send({ results: deal });
 });
