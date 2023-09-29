@@ -287,23 +287,24 @@ export const remove = catchAsync(async (req, res) => {
   const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filterToRemove);
 
   // to remove all the data related to deal
-  try {
-    await Promise.allSettled([
-      dealSummaryService.removeDealSummary(filterToRemove),
-      dealDocumentService.removeDealDocument(filterToRemove),
-      dealNotesService.removeManyDealNotes(filterToRemove),
-      invitationService.removeManyInvitation(filterToRemove),
-      taskService.removeManyTask(filterToRemove),
-      // eslint-disable-next-line array-callback-return
-      ...lenderPlacement.map((item) => {
-        lenderNotesService.removeManyLenderNotes({ lenderPlacement: item._id });
-      }),
-      lenderPlacementService.removeManyLenderPlacement(filterToRemove),
-    ]);
-  } catch (error) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `Error with promise settled : ${error.message}`);
-  }
-
+  await Promise.allSettled([
+    dealSummaryService.removeDealSummary(filterToRemove),
+    dealDocumentService.removeDealDocument(filterToRemove),
+    dealNotesService.removeManyDealNotes(filterToRemove),
+    invitationService.removeManyInvitation(filterToRemove),
+    taskService.removeManyTask(filterToRemove),
+    // eslint-disable-next-line array-callback-return
+    ...lenderPlacement.map((item) => {
+      lenderNotesService.removeManyLenderNotes({ lenderPlacement: item._id });
+    }),
+    lenderPlacementService.removeManyLenderPlacement(filterToRemove),
+  ]).then((results) =>
+    results.forEach((result) => {
+      if (result.status === 'rejected') {
+        console.error(`Promise failed with error: ${result.reason}`);
+      }
+    })
+  );
   const deal = await dealService.removeDeal(filter);
   return res.status(httpStatus.OK).send({ results: deal });
 });
