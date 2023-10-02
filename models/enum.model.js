@@ -131,9 +131,7 @@ const EnumLenderTypeOfLendingInstitution = {
   AGENCY: 'agency',
   HUD: 'hud',
   LIFE_INSURANCE: 'lifeInsurance',
-  LIFECO: 'lifeco',
   DEBT_FUND: 'debtFund',
-  HARD_MONEY: 'hardMoney',
   BANK: 'bank',
 };
 const EnumStageOfLenderPlacement = {
