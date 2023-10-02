@@ -30,7 +30,7 @@ import {
   manageDealStageTimeline,
   manageLenderPlacementStageTimeline,
 } from 'utils/common';
-import _ from 'lodash';
+import _, {find, includes, isEmpty, isUndefined, round, sum} from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { Deal, EmailTemplate, LenderPlacement, User } from '../../models';
@@ -163,9 +163,84 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
   req.body.followUpContent = req.body.followUpContent && he.decode(req.body.followUpContent);
 
   _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+  //function for format currency (round of the value and to show in the form of 'k' if the value is less than 1 million)
+const formatCurrency = (amount) => {
+    if (typeof amount === 'string') {
+      const floatValue = getAmountInFloat(amount);
+      if (isNaN(floatValue)) {
+
+        return 0;
+      }
+      amount = floatValue;
+
+    } else if (isUndefined(amount)) {
+      return 0;
+    }
+    if (amount >= 1000000) {
+      const lastDigit = round(amount / 1000000, 2)
+          .toString()
+          .slice(-1);
+      if (lastDigit === '5') {
+        return `$${round(amount / 1000000, 2)}m`;
+      } else {
+        return `$${round(amount / 1000000, 1)}m`;
+      }
+    } else {
+      return `$${round(amount / 1000, 0)}k`;
+    }
+  };
+
+// To convert the value into string
+const getAmountFromString = (value) => {
+    if (value) {
+      return value.toString()?.replace(/[$,]/g, '');
+    }
+    return value;
+  };
+
+// To convert the value into float
+const getAmountInFloat = (value, removeDollarAndCommas = true) => {
+    if (value) {
+      if (removeDollarAndCommas) {
+        return parseFloat(getAmountFromString(value));
+      }
+      return parseFloat(value?.toString());
+    }
+    return value;
+  };
   // we need to populate the deal summary as for the email's subject we need heading field of the deal summary
   const dealDetail = await dealService.getOne({_id: req.body.deal},{populate: {path: 'dealSummary'}} )
   const dealId = dealDetail._id;
+  const dealSummaryUsesData = dealDetail?.dealSummary?.sourcesAndUses?.uses || [];
+  const totalUses = sum(dealSummaryUsesData?.map((use) => getAmountInFloat(use?.value)));
+  const removeTotalUses = dealSummaryUsesData?.filter((item) => item?.key !== 'Total Uses');
+  const usesKeyValue = removeTotalUses
+      ?.map((value) => {
+        return `${formatCurrency(value.value)} of ${value.key}`;
+      })
+      .join(', ');
+  const firstUsesValue = formatCurrency(dealSummaryUsesData ? _.get(dealSummaryUsesData[0], 'value', '') : '');
+  const ltcValue = getAmountInFloat(dealDetail?.loanAmount) / totalUses || 0;
+  const inPlaceDYVal = find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place DY')?.value;
+  const inStabilizedDYVal = find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized DY')?.value;
+  const existingLoanBalance = find(dealSummaryUsesData, (data) =>
+      includes(
+          [
+            'Loan Balance',
+            'Current Loan Balance',
+            'Existing Loan Balance',
+            'Current Debt',
+            'Current Debt Balance',
+            'Debt Balance',
+            'Payoff Loan Balance',
+            'Payoff Current Loan Balance',
+            'Payoff Existing Loan Balance',
+            'Payoff Current Debt Balance',
+            'Payoff Debt Balance',
+          ],
+          data?.key
+      )
+  )?.value;
   if (sendToAdvisor) {
     let firstName = 'lenderName'
     // if we send to multiple placement than send generic lender name else selected lender name
@@ -184,24 +259,29 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       lenderFirstName: _.startCase(firstName),
       advisorName:_.startCase(req.user.firstName),
       sponsorName: req.user.firstName || '[Sponsor Name]',
-      amount: (parseFloat(String(dealDetail.loanAmount)?.replaceAll(/[$,]/g, '')) || 0) / 1000000 || '[amount]',
+      amount: formatCurrency(dealDetail?.loanAmount) || 'NA',
       loanPurpose: dealDetail.loanPurpose || '[loan purpose]',
       dealName: dealDetail.dealName || '[deal name]',
       unitCount: dealDetail.unitCount || '[unitCount]',
       propertyType: dealDetail.assetType || '[propertyType]',
-      toBeBuilt: '[to-be-built]',
+      toBeBuilt: 'NA',
       address: dealDetail.address || '[address]',
       city: dealDetail.city || '[city]',
       state: getStateFullName(dealDetail.state) || '[state]',
-      purchasePrice:
-          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx purchasePrice]',
-      inPlaceNOI:
-          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
-      stabilizedNOI:
-          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
+      purchasePrice: formatCurrency(find(dealSummaryUsesData, (data) => data.key === 'Purchase Price')?.value) || 'NA',
+      inPlaceNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
+      stabilizedNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
+      squareFootage: dealDetail?.squareFootage || '[Square Footage]',
+      occupancy: dealDetail?.occupancy || '[Occupancy]',
+      totalUsesValue: !isEmpty(dealSummaryUsesData) ? formatCurrency(totalUses) : 'NA',
+      usesKeyValue: usesKeyValue || 'NA',
+      LTC: round(ltcValue / 100, 1) || 'NA',
+      firstUsesValue: firstUsesValue || 'NA',
+      existingLoanBalance: existingLoanBalance || 'NA',
+      inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
+      stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
+      sponsorBioName: '[[Sponsor bio from Sponsor bio page]]',
+      loanTypeValue: dealDetail?.loanType || 'NA',
       dealSummaryLink: `<a href='#'>Deal Summary</a>`,
       passLink:`<a href='#'>Pass</a>`,
     });
@@ -232,24 +312,29 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       lenderFirstName: _.startCase(firstName),
       advisorName:_.startCase(req.user.firstName),
       sponsorName: _.startCase(req.user.firstName) || '[Sponsor Name]',
-      amount: (parseFloat(String(dealDetail?.loanAmount)?.replaceAll(/[$,]/g, '')) || 0) / 1000000 || '[x.xx]',
+      amount: formatCurrency(dealDetail?.loanAmount) || 'NA',
       loanPurpose: dealDetail?.loanPurpose || '[loan purpose]',
       dealName: dealDetail?.dealName || '[deal name]',
       unitCount: dealDetail?.unitCount || '[unitCount]',
       propertyType: dealDetail?.assetType || '[propertyType]',
-      toBeBuilt: '[to-be-built]',
+      toBeBuilt: 'NA',
       address: dealDetail?.address || '[address]',
       city: dealDetail?.city || '[city]',
       state: getStateFullName(dealDetail.state) || '[state]',
-      purchasePrice:
-          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
-      inPlaceNOI:
-          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
-      stabilizedNOI:
-          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
+      purchasePrice: formatCurrency(find(dealSummaryUsesData, (data) => data.key === 'Purchase Price')?.value) || 'NA',
+      inPlaceNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
+      stabilizedNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
+      squareFootage: dealDetail?.squareFootage || '[Square Footage]',
+      occupancy: dealDetail?.occupancy || '[Occupancy]',
+      totalUsesValue: !isEmpty(dealSummaryUsesData) ? formatCurrency(totalUses) : 'NA',
+      usesKeyValue: usesKeyValue || 'NA',
+      LTC: round(ltcValue / 100, 1) || 'NA',
+      firstUsesValue: firstUsesValue || 'NA',
+      existingLoanBalance: existingLoanBalance || 'NA',
+      inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
+      stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
+      sponsorBioName: '[[Sponsor bio from Sponsor bio page]]',
+      loanTypeValue: dealDetail?.loanType || 'NA',
       dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
       passLink:`<a href=${passLink}>Pass</a>`,
     });
