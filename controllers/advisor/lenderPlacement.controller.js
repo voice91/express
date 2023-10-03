@@ -527,7 +527,8 @@ export const list = catchAsync(async (req, res) => {
       {
         path: 'task',
         match: {
-          deal: query.deal
+          deal: query.deal,
+          isCompleted: false
         },
       },
       {
