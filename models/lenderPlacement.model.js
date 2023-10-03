@@ -320,6 +320,13 @@ LenderPlacementSchema.virtual('lenderAllContacts', {
   justOne: false,
 });
 
+LenderPlacementSchema.virtual('task', {
+  ref: 'Task',
+  localField: 'lendingInstitution',
+  foreignField: 'askingPartyInstitute',
+  justOne: false,
+});
+
 LenderPlacementSchema.virtual('outstandingTaskCount', {
   ref: 'Task',
   localField: 'lendingInstitution',

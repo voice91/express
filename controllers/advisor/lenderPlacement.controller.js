@@ -525,6 +525,12 @@ export const list = catchAsync(async (req, res) => {
         path: 'lenderAllContacts',
       },
       {
+        path: 'task',
+        match: {
+          deal: query.deal
+        },
+      },
+      {
         path: 'outstandingTaskCount',
         count: true,
         match: {
