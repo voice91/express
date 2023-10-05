@@ -47,6 +47,9 @@ const envVarsSchema = Joi.object()
     POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
     POSTMARK_INBOUND_SENDERNAME: Joi.string().description('Postmark Inbound name'),
     ENCRYPTION_PASSWORD: Joi.string().description('Password for encrypt text'),
+    DATA_ENCRYPTION: Joi.boolean()
+      .description('Flag to enable/disable encryption and decryption of response and request')
+      .required(),
     RESET_PASSWORD_EXPIRATION_MINUTES: Joi.number()
       .default(60)
       .description('minutes after which password reset tokens expires'),
@@ -70,6 +73,7 @@ export default {
   adminEmails: JSON.parse(envVars.ADMIN_EMAILS),
   defaultAdvisorToAddDeal: JSON.parse(envVars.DEFAULT_ADVISORS_TO_ADD_DEAL),
   encryptionPassword: envVars.ENCRYPTION_PASSWORD,
+  dataEncryption: envVars.DATA_ENCRYPTION,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {

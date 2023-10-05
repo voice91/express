@@ -20,6 +20,8 @@ import { errorConverter, errorHandler } from 'middlewares/error';
 import sendResponse from 'middlewares/sendResponse';
 import config from 'config/config';
 import { successHandler, errorHandler as morganErrorHandler } from 'config/morgan';
+import { decrypt } from 'utils/encrypt-decrypt-text';
+import { isEmpty } from 'lodash';
 
 const actuator = require('express-actuator');
 require('./utils/rates-cronJob');
@@ -33,11 +35,23 @@ if (config.env !== 'test') {
   app.use(successHandler);
   app.use(morganErrorHandler);
 }
+app.use(cors());
+
 // set security HTTP headers
 app.use(helmet());
 // parse json request body
 // we need to set limit to 50 mb bcs in webhook when attachment is attached than it will give error like request entity too large
 app.use(express.json({ limit: '50mb' }));
+// decrypt the req body and parse to Json format.
+app.use((req, res, next) => {
+  if (config.dataEncryption && !isEmpty(req.body)) {
+    if (!req.body.reqBody) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body must be encrypted');
+    }
+    req.body = JSON.parse(decrypt(req.body.reqBody, config.encryptionPassword));
+  }
+  next();
+});
 app.use(fileUpload());
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
@@ -49,7 +63,6 @@ app.use(compression());
 // set api response
 app.use(sendResponse);
 // enable cors
-app.use(cors());
 app.options('*', cors());
 app.use(express.static(path.join(__dirname, '../public')));
 // jwt authentication
