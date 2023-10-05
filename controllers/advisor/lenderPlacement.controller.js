@@ -208,6 +208,16 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
     }
     return value;
   };
+
+// To remove the sentence for unitCount, Occupancy and SF when we don't have its value
+ const removeStringFromTemplate = (sentence = '') => {
+    const updatedSentence = sentence
+        .replace(/\[unitCount\]-unit,/, '')
+        .replace(/\[Occupancy\] occupied/, '')
+        .replace(/\[Square Footage\] SF,/, '');
+    return updatedSentence;
+  };
+
   // we need to populate the deal summary as for the email's subject we need heading field of the deal summary
   const dealDetail = await dealService.getOne({_id: req.body.deal},{populate: {path: 'dealSummary'}} )
   const dealId = dealDetail._id;
@@ -255,19 +265,20 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       const lenderPlacement = await lenderPlacementService.getOne({ _id: req.body.lenderPlacementIds[0] }, options);
       firstName = lenderPlacement.lenderContact.firstName
     }
+    // Todo: create common function for creating template for both send test email and send email
     const isAdvisor = _.template(req.body.emailContent)({
       lenderFirstName: _.startCase(firstName),
       advisorName:_.startCase(req.user.firstName),
-      sponsorName: req.user.firstName || '[Sponsor Name]',
+      sponsorName: '[[Sponsor Name]]',
       amount: formatCurrency(dealDetail?.loanAmount) || 'NA',
-      loanPurpose: dealDetail.loanPurpose || '[loan purpose]',
-      dealName: dealDetail.dealName || '[deal name]',
+      loanPurpose: dealDetail.loanPurpose || 'NA',
+      dealName: dealDetail.dealName || 'NA',
       unitCount: dealDetail.unitCount || '[unitCount]',
-      propertyType: dealDetail.assetType || '[propertyType]',
+      propertyType: dealDetail.assetType || 'NA',
       toBeBuilt: 'NA',
-      address: dealDetail.address || '[address]',
-      city: dealDetail.city || '[city]',
-      state: getStateFullName(dealDetail.state) || '[state]',
+      address: dealDetail.address || 'NA',
+      city: dealDetail.city || 'NA',
+      state: getStateFullName(dealDetail.state) || 'NA',
       purchasePrice: formatCurrency(find(dealSummaryUsesData, (data) => data.key === 'Purchase Price')?.value) || 'NA',
       inPlaceNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
       stabilizedNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
@@ -299,7 +310,7 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       pass: decrypt(req.user.appPassword, config.encryptionPassword),
       subject: `TEST - ${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling commmon function for setting subject
       // ...(emailPresentingPostmark && { from: req.user.email }),
-      text: isAdvisor,
+      text: removeStringFromTemplate(isAdvisor),
       attachments: emailAttachments,
       isHtml: true,
       // headers - if you want the functionality like advisor can also reply its own email then we can pass the headers
@@ -311,16 +322,16 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
     const data = _.template(req.body.emailContent)({
       lenderFirstName: _.startCase(firstName),
       advisorName:_.startCase(req.user.firstName),
-      sponsorName: _.startCase(req.user.firstName) || '[Sponsor Name]',
+      sponsorName: '[[Sponsor Name]]',
       amount: formatCurrency(dealDetail?.loanAmount) || 'NA',
-      loanPurpose: dealDetail?.loanPurpose || '[loan purpose]',
-      dealName: dealDetail?.dealName || '[deal name]',
+      loanPurpose: dealDetail?.loanPurpose || 'NA',
+      dealName: dealDetail?.dealName || 'NA',
       unitCount: dealDetail?.unitCount || '[unitCount]',
-      propertyType: dealDetail?.assetType || '[propertyType]',
+      propertyType: dealDetail?.assetType || 'NA',
       toBeBuilt: 'NA',
-      address: dealDetail?.address || '[address]',
-      city: dealDetail?.city || '[city]',
-      state: getStateFullName(dealDetail.state) || '[state]',
+      address: dealDetail?.address || 'NA',
+      city: dealDetail?.city || 'NA',
+      state: getStateFullName(dealDetail.state) || 'NA',
       purchasePrice: formatCurrency(find(dealSummaryUsesData, (data) => data.key === 'Purchase Price')?.value) || 'NA',
       inPlaceNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
       stabilizedNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
@@ -338,7 +349,7 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
       passLink:`<a href=${passLink}>Pass</a>`,
     });
-    return data;
+    return removeStringFromTemplate(data)
   };
   // for adding lender's userid in the deal when we send deal to them
   const lenderUserIdsToAddInDeal= []
