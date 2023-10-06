@@ -20,6 +20,8 @@ import addUserRoute from './common/addUser/addUser.route';
 
 import addLogoRoute from './common/addLogo/addLogo.route';
 
+import dealSummaryOMRoute from './common/OMGenerator/dealSummaryOM.route';
+
 const userRoutes = require('./user');
 const advisorRoutes = require('./advisor');
 const lenderRoutes = require('./lender');
@@ -38,4 +40,5 @@ router.use('/auth', authRoutes);
 router.use('/webhook', webhookRoutes);
 router.use('/add-user', addUserRoute);
 router.use('/add-logo', addLogoRoute);
+router.use('/deal-summary', dealSummaryOMRoute);
 module.exports = router;

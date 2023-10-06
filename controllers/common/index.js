@@ -10,3 +10,4 @@ module.exports.exportDBController = require('./exportDB.controller');
 module.exports.webhookController = require('./webhook.controller');
 module.exports.addUserController = require('./addUser.controller');
 module.exports.addLogoController = require('./addLogo.controller');
+module.exports.dealSummaryOMController = require('./dealSummaryOM.controller');

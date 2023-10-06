@@ -47,6 +47,7 @@ const envVarsSchema = Joi.object()
     POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
     POSTMARK_INBOUND_SENDERNAME: Joi.string().description('Postmark Inbound name'),
     ENCRYPTION_PASSWORD: Joi.string().description('Password for encrypt text'),
+    INTERNAL_TOKEN: Joi.string().description('Internal token for OM Generator'),
     DATA_ENCRYPTION: Joi.boolean()
       .description('Flag to enable/disable encryption and decryption of response and request')
       .required(),
@@ -74,6 +75,7 @@ export default {
   defaultAdvisorToAddDeal: JSON.parse(envVars.DEFAULT_ADVISORS_TO_ADD_DEAL),
   encryptionPassword: envVars.ENCRYPTION_PASSWORD,
   dataEncryption: envVars.DATA_ENCRYPTION,
+  internalToken: envVars.INTERNAL_TOKEN,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {
