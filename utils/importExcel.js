@@ -260,8 +260,10 @@ export const importExcelFile = async (url) => {
         if (financialSummaryValue) {
           let currentCell = excelSheetData.getCell(financialSummaryValue[0]);
           const totalRevenue = [];
+          // Getting cell for all the three headers In-Place, Stabilized and Notes
           const headerOne = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
           const headerTwo = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
+          const headerThree = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 3);
 
           if (!headerOne.value) {
             headerOne.value = 'In-Place';
@@ -299,25 +301,53 @@ export const importExcelFile = async (url) => {
               }
               if (headerTwo.value && headerTwo.value === 'Stabilized') {
                 const valueOfSecond = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
-                data.stabilizedValue = formatMathFormulaFormValue(valueOfSecond.value);
-                if (valueOfSecond.numFmt) {
-                  if (data.stabilizedValue) {
-                    data.stabilizedType = typeOfValue(data.stabilizedValue, valueOfSecond.numFmt);
-                  }
-                  if (valueOfSecond.numFmt.includes('%')) {
-                    data.stabilizedValue *= 100;
+                // Condition for if the value is there then only proceed
+                if (valueOfSecond.value) {
+                  // passing all the values in the function
+                  data.stabilizedValue = formatMathFormulaFormValue({
+                    val: valueOfSecond.value,
+                    key: key.value,
+                    tableName: 'Stabilized',
+                  });
+                  if (valueOfSecond.numFmt) {
+                    if (data.stabilizedValue) {
+                      data.stabilizedType = typeOfValue(data.stabilizedValue, valueOfSecond.numFmt);
+                    }
+                    if (valueOfSecond.numFmt.includes('%')) {
+                      data.stabilizedValue *= 100;
+                    }
                   }
                 }
               } else if (headerTwo.value && headerTwo.value === 'In-Place') {
                 const valueOfSecond = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
-                data.inPlaceValue = formatMathFormulaFormValue(valueOfSecond.value);
-                if (valueOfSecond.numFmt) {
-                  if (data.inPlaceValue) {
-                    data.inPlaceType = typeOfValue(data.inPlaceValue, valueOfSecond.numFmt);
+                if (valueOfSecond.value) {
+                  data.inPlaceValue = formatMathFormulaFormValue({
+                    val: valueOfSecond.value,
+                    key: key.value,
+                    tableName: 'In-Place',
+                  });
+                  if (valueOfSecond.numFmt) {
+                    if (data.inPlaceValue) {
+                      data.inPlaceType = typeOfValue(data.inPlaceValue, valueOfSecond.numFmt);
+                    }
+                    if (valueOfSecond.numFmt.includes('%')) {
+                      data.inPlaceValue *= 100;
+                    }
                   }
-                  if (valueOfSecond.numFmt.includes('%')) {
-                    data.inPlaceValue *= 100;
-                  }
+                }
+              }
+              // adding condition for notes if it's in second header
+              else if (headerTwo.value && headerTwo.value === 'Notes') {
+                const valueOfNotes = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
+                if (valueOfNotes.value) {
+                  data.note = valueOfNotes.value;
+                }
+              }
+              // adding condition for notes if it's in third header as notes can be either in 2nd or 3rd column only
+              if (headerThree.value && headerThree.value === 'Notes') {
+                const valueOfNotes = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 3);
+                if (valueOfNotes.value) {
+                  data.note = valueOfNotes.value;
                 }
               }
             }
@@ -373,12 +403,14 @@ export const importExcelFile = async (url) => {
                 }
                 if (headerTwo.value && headerTwo.value === 'Stabilized') {
                   const valueOfSecond = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
-                  expenseData.stabilizedValue = formatMathFormulaFormValue({
-                    val: valueOfSecond.value,
-                    key: key.value,
-                    tableName: 'Stabilized',
-                  });
-
+                  // Condition for if the value is there then only proceed
+                  if (valueOfSecond.value) {
+                    expenseData.stabilizedValue = formatMathFormulaFormValue({
+                      val: valueOfSecond.value,
+                      key: key.value,
+                      tableName: 'Stabilized',
+                    });
+                  }
                   if (valueOfSecond.numFmt) {
                     if (expenseData.stabilizedValue) {
                       expenseData.stabilizedType = typeOfValue(expenseData.stabilizedValue, valueOfSecond.numFmt);
@@ -389,11 +421,13 @@ export const importExcelFile = async (url) => {
                   }
                 } else if (headerTwo.value && headerTwo.value === 'In-Place') {
                   const valueOfSecond = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
-                  expenseData.inPlaceValue = formatMathFormulaFormValue({
-                    val: valueOfSecond.value,
-                    key: key.value,
-                    tableName: 'In-Place',
-                  });
+                  if (valueOfSecond.value) {
+                    expenseData.inPlaceValue = formatMathFormulaFormValue({
+                      val: valueOfSecond.value,
+                      key: key.value,
+                      tableName: 'In-Place',
+                    });
+                  }
                   if (valueOfSecond.numFmt) {
                     if (expenseData.inPlaceValue) {
                       expenseData.inPlaceType = typeOfValue(expenseData.inPlaceValue, valueOfSecond.numFmt);
@@ -401,6 +435,20 @@ export const importExcelFile = async (url) => {
                     if (valueOfSecond.numFmt.includes('%')) {
                       expenseData.inPlaceValue *= 100;
                     }
+                  }
+                }
+                // adding condition for notes if it's in second header
+                else if (headerTwo.value && headerTwo.value === 'Notes') {
+                  const valueOfNotes = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
+                  if (valueOfNotes.value) {
+                    expenseData.note = valueOfNotes.value;
+                  }
+                }
+                // adding condition for notes if it's in third header as notes can be either in 2nd or 3rd column only
+                if (headerThree.value && headerThree.value === 'Notes') {
+                  const valueOfNotes = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 3);
+                  if (valueOfNotes.value) {
+                    expenseData.note = valueOfNotes.value;
                   }
                 }
               }
