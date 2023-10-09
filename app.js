@@ -20,7 +20,7 @@ import { errorConverter, errorHandler } from 'middlewares/error';
 import sendResponse from 'middlewares/sendResponse';
 import config from 'config/config';
 import { successHandler, errorHandler as morganErrorHandler } from 'config/morgan';
-import { decrypt } from 'utils/encrypt-decrypt-text';
+import { decryptRequestData } from 'utils/encrypt-decrypt-text';
 import { isEmpty } from 'lodash';
 
 const actuator = require('express-actuator');
@@ -48,7 +48,7 @@ app.use((req, res, next) => {
     if (!req.body.reqBody) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body must be encrypted');
     }
-    req.body = JSON.parse(decrypt(req.body.reqBody, config.encryptionPassword));
+    req.body = JSON.parse(decryptRequestData(req.body.reqBody, config.encryptionPassword));
   }
   next();
 });

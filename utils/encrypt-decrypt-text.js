@@ -1,7 +1,60 @@
 import httpStatus from 'http-status';
 import ApiError from './ApiError';
 
+// eslint-disable-next-line import/no-extraneous-dependencies
+const CryptoJS = require('crypto-js');
 const crypto = require('crypto');
+
+export const encryptResponseData = (plainText, password) => {
+  try {
+    // Generate a random IV (Initialization Vector)
+    const iv = CryptoJS.lib.WordArray.random(16);
+
+    // Derive an encryption key from the provided password using SHA-256 hashing
+    const key = CryptoJS.SHA256(password).toString(CryptoJS.enc.Base64).substring(0, 32);
+
+    // Convert plain text to UTF-8 encoded WordArray object
+    const encrypted = CryptoJS.AES.encrypt(plainText, CryptoJS.enc.Base64.parse(key), {
+      iv,
+      mode: CryptoJS.mode.CBC,
+    });
+
+    // Convert IV and encrypted data to hex strings
+    const ivHex = iv.toString(CryptoJS.enc.Hex);
+
+    const encryptedHex = encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+
+    // Return IV and encrypted data as a single string, separated by a colon
+    return `${ivHex}:${encryptedHex}`;
+  } catch (error) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `Error in encrypt text : ${error.message}`);
+  }
+};
+
+export const decryptRequestData = (encryptedData, password) => {
+  try {
+    // Split the encrypted data into IV and ciphertext
+    const [ivHex, encryptedHex] = encryptedData.split(':');
+
+    // Parse IV and ciphertext from hex strings
+    const iv = CryptoJS.enc.Hex.parse(ivHex);
+    const ciphertext = CryptoJS.enc.Hex.parse(encryptedHex);
+
+    // Derive the encryption key from the provided password using SHA-256 hashing
+    const key = CryptoJS.SHA256(password).toString(CryptoJS.enc.Base64).substring(0, 32);
+
+    // Decrypt the ciphertext using the key and IV
+    const decrypted = CryptoJS.AES.decrypt({ ciphertext }, CryptoJS.enc.Base64.parse(key), { iv, mode: CryptoJS.mode.CBC });
+
+    // Convert the decrypted data to a UTF-8 encoded string
+    const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+
+    // Return the decrypted text
+    return decryptedText;
+  } catch (error) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `Error in decrypt text : ${error.message}`);
+  }
+};
 
 /**
  * Encrypts the given plain text using AES-256-CBC encryption.

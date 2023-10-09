@@ -1,4 +1,4 @@
-import { encrypt } from 'utils/encrypt-decrypt-text';
+import { encryptResponseData } from 'utils/encrypt-decrypt-text';
 import config from '../config/config';
 
 function sendResponse(req, res, next) {
@@ -19,7 +19,7 @@ function sendResponse(req, res, next) {
     // If dataEncryption is enabled then ,encrypt the response before sending
     if (config.dataEncryption) {
       // eslint-disable-next-line prefer-rest-params
-      arguments[0] = encrypt(JSON.stringify(arguments[0]), config.encryptionPassword);
+      arguments[0] = encryptResponseData(JSON.stringify(arguments[0]), config.encryptionPassword);
     }
     // eslint-disable-next-line prefer-rest-params
     response.apply(res, arguments);
