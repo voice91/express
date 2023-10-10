@@ -128,7 +128,7 @@ export const getEmailDataV3 = catchAsync(async (req, res) => {
     dealSummaryDocs.push(...lenderPlacements[0].deal.dealSummary.documents);
   }
   // we need UW Excel sheet too in the email attachment, and we are storing that in data sheet so adding that in the dealSummaryDocs
-  if (lenderPlacements[0].deal.dealSummary.dataSheet) {
+  if (lenderPlacements[0].deal.dealSummary.dataSheet && lenderPlacements[0].deal.dealSummary.dataSheet.url) {
     dealSummaryDocs.push(lenderPlacements[0].deal.dealSummary.dataSheet);
   }
   const emailAttachments = dealSummaryDocs.map((item) => {
