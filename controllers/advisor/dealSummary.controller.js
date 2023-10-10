@@ -5,6 +5,7 @@ import { catchAsync } from '../../utils/catchAsync';
 import TempS3 from '../../models/tempS3.model';
 import {
   addIndexForCustomBlocks,
+  addSymbolInData,
   asyncForEach,
   encodeUrl,
   removeFalsyValueFromDealSummery,
@@ -155,7 +156,11 @@ export const update = catchAsync(async (req, res) => {
       tableTypeDynamicFields.map(async (block) => {
         if (block.isUpdated) {
           const importDataFromFile = await importExcelFile(block.response.fileUrl);
-          Object.assign(block.response, { tableData: importDataFromFile.customTableData });
+          Object.assign(block.response, { tableData: addSymbolInData(importDataFromFile.customTableData) });
+          // update the name if found in the import data
+          if (importDataFromFile.customTableTitle) {
+            Object.assign(block, { name: importDataFromFile.customTableTitle });
+          }
         }
       })
     );

@@ -566,11 +566,17 @@ export const importExcelFile = async (url) => {
         if (startingPoint) {
           // Initialize the current cell to the starting point
           let currentCell = excelSheetData.getCell(startingPoint[0]);
+          // Get the value of the cell immediately to the right of the currentCell cell,
+          // if return null then it is title row , else headings row
+          const adjacentCellValue = excelSheetData.getCell(currentCell.row, currentCell.col + 1).value;
+          // Need to get the title for the table type customBlock from the excelSheet.
+          // So assume that the title is typically found at the beginning of the Excel sheet.
+          // If adjacentCellValue not present then current cell is title , else title not present.
+          const customTableTitle = !adjacentCellValue ? currentCell.value : null; //  store the title of the customTable if present in the sheet
           const columnHeaders = [];
           // Get the row number where the column headers are located
-          const columnHeaderRow = currentCell.row;
-          // use below columnHeaderRow value if header (title) added at the starting
-          // const columnHeaderRow = currentCell.row + 1;
+          // If adjacentCellValue present then current row is headers row , else current row is title row so headers row will be next.
+          const columnHeaderRow = adjacentCellValue ? currentCell.row : currentCell.row + 1;
           // Retrieve column headers dynamically
           while (true) {
             // Get the cell for the current column header
@@ -631,6 +637,10 @@ export const importExcelFile = async (url) => {
             if (!checkEmptyCell.value) {
               break;
             }
+          }
+          // Throw an error if only headers row present in sheet, no data rows present
+          if (customTableData.length) {
+            data.customTableTitle = customTableTitle;
           }
         }
       }

@@ -4,6 +4,7 @@ import {
   EnumAssetTypeOfDeal,
   EnumLenderTypeOfLendingInstitution,
   EnumLoanTypeOfDeal,
+  EnumOfTypeOfValue,
   EnumStatesOfDeal,
 } from 'models/enum.model';
 import _ from 'lodash';
@@ -604,4 +605,130 @@ export const getEmailSubjectForDeal = (dealSummary) => {
 
   // The purpose of this .replace(/- $/, '') is to search for any trailing hyphen and space at the end of the generated string and remove it.
   return `${dealNamePart}${cityStatePart}${dealInfoPart}`.replace(/- $/, '');
+};
+
+function addCommaSeparators(value) {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * Modify and format data values (add symbols like $ and % based on value type, and also round the values).
+ * @param {Object} data - The data object to be modified.
+ * @param {number} decimalPoint - The number of decimal places to round to.
+ * @param {string} keyToCheckType - The key used to check the type of value.
+ * @param {string} keyToAssign - The key used to assign value.
+ * @returns {Object} - The modified data object.
+ */
+export function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
+  if (typeof data[keyToAssign] === 'number') {
+    if (data[keyToAssign]) {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
+    }
+  }
+  if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.CURRENCY) {
+    if (typeof data[keyToAssign] === 'string' && data[keyToAssign].includes(',')) {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = data[keyToAssign].replace(/,/g, '');
+    }
+    // if data is in string and data not include $ than we have to convert it in num and fixed decimal point
+    // todo: fix below condition in more efficient way in future
+    if (typeof data[keyToAssign] === 'string' && !/[,()]/.test(data[keyToAssign])) {
+      // eslint-disable-next-line no-param-reassign
+      if (data[keyToAssign].includes('$')) {
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = data[keyToAssign].split('$').pop();
+      }
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
+    }
+    // Check if the value of data[keyToAssign] is not a string
+    // OR
+    // Check if the value of data[keyToAssign] is a string, but it does not contain a '$' character
+    // AND
+    // Check if the value of data[keyToAssign] is not one of the following: '(', ',', '('
+    if (
+      typeof data[keyToAssign] !== 'string' ||
+      (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$') && !/[%,$()]/.test(data[keyToAssign]))
+    ) {
+      // eslint-disable-next-line no-param-reassign,operator-assignment
+      data[keyToAssign] = data[keyToAssign] * 1;
+      if (typeof data[keyToAssign] === 'number' && data[keyToAssign] < 0) {
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = `$(${Math.abs(data[keyToAssign])})`;
+      } else {
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = `$${data[keyToAssign]}`;
+      }
+    }
+  }
+  if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.PERCENTAGE) {
+    if (typeof data[keyToAssign] === 'string' && data[keyToAssign].includes(',')) {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = data[keyToAssign].replace(/,/g, '');
+    }
+    if (typeof data[keyToAssign] === 'string' && !/[,()]/.test(data[keyToAssign])) {
+      if (data[keyToAssign].includes('%')) {
+        // eslint-disable-next-line no-param-reassign,prefer-destructuring
+        data[keyToAssign] = data[keyToAssign].split('%')[0];
+      }
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = `${(data[keyToAssign] * 1).toFixed(decimalPoint)}%`;
+    }
+    if (data[keyToAssign] && typeof data[keyToAssign] !== 'string') {
+      // eslint-disable-next-line no-param-reassign
+      data[keyToAssign] = `${data[keyToAssign].toFixed(decimalPoint)}%`;
+    }
+  }
+
+  // Adding a comma separator at the end to format the numeric values in all sections that are neither of type string nor represent a year.
+  if (![EnumOfTypeOfValue.STRING, EnumOfTypeOfValue.YEAR].includes(data[keyToCheckType])) {
+    if (typeof data[keyToAssign] === 'string') {
+      if (data[keyToAssign].includes('$') && !/[,()%]/.test(data[keyToAssign])) {
+        // Removing the dollar sign, if present
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = data[keyToAssign].replace('$', '');
+        // Parsing the value as a number
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = parseFloat(data[keyToAssign]).toFixed(decimalPoint);
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+
+        // Adding the dollar sign back
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = `$${data[keyToAssign]}`;
+      } else if (data[keyToAssign].includes('%') && !/[,()%]/.test(data[keyToAssign])) {
+        // Removing the dollar sign, if present
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = data[keyToAssign].replace('%', '');
+        // Parsing the value as a number
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = parseFloat(data[keyToAssign]).toFixed(decimalPoint);
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+
+        // Adding the dollar sign back
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = `${data[keyToAssign]}%`;
+      } else {
+        // eslint-disable-next-line no-param-reassign
+        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+      }
+    }
+  }
+
+  return data;
+}
+
+/**
+ * This function adds symbols, such as '$' and '%', to specific numeric values within the data.
+ * @param {Array} data - The input data to be modified.
+ * @returns {Array} - The modified data with symbols added to numeric values.
+ */
+export const addSymbolInData = (data) => {
+  if (!_.isEmpty(data)) {
+    const modifiedData = data.map((item) => item.map((field) => changeData(field, 0, 'type', 'value')));
+    return modifiedData;
+  }
+  return data;
 };
