@@ -38,7 +38,7 @@ export const transport = new postmark.ServerClient(config.postmarkAPIToken);
 export const sendEmail = async (emailParams) => {
   const { to, cc, bcc, from, subject, text, isHtml, attachments, headers, replyTo = '' } = emailParams;
   const msg = {
-    from: from || config.email.from,
+    from: `${config.emailSenderDisplayName} <${from || config.email.from}>`,
     to,
     cc,
     bcc,

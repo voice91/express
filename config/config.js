@@ -46,6 +46,7 @@ const envVarsSchema = Joi.object()
     POSTMARK_API_TOKEN: Joi.string().required().description('Postmark API Token is Required'),
     POSTMARK_INBOUND_DOMAIN: Joi.string().required().description('Postmark Inbound Domain'),
     POSTMARK_INBOUND_SENDERNAME: Joi.string().description('Postmark Inbound name'),
+    EMAIL_SENDER_DISPLAY_NAME: Joi.string().default('Parallel CRE').description('Display name for the email sender'),
     ENCRYPTION_PASSWORD: Joi.string().description('Password for encrypt text'),
     INTERNAL_TOKEN: Joi.string().description('Internal token for OM Generator'),
     DATA_ENCRYPTION: Joi.boolean()
@@ -69,6 +70,7 @@ export default {
   getsRatesData: envVars.GET_RATES_DATA,
   adminEmailId: envVars.ADMIN_EMAIL_ID,
   postmarkAPIToken: envVars.POSTMARK_API_TOKEN,
+  emailSenderDisplayName: envVars.EMAIL_SENDER_DISPLAY_NAME,
   postmarkInboundDomain: envVars.POSTMARK_INBOUND_DOMAIN,
   postmarkInboundSenderName: envVars.POSTMARK_INBOUND_SENDERNAME,
   adminEmails: JSON.parse(envVars.ADMIN_EMAILS),
