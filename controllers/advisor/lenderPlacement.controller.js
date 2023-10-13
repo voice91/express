@@ -149,7 +149,8 @@ export const getEmailDataV3 = catchAsync(async (req, res) => {
         name: lenderPlacement.lenderContact.firstName,
         email: lenderPlacement.lenderContact.email
       }}),
-    advisorName: req.user.firstName
+    advisorName: req.user.firstName,
+    signature: req.user.signature
   }
   return res.status(httpStatus.OK).send({ results: response });
 });

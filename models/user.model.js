@@ -208,6 +208,12 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    /**
+     * Signature of advisor for send email
+     * */
+    signature: {
+      type: String,
+    },
   },
   {
     timestamps: true,

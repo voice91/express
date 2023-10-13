@@ -60,6 +60,7 @@ export const updateUser = {
     lastSignIn: Joi.date(),
     profilePhoto: Joi.string(),
     emailPresentingPostmark: Joi.bool().default(false),
+    signature: Joi.string(),
   }),
   params: Joi.object().keys({
     userId: Joi.objectId().required(),
