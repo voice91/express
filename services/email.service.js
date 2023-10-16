@@ -310,8 +310,9 @@ text-align: center
   await sendEmail({ to, subject, text, isHtml: true });
 };
 // as now, we don't want to use postmark email so removing it
-export const sendInvitationEmail = async ({ fromEmail, user, dealName, userName, isDealCreated, link, pass }) => {
-  const invitee = user.split('@')[0];
+// we need user first name to be in email of invitation for existing users
+export const sendInvitationEmail = async ({ fromEmail, user, dealName, userName, isDealCreated, link, pass, firstName }) => {
+  const invitee = firstName || user.split('@')[0];
   const to = user;
   const subject = `Parallel: ${isDealCreated ? 'New Deal Created' : 'Added to Deal'} - ${dealName}`;
   const text = `

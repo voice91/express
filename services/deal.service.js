@@ -111,9 +111,9 @@ export async function createDeal(body) {
           }))
         );
       }
-
+      // need to send first name in the mail for existing users
       existingUsers.map(async (item) => {
-        const user = item.email;
+        const { firstName, email: user } = item;
         return emailService.sendInvitationEmail({
           fromEmail,
           pass,
@@ -122,6 +122,7 @@ export async function createDeal(body) {
           dealName: body.dealName,
           isDealCreated: false,
           link: 'login',
+          firstName,
         });
       });
 
@@ -322,13 +323,15 @@ export async function InviteToDeal(fromEmail, body, role, userName, deal, pass) 
           }))
         );
       }
+      // need to send first name in the mail for existing users
       existingUsers.map(async (item) => {
-        const user = item.email;
+        const { firstName, email: user } = item;
         return emailService.sendInvitationEmail({
           fromEmail,
           pass,
           user,
           userName,
+          firstName,
           dealName: deal.dealName,
           isDealCreated: false,
           link: 'login',
