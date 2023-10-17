@@ -48,6 +48,11 @@ const ActivityLogSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(enumModel.EnumOfActivityType),
     },
+    // TODO: once changes done from FE have to remove this two fields
+    /**
+     * @deprecated
+     * As per new requirement we don't need the flag
+     * */
     user: {
       type: String,
     },
