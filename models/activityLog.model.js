@@ -55,6 +55,10 @@ const ActivityLogSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    /**
+     * @deprecated
+     * As per new requirement we don't need the flag
+     * */
     isFlagged: {
       type: Boolean,
     },
