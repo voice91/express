@@ -312,7 +312,7 @@ text-align: center
 // as now, we don't want to use postmark email so removing it
 // we need user first name to be in email of invitation for existing users
 export const sendInvitationEmail = async ({ fromEmail, user, dealName, userName, isDealCreated, link, pass, firstName }) => {
-  const invitee = firstName || user.split('@')[0];
+  const invitee = firstName;
   const to = user;
   const subject = `Parallel: ${isDealCreated ? 'New Deal Created' : 'Added to Deal'} - ${dealName}`;
   const text = `
@@ -347,7 +347,7 @@ text-align: center
 </head>
 <body>
 <div>
-<div>Hi ${invitee},</div>
+<div>  ${invitee ? `Hi ${invitee}` : 'Hello'},</div>
 <br>
   <div>${userName} invited you to the ${isDealCreated ? 'new' : ''} deal, <b>${dealName} </b></div><br>
   <div>Please <a class="text-center" target="_blank" href="${
