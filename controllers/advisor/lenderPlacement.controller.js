@@ -481,13 +481,14 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
     ),
     details: await detailsInDeal(stage, dealId),
   }, {new: true});
+  // commenting user in case we need it again in future
   const createActivityLogBody = {
     createdBy: req.user._id,
     updatedBy: req.user._id,
     update: `${deal.dealName} was sent out to lenders`,
     deal: dealId,
     type: EnumOfActivityType.ACTIVITY,
-    user: config.activitySystemUser || 'system',
+    // user: config.activitySystemUser || 'system',
   };
   await activityLogService.createActivityLog(createActivityLogBody);
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
@@ -757,13 +758,14 @@ export const update = catchAsync(async (req, res) => {
       details: await detailsInDeal(stage, dealId),
       nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
     });
+    // commenting user in case we need it again in future
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
       update: `${lenderPlacementResult.deal.dealName} moved into closing with ${lenderPlacementResult.lendingInstitution.lenderNameVisible}`,
       deal: dealId,
       type: EnumOfActivityType.ACTIVITY,
-      user: config.activitySystemUser || 'system',
+      // user: config.activitySystemUser || 'system',
     };
     if (createActivityLogBody.update) {
       await activityLogService.createActivityLog(createActivityLogBody);
@@ -777,6 +779,7 @@ export const update = catchAsync(async (req, res) => {
   }
   // if termSheet added for first time than only we add activity logs and update lenderPlacement stage to termSheet Received
   if (!beforeLenderPlacementResult.termSheet && body.termSheet) {
+    // commenting user in case we need it again in future
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
@@ -784,7 +787,7 @@ export const update = catchAsync(async (req, res) => {
       deal: lenderPlacementResult.deal,
       lender: lenderPlacementResult.lendingInstitution,
       type: EnumOfActivityType.ACTIVITY,
-      user: config.activitySystemUser || 'system',
+      // user: config.activitySystemUser || 'system',
     };
     await activityLogService.createActivityLog(createActivityLogBody);
 
@@ -799,6 +802,7 @@ export const update = catchAsync(async (req, res) => {
 
   // if terms added for first time than only we add activity logs and update lenderPlacement stage to terms Received
   if (!beforeLenderPlacementResult.terms && body.terms) {
+    // commenting user in case we need it again in future
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
@@ -806,7 +810,7 @@ export const update = catchAsync(async (req, res) => {
       deal: lenderPlacementResult.deal,
       lender: lenderPlacementResult.lendingInstitution,
       type: EnumOfActivityType.ACTIVITY,
-      user: config.activitySystemUser || 'system',
+      // user: config.activitySystemUser || 'system',
     };
     await activityLogService.createActivityLog(createActivityLogBody);
 
@@ -1312,13 +1316,14 @@ export const sendEmail = catchAsync(async (req, res) => {
     details: await detailsInDeal(stage, dealId),
   });
   const deal = await Deal.findById(dealId);
+  // commenting user in case we need it again in future
   const createActivityLogBody = {
     createdBy: req.user._id,
     updatedBy: req.user._id,
     update: `${deal.dealName} was sent out to lenders`,
     deal: dealId,
     type: EnumOfActivityType.ACTIVITY,
-    user: config.activitySystemUser || 'system',
+    // user: config.activitySystemUser || 'system',
   };
   if (createActivityLogBody.update) {
     await activityLogService.createActivityLog(createActivityLogBody);
@@ -1557,13 +1562,14 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       },
       { new: true }
     );
+    // commenting user in case we need it again in future
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
       update: `${dealData.dealName} was sent out to lenders`,
       deal,
       type: enumModel.EnumOfActivityType.ACTIVITY,
-      user: config.activitySystemUser || 'system',
+      // user: config.activitySystemUser || 'system',
     };
     if (createActivityLogBody.update) {
       await activityLogService.createActivityLog(createActivityLogBody);

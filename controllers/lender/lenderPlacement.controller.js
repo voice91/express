@@ -14,7 +14,6 @@ import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderP
 import enumModel, { EnumOfActivityType, EnumStageOfLenderPlacement } from '../../models/enum.model';
 import ApiError from '../../utils/ApiError';
 import { detailsInDeal } from '../../utils/detailsInDeal';
-import config from '../../config/config';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -233,13 +232,14 @@ export const update = catchAsync(async (req, res) => {
         nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
       }
     );
+    // commenting user in case we need it again in future
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
       update: `${lenderPlacementResult.deal.dealName} moved into closing with ${lenderPlacementResult.lendingInstitution.lenderNameVisible}`,
       deal: dealId,
       type: EnumOfActivityType.ACTIVITY,
-      user: config.activitySystemUser || 'system',
+      // user: config.activitySystemUser || 'system',
     };
     await activityLogService.createActivityLog(createActivityLogBody);
   }
@@ -251,6 +251,7 @@ export const update = catchAsync(async (req, res) => {
   }
   // if termSheet added for first time than only we add activity logs and update lenderPlacement stage to termSheet Received
   if (!beforeLenderPlacementResult.termSheet && body.termSheet) {
+    // commenting user in case we need it again in future
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
@@ -258,7 +259,7 @@ export const update = catchAsync(async (req, res) => {
       deal: lenderPlacementResult.deal,
       lender: lenderPlacementResult.lendingInstitution,
       type: EnumOfActivityType.ACTIVITY,
-      user: config.activitySystemUser || 'system',
+      // user: config.activitySystemUser || 'system',
     };
     await activityLogService.createActivityLog(createActivityLogBody);
 
@@ -276,6 +277,7 @@ export const update = catchAsync(async (req, res) => {
 
   // if terms added for first time than only we add activity logs and update lenderPlacement stage to terms Received
   if (!beforeLenderPlacementResult.terms && body.terms) {
+    // commenting user in case we need it again in future
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
@@ -283,7 +285,7 @@ export const update = catchAsync(async (req, res) => {
       deal: lenderPlacementResult.deal,
       lender: lenderPlacementResult.lendingInstitution,
       type: EnumOfActivityType.ACTIVITY,
-      user: config.activitySystemUser || 'system',
+      // user: config.activitySystemUser || 'system',
     };
     await activityLogService.createActivityLog(createActivityLogBody);
 

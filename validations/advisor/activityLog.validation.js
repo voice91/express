@@ -17,12 +17,13 @@ export const createActivityLog = {
   }),
 };
 
+// commenting isFlagged in case we need it again in future
 export const updateActivityLog = {
   body: Joi.object().keys({
-    deal: Joi.objectId(),
+    deal: Joi.objectId().required(),
     update: Joi.string(),
     isPinned: Joi.boolean(),
-    isFlagged: Joi.boolean(),
+    // isFlagged: Joi.boolean(),
   }),
   params: Joi.object().keys({
     activityLogId: Joi.objectId().required(),

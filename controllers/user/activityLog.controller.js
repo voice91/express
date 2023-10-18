@@ -40,7 +40,7 @@ export const list = catchAsync(async (req, res) => {
   };
   const options = {
     ...pick(query, ['limit', 'page']),
-    populate: { path: 'createdBy' },
+    populate: [{ path: 'deal', select: ['dealName'] }],
   };
   if (sortingObj.sort) {
     options.sort = sortObj;

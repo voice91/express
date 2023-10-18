@@ -48,25 +48,18 @@ const ActivityLogSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(enumModel.EnumOfActivityType),
     },
-    // TODO: once changes done from FE have to remove this two fields
-    /**
-     * @deprecated
-     * As per new requirement we don't need the flag
-     * */
+    /* commenting it in case we need it again in future
     user: {
       type: String,
-    },
+    }, */
     isPinned: {
       type: Boolean,
       default: false,
     },
-    /**
-     * @deprecated
-     * As per new requirement we don't need the flag
-     * */
+    /* commenting it in case we need it again in future
     isFlagged: {
       type: Boolean,
-    },
+    }, */
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }
 );

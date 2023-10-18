@@ -185,13 +185,14 @@ export const create = catchAsync(async (req, res) => {
   }
   // here we create activity logs
   // with deal id , and other data as user is this
+  // commenting user in case we need it again in future
   const createActivityLogbody = {
     createdBy: req.user._id,
     updatedBy: req.user._id,
     update: `${deal.dealName} was created`,
     deal: deal.id,
     type: EnumOfActivityType.ACTIVITY,
-    user: config.activitySystemUser || 'system',
+    // user: config.activitySystemUser || 'system',
   };
   await activityLogService.createActivityLog(createActivityLogbody);
 
