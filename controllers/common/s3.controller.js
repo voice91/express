@@ -10,3 +10,13 @@ export const preSignedPutUrl = catchAsync(async (req, res) => {
   const s3PutObject = await s3Service.validateExtensionForPutObject(body, user);
   return res.status(httpStatus.OK).send({ results: s3PutObject });
 });
+
+/**
+ * Route handler for generating a signed URL to access an object in Amazon S3.
+ * This function takes a "key" from the request query and uses it to generate a signed URL to access the S3 object.
+ */
+export const getSignedUrl = catchAsync(async (req, res) => {
+  const { key } = req.query;
+  const s3GetObject = await s3Service.getSignedUrl(key);
+  return res.status(httpStatus.OK).send({ results: s3GetObject });
+});

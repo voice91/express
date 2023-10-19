@@ -9,4 +9,9 @@ const router = express();
  * Create pre-signed url Api
  * */
 router.post('/presignedurl', auth(), validate(s3Validation.preSignedPutUrl), s3Controller.preSignedPutUrl);
+
+/**
+ * get signed url Api to access the file
+ * */
+router.get('/get-signed-url', auth(), validate(s3Validation.getSignedUrl), s3Controller.getSignedUrl);
 module.exports = router;

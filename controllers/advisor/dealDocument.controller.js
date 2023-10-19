@@ -13,9 +13,10 @@ import { flatMap } from 'lodash';
 import { pick } from '../../utils/pick';
 import { Deal, DealDocument } from '../../models';
 import ApiError from '../../utils/ApiError';
+import config from '../../config/config';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
-  const newUrl = await s3Service.moveFile({ key: url, newFilePath });
+  const newUrl = await s3Service.moveFile({ key: url, newFilePath, isPrivate: config.aws.enablePrivateAccess });
   await TempS3.findOneAndUpdate({ url }, { url: newUrl });
   return newUrl;
 };

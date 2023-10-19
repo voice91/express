@@ -24,6 +24,10 @@ const envVarsSchema = Joi.object()
     AWS_BUCKET_NAME: Joi.string().required().description('Aws Bucket Name is required'),
     AWS_ACCESS_KEY: Joi.string().required().description('Aws Access Key is required'),
     AWS_SECRET_ACCESS_KEY: Joi.string().required().description('Aws Secret Access Key is required'),
+    ENABLE_PRIVATE_ACCESS: Joi.boolean()
+      .description('Flag to enable/disable PRIVATE access of uploaded files')
+      .default(false),
+    URL_EXPIRATION_SECONDS: Joi.number().default(3600),
     PARTY_USER_LIMIT: Joi.number().default(8),
     RESET_PASSWORD_CODE_SIZE: Joi.number().default(6),
     GOOGLE_CLIENT_ID: Joi.string().required().description('Google Client is required'),
@@ -127,6 +131,8 @@ export default {
     accessKeyId: envVars.AWS_ACCESS_KEY,
     secretAccessKey: envVars.AWS_SECRET_ACCESS_KEY,
     bucket: envVars.AWS_BUCKET_NAME,
+    enablePrivateAccess: envVars.ENABLE_PRIVATE_ACCESS,
+    urlExpirationSeconds: envVars.URL_EXPIRATION_SECONDS,
   },
   google: {
     clientID: envVars.GOOGLE_CLIENT_ID,

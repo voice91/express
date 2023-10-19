@@ -6,6 +6,8 @@ import config from 'config/config';
 import { logger } from 'config/logger';
 import axios from 'axios';
 import { decrypt } from '../utils/encrypt-decrypt-text';
+import { getSignedUrl } from './s3.service';
+import { getKeyFromUrl } from '../utils/common';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const postmark = require('postmark');
@@ -131,7 +133,7 @@ export const sendEmailUsingGmail = async (emailParams) => {
       return {
         // need to send attachment with the name
         filename: item.fileName,
-        path: item.path,
+        path: config.aws.enablePrivateAccess ? getSignedUrl(getKeyFromUrl(item.path)) : item.path,
       };
     });
   }

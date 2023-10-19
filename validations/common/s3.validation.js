@@ -12,5 +12,12 @@ export const preSignedPutUrl = {
     contentType: Joi.string()
       .valid(...Object.values(EnumContentType))
       .required(),
+    isPrivate: Joi.boolean(),
+  }),
+};
+
+export const getSignedUrl = {
+  query: Joi.object().keys({
+    key: Joi.string().required(),
   }),
 };

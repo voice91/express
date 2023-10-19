@@ -21,11 +21,18 @@ AWS.config = new AWS.Config({
 });
 // AWS.config.update({ region: 'us-east-1' });
 const s3 = new AWS.S3({ apiVersion: '2006-03-01', signatureVersion: 'v4' });
+
+/**
+ * Generate a signed URL that allows access to a file in an AWS S3 bucket.
+ *
+ * @param {string} key - The unique identifier of the file you want to access.
+ * @returns {string} - The special URL that can be used to get the file.
+ */
 export const getSignedUrl = (key) => {
   const signedURL = {
     Bucket: config.aws.bucket,
     Key: key,
-    Expires: 7200,
+    Expires: config.aws.urlExpirationSeconds || 7200, // How long the signed URL remains valid in seconds.
   };
   return s3.getSignedUrl('getObject', signedURL);
 };
@@ -36,6 +43,7 @@ export const getSignedUrlPutObject = async (key, contentType, isPublic) => {
     ContentType: contentType,
     Key: key,
     Expires: 3600,
+    ACL: 'private',
   };
   if (isPublic) {
     signedURL.ACL = 'public-read';
@@ -64,7 +72,8 @@ export const validateExtensionForPutObject = async (preSignedReq, user) => {
   if (dumpFilesCount > maxTanglingFilesAllowed) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Maximum upload size exceed');
   }
-  const url = await getSignedUrlPutObject(preSignedReq.key, preSignedReq.contentType, true);
+  const isPublicAccess = !preSignedReq.isPrivate;
+  const url = await getSignedUrlPutObject(preSignedReq.key, preSignedReq.contentType, isPublicAccess);
   const tempS3Body = {
     user: user._id,
     url: url.split('?')[0],
@@ -192,14 +201,15 @@ export const uploadRequestedFiles = async (files, user, filePath) => {
  * this function move given file to given destination path within s3 bucket
  * @param key
  * @param newFilePath
+ * @param isPrivate
  * @returns {Promise<>}
  */
-export const moveFile = async ({ key, newFilePath }) => {
+export const moveFile = async ({ key, newFilePath, isPrivate }) => {
   const params = {
     Bucket: config.aws.bucket, // bucket name
     CopySource: key, // file source path
     Key: newFilePath, // new destination path where file will be moved
-    ACL: 'public-read', // access for everyone public read-only
+    ACL: isPrivate ? 'private' : 'public-read',
   };
   try {
     await s3.copyObject(params).promise();
@@ -250,9 +260,10 @@ export const createThumbnails = async ({ url, resolutions = [] }) => {
 /**
  * upload the email attachment to s3 which we get from the postmark's webhook
  * @param attachment
+ * @param isPrivate - Use to set the access of file private
  * @return {Promise<string>}
  */
-export const uploadEmailAttachmentToS3 = async (attachment) => {
+export const uploadEmailAttachmentToS3 = async (attachment, isPrivate) => {
   const decodedContent = Buffer.from(attachment.Content, 'base64');
 
   const bucketName = config.aws.bucket;
@@ -267,7 +278,7 @@ export const uploadEmailAttachmentToS3 = async (attachment) => {
     Key: key,
     Body: decodedContent,
     ContentType,
-    ACL: 'public-read',
+    ACL: isPrivate ? 'private' : 'public-read',
   };
 
   await s3.putObject(params).promise();

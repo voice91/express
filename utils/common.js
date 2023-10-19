@@ -732,3 +732,12 @@ export const addSymbolInData = (data) => {
   }
   return data;
 };
+
+export const getKeyFromUrl = (url) => {
+  const pattern = /(\/users\/.*)/;
+  const match = url.match(pattern);
+  if (match && match[1]) {
+    return match[1].substring(1);
+  }
+  return url;
+};

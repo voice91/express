@@ -55,7 +55,7 @@ import {decrypt} from "../../utils/encrypt-decrypt-text";
 const he = require('he');
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
-  const newUrl = await s3Service.moveFile({ key: url, newFilePath });
+  const newUrl = await s3Service.moveFile({ key: url, newFilePath, isPrivate: config.aws.enablePrivateAccess });
   await TempS3.findOneAndUpdate({ url }, { url: newUrl });
   return newUrl;
 };
@@ -304,7 +304,9 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
     const emailAttachments = req.body.emailAttachments.map((item) => {
       return {
         fileName: item.fileName,
-        path: item.url ? item.url : item.path,
+        path: config.aws.enablePrivateAccess
+            ? item.url ? decodeURI(item.url) : decodeURI(item.path)
+            : item.url ? item.url : item.path,
         fileType: item.fileType,
       };
     });
@@ -422,7 +424,9 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
           attachments: req.body.emailAttachments && req.body.emailAttachments.map((item) => {
             return {
               fileName: item.fileName,
-              path: item.url ? item.url : item.path,
+              path: config.aws.enablePrivateAccess
+                      ? item.url ? decodeURI(item.url) : decodeURI(item.path)
+                      : item.url ? item.url : item.path,
               fileType: item.fileType,
             };
           }),
@@ -1624,7 +1628,10 @@ export const sendMessage = catchAsync(async (req, res) => {
     attachments: emailAttachments.map((item) => {
       return {
         fileName: item.fileName,
-        path: item.url ? item.url : item.path,
+        path:
+            config.aws.enablePrivateAccess
+                ? item.url ? decodeURI(item.url) : decodeURI(item.path)
+                : item.url ? item.url : item.path ,
         fileType: item.fileType,
       };
     }),

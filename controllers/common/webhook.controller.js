@@ -4,6 +4,7 @@ import { LenderPlacement } from '../../models';
 import { lenderPlacementService, userService } from '../../services';
 import { uploadEmailAttachmentToS3 } from '../../services/s3.service';
 import { logger } from '../../config/logger';
+import config from '../../config/config';
 
 const he = require('he');
 
@@ -44,7 +45,8 @@ export const processEmailMessage = catchAsync(async (req, res) => {
       req.body.Attachments.map(async (attachment) => {
         // TODO: need to add condition when we don't have user in out DB
         Object.assign(attachment, { userId: user._id });
-        const url = await uploadEmailAttachmentToS3(attachment);
+        // enablePrivateAccess is passed to set private access for attachment uploaded to S3
+        const url = await uploadEmailAttachmentToS3(attachment, config.aws.enablePrivateAccess);
         documents.push({ url, fileName: attachment.Name, fileType: attachment.ContentType });
       })
     );
