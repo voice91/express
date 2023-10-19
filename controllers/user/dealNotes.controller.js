@@ -3,11 +3,10 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { activityLogService, dealNotesService } from 'services';
+import { dealNotesService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { flatMap, uniq } from 'lodash';
 import { pick } from '../../utils/pick';
-import { EnumOfActivityType } from '../../models/enum.model';
 import { Deal } from '../../models';
 
 const getDealNotesFilterQuery = (query) => {
@@ -49,16 +48,6 @@ export const create = catchAsync(async (req, res) => {
   body.user = req.user._id;
   const options = {};
   const dealNotes = await dealNotesService.createDealNotes(body, options);
-  // commenting user in case we need it again in future
-  const createActivityLogBody = {
-    createdBy: req.user._id,
-    updatedBy: req.user._id,
-    update: dealNotes.content,
-    deal: dealNotes.deal,
-    type: EnumOfActivityType.NOTE,
-    // user: req.user.name,
-  };
-  await activityLogService.createActivityLog(createActivityLogBody);
   return res.status(httpStatus.CREATED).send({ results: dealNotes });
 });
 
