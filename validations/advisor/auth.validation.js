@@ -10,11 +10,17 @@ export const register = {
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
-    name: Joi.string(),
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
-    role: Joi.string(),
-    emailPresentingPostmark: Joi.bool().default(false),
+    role: Joi.string().valid(enumFields.EnumRoleOfUser.ADVISOR).required(),
+    companyName: Joi.string().required(),
+    companyAddress: Joi.string(),
+    city: Joi.string().required(),
+    state: Joi.string()
+      .valid(...Object.values(enumFields.EnumStatesOfDeal))
+      .required(),
+    zipcode: Joi.number().integer().min(10000).max(99999).required(),
+    phoneNumber: Joi.string(),
   }),
 };
 
