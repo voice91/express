@@ -276,14 +276,17 @@ export const update = catchAsync(async (req, res) => {
 
 export const remove = catchAsync(async (req, res) => {
   const { dealId } = req.params;
-  const user = req.user._id;
+  const { emailAccessToDeleteDeal } = config;
   const filter = {
     _id: dealId,
-    user,
   };
   const filterToRemove = {
     deal: dealId,
   };
+
+  if (req.user.email !== emailAccessToDeleteDeal) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `You don't have access to delete the deal`);
+  }
   // finding lender placement as lender notes are related to them
   const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filterToRemove);
 

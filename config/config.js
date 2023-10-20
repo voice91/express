@@ -59,6 +59,7 @@ const envVarsSchema = Joi.object()
     RESET_PASSWORD_EXPIRATION_MINUTES: Joi.number()
       .default(60)
       .description('minutes after which password reset tokens expires'),
+    EMAIL_ACCESS_TO_DELETE_DEAL: Joi.string().required().default('richard@parallelcre.com'),
   })
   .unknown();
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -82,6 +83,7 @@ export default {
   encryptionPassword: envVars.ENCRYPTION_PASSWORD,
   dataEncryption: envVars.DATA_ENCRYPTION,
   internalToken: envVars.INTERNAL_TOKEN,
+  emailAccessToDeleteDeal: envVars.EMAIL_ACCESS_TO_DELETE_DEAL,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {
