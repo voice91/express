@@ -269,6 +269,13 @@ export const update = catchAsync(async (req, res) => {
     _id: dealDocumentId,
   };
   const options = { new: true };
+  Object.entries(body).forEach(([key, value]) => {
+    if (!value) {
+      body.$unset = { ...body.$unset, [key]: '' };
+      delete body[key];
+    }
+  });
+
   const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, body, options);
   // tempS3
   if (dealDocumentResult) {

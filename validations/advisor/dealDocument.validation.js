@@ -46,7 +46,7 @@ export const updateDealDocument = {
     documents: Joi.array().items(documentSchema),
     deal: Joi.objectId().required(),
     fileDescription: Joi.string(),
-    comment: Joi.string(),
+    comment: Joi.string().allow(null),
   }),
   params: Joi.object().keys({
     dealDocumentId: Joi.objectId().required(),
