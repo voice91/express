@@ -55,7 +55,7 @@ export const validateExtensionForPutObject = async (preSignedReq, user) => {
   const ssExtensionsContentType = allowedContentType.map((ele) => ele.mimeType);
   const ssExtensions = allowedContentType.map((ele) => ele.key);
   // this is the number of unwanted file that is not used in system but uploaded in server
-  const maxTanglingFilesAllowed = 7000;
+  const maxTanglingFilesAllowed = 10000;
   let extensionOfKey = preSignedReq.key.split('.');
   extensionOfKey = extensionOfKey[extensionOfKey.length - 1];
   if (!extensionOfKey) {
