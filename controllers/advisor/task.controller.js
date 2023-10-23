@@ -12,9 +12,10 @@ import { asyncForEach, encodeUrl } from 'utils/common';
 // eslint-disable-next-line no-unused-vars
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
+import config from '../../config/config';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
-  const newUrl = await s3Service.moveFile({ key: url, newFilePath });
+  const newUrl = await s3Service.moveFile({ key: url, newFilePath, isPrivate: config.aws.enablePrivateAccess });
   await TempS3.findOneAndUpdate({ url }, { url: newUrl });
   return newUrl;
 };
