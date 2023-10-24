@@ -1588,6 +1588,7 @@ export const sendMessage = catchAsync(async (req, res) => {
   const advisor = req.user;
   const { emailPresentingPostmark } = advisor;
   const { body } = req;
+  const { to = [], cc = [] } = body;
   const filter = {
     _id: lenderPlacementId,
   };
@@ -1617,7 +1618,7 @@ export const sendMessage = catchAsync(async (req, res) => {
   const subject = getEmailSubjectForDeal(lenderPlacement.deal.dealSummary._doc)
 
   const response = await emailService.sendEmailUsingGmail({
-    to: lenderPlacement.lenderContact.email,
+    to: [lenderPlacement.lenderContact.email, ...to],
     // for sending email in the thread we need to change subject like this
     subject: `Re: ${subject}`,
     // ...(emailPresentingPostmark && { from: req.user.email }),
@@ -1638,6 +1639,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     isHtml: false,
     // Headers: [{ Name: 'In-Reply-To', Value: 'originalMessageId@example.com' }],
     headers,
+    cc,
     // when we reply than it should go to sender also & sender is sendEmailFrom
     replyTo: req.user.sendEmailFrom,
   });
@@ -1647,14 +1649,16 @@ export const sendMessage = catchAsync(async (req, res) => {
     { _id: lenderPlacementId },
     {
       $push: {
-        messages: { sender: advisor.firstName, updatedAt: new Date(), message: body.message, documents: body.documents },
+        messages: { sender: advisor.firstName, updatedAt: new Date(), message: body.message, documents: body.documents, to },
       },
       $addToSet: {
         postmarkMessageId,
       },
     }
   );
-  logger.info(`Message successfully sent to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom} when advisor sent message from manage lender page`);
+  const recipientEmails = response.accepted;
+  const recipients = recipientEmails.join(' ,');
+  logger.info(`Message successfully sent to ${recipients} from ${req.user.sendEmailFrom} when advisor sent message from manage lender page`);
   return res.status(httpStatus.OK).send({ results: 'Message sent...' });
 });
 

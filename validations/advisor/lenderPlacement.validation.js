@@ -253,6 +253,8 @@ export const sendMessage = {
   body: Joi.object().keys({
     message: Joi.string(),
     documents: Joi.array().items(documentSchema),
+    to: Joi.array().items(Joi.string().email()),
+    cc: Joi.array().items(Joi.string().email()),
   }),
 };
 
