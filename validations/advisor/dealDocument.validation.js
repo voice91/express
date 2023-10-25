@@ -36,7 +36,7 @@ export const createDealDocumentV2 = {
     // documents: Joi.array().items(updatedDocumentSchema),
     deal: Joi.objectId().required(),
     fileDescription: Joi.string().required(),
-    comment: Joi.string(),
+    comment: Joi.string().allow(null),
     isAddRecommendedFile: Joi.boolean(),
   }),
 };

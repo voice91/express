@@ -214,6 +214,10 @@ const UserSchema = new mongoose.Schema(
     signature: {
       type: String,
     },
+    sponsor: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'Sponsor',
+    },
   },
   {
     timestamps: true,

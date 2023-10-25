@@ -8,6 +8,36 @@ import { User } from 'models';
 import _ from 'lodash';
 import { notificationService } from './index';
 
+/**
+ * Check for existing users based on provided email addresses and role.
+ *
+ * @param {string[]} emails - Array of email addresses to check.
+ * @param {string} role - Role to filter users by.
+ * @returns {Promise<Array>} - Array of existing users matching the criteria.
+ * @throws {ApiError} - Throws an error if the provided email addresses are not associated with registered users.
+ */
+export async function checkForExistingUser(emails, role) {
+  const existingUsers = await User.find({ email: { $in: emails }, role });
+  if (existingUsers.length) {
+    const userEmailNotExists = _.differenceBy(
+      emails,
+      existingUsers.map((item) => item.email)
+    );
+    if (userEmailNotExists.length) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `${userEmailNotExists}: email address(es) does not correspond to any registered ${role}.`
+      );
+    }
+  } else {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `The provided email address (${emails}) is not associated with any registered ${role}.`
+    );
+  }
+  return existingUsers;
+}
+
 export async function getUserById(id, options = {}) {
   const user = await User.findById(id, options.projection, options);
   return user;

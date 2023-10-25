@@ -13,9 +13,10 @@ import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import enumModel from '../../models/enum.model';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
+import config from '../../config/config';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
-  const newUrl = await s3Service.moveFile({ key: url, newFilePath });
+  const newUrl = await s3Service.moveFile({ key: url, newFilePath, isPrivate: config.aws.enablePrivateAccess });
   await TempS3.findOneAndUpdate({ url }, { url: newUrl });
   return newUrl;
 };

@@ -20,3 +20,4 @@ module.exports.authController = require('./auth.controller');
 module.exports.lenderNotesController = require('./lenderNotes.controller');
 module.exports.notificationController = require('./notification.controller');
 module.exports.dealSummaryController = require('./dealSummary.controller');
+module.exports.sponsorController = require('./sponsor.controller');

@@ -27,3 +27,4 @@ module.exports.queueService = require('./queue.service');
 module.exports.lenderNotesService = require('./lenderNotes.service');
 module.exports.ratesService = require('./rates.service');
 module.exports.dealSummaryService = require('./dealSummary.service');
+module.exports.sponsorService = require('./sponsor.service');
