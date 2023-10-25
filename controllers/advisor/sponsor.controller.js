@@ -139,7 +139,7 @@ export const createSponsor = catchAsync(async (req, res) => {
   const options = {};
   const sponsorResult = await sponsorService.createSponsor(body, options);
   await userService.updateUser({ email: { $in: body.borrowersEmails } }, { $addToSet: { sponsor: sponsorResult._id } });
-  if (sponsorResult && (sponsorResult.photo || sponsorResult.documents)) {
+  if (sponsorResult && (sponsorResult.photo || sponsorResult.documents.length > 0)) {
     const uploadedFileUrls = [];
     uploadedFileUrls.push(sponsorResult.photo.url);
     uploadedFileUrls.push(...sponsorResult.documents.map((doc) => doc.url));
@@ -178,9 +178,11 @@ export const updateSponsor = catchAsync(async (req, res) => {
   const sponsorResult = await sponsorService.updateSponsor(filter, body, options);
   await userService.updateUser({ email: { $in: body.borrowersEmails } }, { $addToSet: { sponsor: sponsorResult._id } });
   // tempS3
-  if (sponsorResult && (sponsorResult.photo || sponsorResult.documents)) {
+  if (sponsorResult && (sponsorResult.photo || sponsorResult.documents.length > 0)) {
     const uploadedFileUrls = [];
-    uploadedFileUrls.push(sponsorResult.photo.url);
+    if (sponsorResult.photo) {
+      uploadedFileUrls.push(sponsorResult.photo.url);
+    }
     uploadedFileUrls.push(...sponsorResult.documents.map((doc) => doc.url));
     await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
   }
