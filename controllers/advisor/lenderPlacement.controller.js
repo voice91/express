@@ -1649,7 +1649,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     { _id: lenderPlacementId },
     {
       $push: {
-        messages: { sender: advisor.firstName, updatedAt: new Date(), message: body.message, documents: body.documents, to },
+        messages: { sender: advisor.firstName, updatedAt: new Date(), message: body.message, documents: body.documents, to, cc },
       },
       $addToSet: {
         postmarkMessageId,

@@ -183,6 +183,10 @@ const messageSchema = new mongoose.Schema({
   to: {
     type: [String],
   },
+  // to store the emails in cc
+  cc: {
+    type: [String],
+  },
 });
 const LenderPlacementSchema = new mongoose.Schema(
   {
