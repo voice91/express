@@ -166,7 +166,17 @@ const TimeLineSchema = new mongoose.Schema({
   },
 });
 const messageSchema = new mongoose.Schema({
+  /**
+   * sender: field type updated from String to mongoose.Schema.Types.ObjectId
+   * */
   sender: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  /**
+   * senderEmail: to store the email of person, which not registered in system and replied the message
+   * */
+  senderEmail: {
     type: String,
   },
   updatedAt: {

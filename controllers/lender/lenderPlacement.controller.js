@@ -322,7 +322,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     {
       $push: {
         messages: {
-          sender: lender.firstName,
+          sender: lender._id,
           updatedAt: new Date(),
           message: body.message,
           documents: body.documents,
@@ -340,6 +340,7 @@ export const getMessages = catchAsync(async (req, res) => {
   };
   const options = {
     select: { messages: 1 },
+    populate: [{ path: 'messages.sender', select: { firstName: 1, lastName: 1, email: 1 } }],
   };
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
 

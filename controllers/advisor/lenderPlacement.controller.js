@@ -1649,7 +1649,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     { _id: lenderPlacementId },
     {
       $push: {
-        messages: { sender: advisor.firstName, updatedAt: new Date(), message: body.message, documents: body.documents, to, cc },
+        messages: { sender: advisor._id, updatedAt: new Date(), message: body.message, documents: body.documents, to, cc },
       },
       $addToSet: {
         postmarkMessageId,
@@ -1670,6 +1670,7 @@ export const getMessages = catchAsync(async (req, res) => {
   };
   const options = {
     select: { messages: 1 },
+    populate: [{ path: 'messages.sender', select: { firstName: 1, lastName: 1, email: 1 } }],
     new: true,
   };
   // Removed(commented) below line because we have to add the userId in messageReadBy array to mark as user read this message. so we are using update lenderPlacementService and pass the updated lenderPlacement data in the response.

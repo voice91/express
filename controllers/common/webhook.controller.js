@@ -43,8 +43,7 @@ export const processEmailMessage = catchAsync(async (req, res) => {
     const documents = [];
     await Promise.all(
       req.body.Attachments.map(async (attachment) => {
-        // TODO: need to add condition when we don't have user in out DB
-        Object.assign(attachment, { userId: user._id });
+        Object.assign(attachment, { userId: user ? user._id : req.body.From });
         // enablePrivateAccess is passed to set private access for attachment uploaded to S3
         const url = await uploadEmailAttachmentToS3(attachment, config.aws.enablePrivateAccess);
         documents.push({ url, fileName: attachment.Name, fileType: attachment.ContentType });
@@ -67,21 +66,23 @@ export const processEmailMessage = catchAsync(async (req, res) => {
     // } else {
     // as per the client requirement we all reply should store as message not lenderNotes
     // TODO: remove sendEmailPostmarkMessageId bcs we will not use it anymore
-    await lenderPlacementService.updateLenderPlacement(
-      { _id: placement._id },
-      {
-        $push: {
-          messages: {
-            // TODO: need to add condition when we don't have user in out DB
-            sender: user.firstName,
-            updatedAt: new Date(),
-            message,
-            documents,
-          },
+    const update = {
+      $push: {
+        messages: {
+          updatedAt: new Date(),
+          message,
+          documents,
         },
-      }
-    );
-    logger.info(`message created for ${message} bcs ${user.firstName} reply to email`);
+      },
+    };
+    // if user found then store the userId in the sender else store the email in the senderEmail .
+    if (user) {
+      Object.assign(update.$push.messages, { sender: user._id });
+    } else {
+      Object.assign(update.$push.messages, { senderEmail: req.body.From });
+    }
+    await lenderPlacementService.updateLenderPlacement({ _id: placement._id }, update);
+    logger.info(`message created for ${message} bcs ${user ? user.firstName : req.body.FromName} reply to email`);
   }
   // }
 
