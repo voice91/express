@@ -264,7 +264,7 @@ text-align: center
  */
 export const sendEmailVerificationEmail = async (user, token) => {
   const { email: to, firstName } = user;
-  const subject = 'Welcome to the ParallelCre';
+  const subject = 'Welcome to the ParallelCRE';
   const verifyEmailUrl = `${config.front.url}/verify-email?token=${token}`;
   const text = `
 <html lang="en">
@@ -300,7 +300,7 @@ text-align: center
 <div>
 <div>Dear ${firstName},</div>
 <br>
-  <div>We’re super excited that you’ve decided to join Parallel Cre!</div><br>
+  <div>We’re super excited that you’ve decided to join Parallel CRE!</div><br>
   <div>All you have to do is click the link below to confirm it’s you and you’re in!</div><br>
   <div><a   target="_blank" href="${verifyEmailUrl}" id="verifyButton" class="btn btn-primary" >Click here to Verify</a></div><br><br>
   <div>Thanks You,</div>

@@ -1588,6 +1588,8 @@ export const sendMessage = catchAsync(async (req, res) => {
   const advisor = req.user;
   const { emailPresentingPostmark } = advisor;
   const { body } = req;
+  //a function call that decodes HTML-encoded text. It's commonly used to decode HTML entities like &lt; (represents <), &gt; (represents >), &amp; (represents &), and so on.
+  body.message = body.message && he.decode(body.message)
   const { to = [], cc = [] } = body;
   const filter = {
     _id: lenderPlacementId,
@@ -1636,7 +1638,7 @@ export const sendMessage = catchAsync(async (req, res) => {
         fileType: item.fileType,
       };
     }),
-    isHtml: false,
+    isHtml: true,
     // Headers: [{ Name: 'In-Reply-To', Value: 'originalMessageId@example.com' }],
     headers,
     cc,
