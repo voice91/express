@@ -10,7 +10,10 @@ const he = require('he');
 
 // eslint-disable-next-line import/prefer-default-export
 export const processEmailMessage = catchAsync(async (req, res) => {
-  const message = req.body.StrippedTextReply ? req.body.StrippedTextReply : 'This file is coming from email';
+  // This is used to extract specific part that matches the regex pattern from the decoded req.body.Htmlbody, as we only want message part from the req body.
+  // he.decode decodes HTML-encoded text. It's commonly used to decode HTML entities like &lt; (represents <), &gt; (represents >), &amp; (represents &), and so on.
+  const messageContent = /<div dir="ltr">(.*?)<\/div>/.exec(he.decode(req.body.HtmlBody));
+  const message = req.body.StrippedTextReply ? messageContent[0] : 'This file is coming from email';
 
   let msgId;
   if (req.body.Headers) {
