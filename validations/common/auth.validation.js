@@ -38,11 +38,9 @@ export const register = {
         firstName: Joi.string().required(),
         lastName: Joi.string().required(),
         companyName: Joi.string().required(),
-        city: Joi.string().required(),
-        state: Joi.string()
-          .valid(...Object.values(enumFields.EnumStatesOfDeal))
-          .required(),
-        zipcode: Joi.number().integer().min(10000).max(99999).required(),
+        city: Joi.string(),
+        state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
+        zipcode: Joi.number().integer().min(10000).max(99999),
       }),
     }),
 };
