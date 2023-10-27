@@ -50,6 +50,7 @@ import {
 } from "../../services/lenderPlacement.service";
 import { logger } from "../../config/logger";
 import {decrypt} from "../../utils/encrypt-decrypt-text";
+const moment = require('moment');
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -361,12 +362,13 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
   // for adding lender's userid in the deal when we send deal to them
   const lenderUserIdsToAddInDeal= []
   // we send email to all selected placement & if we have one than also we are taking in the array
+  // '+messages' will explicitly include the message field along with other fields as in model we have set "select: false"
   await Promise.all(
       req.body.lenderPlacementIds.map(async (lenderPlacementId) => {
         const options = {
           populate: [
           { path: 'lenderContact' },
-          ]
+          ], select: '+messages'
       }
         const lenderPlacement = await lenderPlacementService.getOne({ _id: lenderPlacementId }, options);
         const frontEndUrl = config.front.url || 'http://54.196.81.18';
@@ -419,7 +421,8 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
           from: req.user.sendEmailFrom,
           pass: decrypt(req.user.appPassword, config.encryptionPassword),
           // for followup, we use this template
-          text: isFollowUp ? getFollowUpContent() :
+          // we want send deal mail, followup mails and other messages as reply so calling common function for it along with followup content
+          text: isFollowUp ? `${getFollowUpContent()}<br><br>${constructEmailContent({lenderPlacement: lenderPlacement, sender: req.user.sendEmailFrom})}` :
           getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
           attachments: req.body.emailAttachments && req.body.emailAttachments.map((item) => {
             return {
@@ -457,6 +460,11 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
             stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
             nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
             timeLine: manageLenderPlacementStageTimeline(lenderPlacement.stage, stage, lenderPlacement.timeLine),
+            // also adding send deal's mail once the mail is sent
+            sendDealMail: {
+              mailContent: getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
+              sentAt: new Date()
+            }
           });
         } else {
           //Adding postmark message id in placement while updating lender placement when we follow up for deal
@@ -466,7 +474,12 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
             isEmailSentFirstTime: false,
             $addToSet: {
               postmarkMessageId,
-              sendEmailPostmarkMessageId: postmarkMessageId
+              sendEmailPostmarkMessageId: postmarkMessageId,
+              // adding follow-up mails whenever the user send follow up
+              followUpMail: {
+                mailContent: getFollowUpContent(),
+                sentAt: new Date()
+              }
             },
           });
         }
@@ -734,9 +747,10 @@ export const update = catchAsync(async (req, res) => {
       // When we change the status from sent to new then all the messages , contact, task, postmarkMessageId and sendEmailPostmarkMessageId should get removed
       body.isEmailSentFirstTime = false
       body.messages = [];
-      body.$unset = { lenderContact: '', terms: '', termSheet: '', followOnDate: '' };
+      body.$unset = { lenderContact: '', terms: '', termSheet: '', followOnDate: '', sendDealMail: '' };
       body.postmarkMessageId = [];
       body.sendEmailPostmarkMessageId = [];
+      body.followUpMail = []
       await removeLenderPlacementAssociatedThings(beforeLenderPlacementResult)
     }
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
@@ -1583,6 +1597,46 @@ export const sendDealV2 = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });
 
+// common function for threading send deal mail, follow-up mail and messages in the mail
+export const constructEmailContent = ({lenderPlacement, sender }) => {
+  const sendDealMail = lenderPlacement.sendDealMail || '';
+  let followUpEmails = []
+  if(lenderPlacement.followUpMail && lenderPlacement.followUpMail.length > 0 ){
+    followUpEmails = lenderPlacement.followUpMail.map((mail) => mail) || [];
+  }
+  let  messages = []
+  if(lenderPlacement.messages && lenderPlacement.messages.length > 0 ){
+   messages = lenderPlacement.messages.map((message) => message) || [];
+  }
+
+  // common function to create desired email content
+  const formatEmailContent = (item) => {
+    const isFollowUp = item.sentAt !== undefined;
+    const time = moment(isFollowUp ? item.sentAt : item.updatedAt).format('ddd, DD MMM YYYY hh:mm A [GMT]');
+    const content = `On ${time} ${isFollowUp ? sender : (item.sender?.email || item.senderEmail || '')} wrote:\n>${isFollowUp ? item.mailContent : item.message}`;
+    return content;
+  };
+
+  // pushing send deal mail in email content array
+  let emailContentArray = [];
+  if (sendDealMail) {
+    emailContentArray.push(formatEmailContent(sendDealMail));
+  }
+
+  // to sort the messages and follow-up mails in ascending order as per sentAt and updatedAt value
+  if (followUpEmails.length > 0 || messages.length > 0) {
+    const sortedItems = [...followUpEmails, ...messages].sort((a, b) => {
+      const aTime = a.sentAt || a.updatedAt || 0;
+      const bTime = b.sentAt || b.updatedAt || 0;
+      return aTime - bTime;
+    });
+    emailContentArray.push(...sortedItems.map((item) => formatEmailContent(item)));
+  }
+
+  // Join the email content array with line breaks to create the final content
+  let emailContent = emailContentArray.reverse().join('<br><br>');
+  return emailContent;
+}
 export const sendMessage = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const advisor = req.user;
@@ -1594,6 +1648,8 @@ export const sendMessage = catchAsync(async (req, res) => {
   const filter = {
     _id: lenderPlacementId,
   };
+  // also populating sender in the messages array
+  // '+messages' will explicitly include the message field along with other fields as in model we have set "select: false"
   const options = {
     populate: [
       {
@@ -1603,7 +1659,9 @@ export const sendMessage = catchAsync(async (req, res) => {
         }
       },
       { path: 'lenderContact' },
+      {path: 'messages.sender'}
     ],
+    select: '+messages'
   };
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
 
@@ -1627,7 +1685,8 @@ export const sendMessage = catchAsync(async (req, res) => {
     // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
     from: req.user.sendEmailFrom,
     pass: decrypt(req.user.appPassword, config.encryptionPassword),
-    text: body.message,
+    // we want send deal mail, followup mails and other messages as reply so calling common function for it along with message
+    text: `${body.message}${constructEmailContent({lenderPlacement: lenderPlacement, sender: req.user.sendEmailFrom })}`,
     attachments: emailAttachments.map((item) => {
       return {
         fileName: item.fileName,

@@ -198,6 +198,15 @@ const messageSchema = new mongoose.Schema({
     type: [String],
   },
 });
+const followUpSchema = new mongoose.Schema({
+  mailContent: String,
+  sentAt: { type: Date, default: new Date() },
+});
+
+const sendDealMailSchema = new mongoose.Schema({
+  mailContent: String,
+  sentAt: { type: Date, default: new Date() },
+});
 const LenderPlacementSchema = new mongoose.Schema(
   {
     /**
@@ -305,6 +314,18 @@ const LenderPlacementSchema = new mongoose.Schema(
     messages: {
       type: [messageSchema],
       select: false,
+    },
+    /**
+     * For send deal mail
+     * */
+    sendDealMail: {
+      type: sendDealMailSchema,
+    },
+    /**
+     * For follow-up mails
+     * */
+    followUpMail: {
+      type: [followUpSchema],
     },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true, toJSON: { virtuals: true } }
