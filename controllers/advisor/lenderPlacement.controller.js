@@ -363,12 +363,15 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
   const lenderUserIdsToAddInDeal= []
   // we send email to all selected placement & if we have one than also we are taking in the array
   // '+messages' will explicitly include the message field along with other fields as in model we have set "select: false"
+  // also populating sender in the messages array
   await Promise.all(
       req.body.lenderPlacementIds.map(async (lenderPlacementId) => {
         const options = {
           populate: [
           { path: 'lenderContact' },
-          ], select: '+messages'
+          {path: 'messages.sender'},
+          ],
+          select: '+messages'
       }
         const lenderPlacement = await lenderPlacementService.getOne({ _id: lenderPlacementId }, options);
         const frontEndUrl = config.front.url || 'http://54.196.81.18';
@@ -422,7 +425,7 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
           pass: decrypt(req.user.appPassword, config.encryptionPassword),
           // for followup, we use this template
           // we want send deal mail, followup mails and other messages as reply so calling common function for it along with followup content
-          text: isFollowUp ? `${getFollowUpContent()}<br><br>${constructEmailContent({lenderPlacement: lenderPlacement, sender: req.user.sendEmailFrom})}` :
+          text: isFollowUp ? `${getFollowUpContent()}${constructEmailContent({lenderPlacement: lenderPlacement, sender: req.user.sendEmailFrom})}` :
           getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
           attachments: req.body.emailAttachments && req.body.emailAttachments.map((item) => {
             return {
@@ -1597,45 +1600,130 @@ export const sendDealV2 = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });
 
+// function of email template of threading
+export const threadingTemplate = ({emailContent}) => {
+  // This is to extract style tag and body tag from the email content
+  const extractContent = ({ email, isBody }) => {
+    const styleRegex = /<style>([\s\S]*?)<\/style>/g;
+    const bodyRegex = /<body>([\s\S]*?)<\/body>/g;
+    const matches = email?.match(isBody ? bodyRegex : styleRegex);
+
+    if (matches) {
+      return matches.map((match) =>
+          match.replace(isBody ? '<body>' : '<style>', '').replace(isBody ? '</body>' : '</style>', '')
+      );
+    } else {
+      return [];
+    }
+  };
+  // need to split the mail content as we need vertical line after the line that describes the time and by whom the message we got
+  const heading = emailContent.map((item) => {
+    const head = item.split('wrote:');
+    return head[0].concat('wrote:')
+  })
+
+  const styleContent = emailContent.map((email) => extractContent({ email, isBody: false })).flat();
+  const bodyContent = emailContent.map((email) => extractContent({ email, isBody: true })).flat();
+
+  // desired body that we need to pass in the html template
+  const body = bodyContent
+      .map((data, index) => {
+        if (index === 0) {
+          // For the first message, wrap it with one outer div
+          return `<div class="space_between_line"/><div>${heading[index]}</div><div class="email-inner-content">${data}`;
+        } else {
+          // For subsequent messages, nest them inside the previous div
+          return `<div class="space_between_line"/><div>${heading[index]}</div><div class="email-inner-content">${data}`;
+        }
+      })
+      .join('') + '</div>';
+
+  const template = `<!DOCTYPE html>
+ <html>
+   <head>
+    <style id="custom-styles">
+      .email-container {
+        color: #600060;
+        font-size: 0.75rem;
+        font-weight: 400;
+      }
+    
+    .space_between_line{
+    padding-top : 12px
+    }
+      .email-content {
+        flex: 1;
+      }
+
+      .vertical-line {
+        border-left: 1px solid #D3D3D3;
+        /* Adjust the line style and color as needed */
+        height: 100%;
+        margin-left: 5px;
+        /* Adjust the margin as needed */
+      }
+
+      .email-inner-content {
+        padding-left: 7px;
+        border-left: 1px solid #d3d3d3;
+        height: auto;
+        margin-left: 5px;
+      }
+
+      .email-thread {
+        padding-top: 15px;
+      }
+
+      .a {
+        color: blue;
+        text-decoration: underline;
+      }
+    </style>
+    <script>
+      window.addEventListener('DOMContentLoaded', (event) => {
+        const styleTag = document.getElementById('custom-styles');
+        ${styleContent}.forEach((style) => {
+          styleTag.appendChild(document.createTextNode(style));
+        });
+      });
+    </script>
+   </head>
+   <body>
+    <div class="email-container">
+      ${body}
+    </div>
+   </body>
+ </html>`
+
+  return template;
+}
 // common function for threading send deal mail, follow-up mail and messages in the mail
 export const constructEmailContent = ({lenderPlacement, sender }) => {
-  const sendDealMail = lenderPlacement.sendDealMail || '';
-  let followUpEmails = []
-  if(lenderPlacement.followUpMail && lenderPlacement.followUpMail.length > 0 ){
-    followUpEmails = lenderPlacement.followUpMail.map((mail) => mail) || [];
-  }
-  let  messages = []
-  if(lenderPlacement.messages && lenderPlacement.messages.length > 0 ){
-   messages = lenderPlacement.messages.map((message) => message) || [];
-  }
+  const followUpEmails = lenderPlacement.followUpMail.map((mail) => mail)
+  const messages = lenderPlacement.messages.map((message) => message)
 
   // common function to create desired email content
   const formatEmailContent = (item) => {
-    const isFollowUp = item.sentAt !== undefined;
-    const time = moment(isFollowUp ? item.sentAt : item.updatedAt).format('ddd, DD MMM YYYY hh:mm A [GMT]');
-    const content = `On ${time} ${isFollowUp ? sender : (item.sender?.email || item.senderEmail || '')} wrote:\n>${isFollowUp ? item.mailContent : item.message}`;
+    const isFollowUp = item.mailContent;
+    const time = moment(item.sentAt || item.updatedAt).format('ddd, DD MMM YYYY hh:mm A [GMT]');
+    const content = `On ${time} ${isFollowUp ? sender : (item.senderEmail || item.sender.email )} wrote:\n${isFollowUp ? item.mailContent : item.message}`;
     return content;
   };
 
-  // pushing send deal mail in email content array
-  let emailContentArray = [];
-  if (sendDealMail) {
-    emailContentArray.push(formatEmailContent(sendDealMail));
-  }
+  // array of send deal mail, followup mail and messages
+  let emailContentArray = [lenderPlacement.sendDealMail, ...followUpEmails, ...messages ] ;
 
-  // to sort the messages and follow-up mails in ascending order as per sentAt and updatedAt value
-  if (followUpEmails.length > 0 || messages.length > 0) {
-    const sortedItems = [...followUpEmails, ...messages].sort((a, b) => {
-      const aTime = a.sentAt || a.updatedAt || 0;
-      const bTime = b.sentAt || b.updatedAt || 0;
-      return aTime - bTime;
-    });
-    emailContentArray.push(...sortedItems.map((item) => formatEmailContent(item)));
+  //function to sort the mails as per the time they are sent in ascending order.
+  function sortedItems(a, b) {
+    const aTime = a.sentAt || a.updatedAt || 0;
+    const bTime = b.sentAt || b.updatedAt || 0;
+    return bTime - aTime;
   }
+  // sort the emailContent array using the above function, calling the function to format the email and joining it by <br> as we need space after every mail.
+  const emailContent = ((emailContentArray.sort(sortedItems)).map((item) => formatEmailContent(item)))
 
-  // Join the email content array with line breaks to create the final content
-  let emailContent = emailContentArray.reverse().join('<br><br>');
-  return emailContent;
+  // return the html format template that we need for threading
+  return threadingTemplate({ emailContent });
 }
 export const sendMessage = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
