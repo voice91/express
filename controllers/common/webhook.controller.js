@@ -38,7 +38,10 @@ export const processEmailMessage = catchAsync(async (req, res) => {
       }
     });
   }
-
+  const { postmarkInboundDomain } = config;
+  // all the to fields
+  const to = req.body.ToFull.filter((item) => !item.Email.includes(`@${postmarkInboundDomain}`)).map((item) => item.Email);
+  const cc = req.body.CcFull.map((item) => item.Email);
   const placement = await LenderPlacement.findOne({ postmarkMessageId: { $elemMatch: { $eq: msgId[0] } } });
   logger.info(`MessageId of email received : ${msgId}`);
   if (placement) {
@@ -75,6 +78,8 @@ export const processEmailMessage = catchAsync(async (req, res) => {
           updatedAt: new Date(),
           message,
           documents,
+          to,
+          cc,
         },
       },
     };
