@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
-import { dealSummaryService, s3Service } from '../../services';
+import { dealSummaryService, s3Service, sponsorService } from '../../services';
 import { catchAsync } from '../../utils/catchAsync';
 import TempS3 from '../../models/tempS3.model';
 import {
@@ -79,7 +79,9 @@ export const get = catchAsync(async (req, res) => {
   const filter = {
     _id: dealSummaryId,
   };
-  const options = {};
+  const options = {
+    populate: [{ path: 'deal', select: { sponsor: 1 }, populate: { path: 'sponsor', select: { name: 1, description: 1 } } }],
+  };
   const dealSummary = await dealSummaryService.getDealSummaryById(filter, options);
   return res.status(httpStatus.OK).send({ results: dealSummary });
 });
@@ -107,7 +109,7 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   let { body } = req;
-  const { otherPhotos } = body;
+  const { otherPhotos, sponsor, sponsorOverview } = body;
   body.updatedBy = req.user.id;
   const { dealSummaryId } = req.params;
   const { user } = req;
@@ -164,6 +166,10 @@ export const update = catchAsync(async (req, res) => {
         }
       })
     );
+  }
+  // update the sponsor description
+  if (sponsor && sponsorOverview) {
+    await sponsorService.updateSponsor({ _id: sponsor }, { description: sponsorOverview });
   }
   const options = { new: true };
 

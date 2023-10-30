@@ -45,6 +45,7 @@ export const createDeal = {
     involvedUsersLender: Joi.array().items(Joi.objectId()),
     involvedUsersBorrower: Joi.array().items(Joi.objectId()),
     involvedUsersAdvisor: Joi.array().items(Joi.objectId()),
+    sponsor: Joi.objectId(),
     assetType: Joi.string()
       .valid(...Object.values(enumFields.EnumAssetTypeOfDeal))
       .required(),
@@ -128,6 +129,7 @@ export const updateDeal = {
     involvedUsersLender: Joi.array().items(Joi.objectId()),
     involvedUsersBorrower: Joi.array().items(Joi.objectId()),
     involvedUsersAdvisor: Joi.array().items(Joi.objectId()),
+    sponsor: Joi.objectId(),
     assetType: Joi.string().valid(...Object.values(enumFields.EnumAssetTypeOfDeal)),
     loanAmount: Joi.string(),
     loanPurpose: Joi.string().valid(...Object.values(enumFields.EnumLoanPurposeOfDeal)),

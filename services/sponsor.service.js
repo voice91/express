@@ -45,7 +45,7 @@ export async function updateSponsor(filter, body, options = {}) {
   // Locate the associated sponsor and compare their list of borrower emails.
   // If the borrower emails have changed, identify the removed borrowers, and eliminate the sponsor's association from their records
   const sponsor = await getOne(filter);
-  if (sponsor && sponsor.borrowersEmails !== body.borrowersEmails) {
+  if (sponsor && body.borrowersEmails && sponsor.borrowersEmails !== body.borrowersEmails) {
     const removedBorrower = sponsor.borrowersEmails.filter((item) => !body.borrowersEmails.includes(item));
     if (removedBorrower && removedBorrower.length) {
       await userService.updateUser({ email: { $in: removedBorrower } }, { $pull: { sponsor: sponsor._id } });

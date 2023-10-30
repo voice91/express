@@ -225,6 +225,10 @@ const DealSchema = new mongoose.Schema(
         },
       },
     ],
+    sponsor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Sponsor',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );

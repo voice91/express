@@ -130,7 +130,7 @@ const DealSummarySchema = new mongoose.Schema(
     marketSummary: {
       type: String,
     },
-    sponserOverview: {
+    sponsorOverview: {
       type: String,
     },
     mainPhoto: {
