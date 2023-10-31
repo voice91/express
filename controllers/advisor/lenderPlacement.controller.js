@@ -225,7 +225,8 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
   };
 
   // we need to populate the deal summary as for the email's subject we need heading field of the deal summary
-  const dealDetail = await dealService.getOne({_id: req.body.deal},{populate: {path: 'dealSummary'}} )
+  // populating sponsor as we need its details in send deal and send test mail
+  const dealDetail = await dealService.getOne({_id: req.body.deal},{populate: [{ path: 'dealSummary' },{ path: 'sponsor' }]})
   const dealId = dealDetail._id;
   const dealSummaryUsesData = dealDetail?.dealSummary?.sourcesAndUses?.uses || [];
   const totalUses = sum(dealSummaryUsesData?.map((use) => getAmountInFloat(use?.value)));
@@ -275,7 +276,7 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
     const isAdvisor = _.template(req.body.emailContent)({
       lenderFirstName: _.startCase(firstName),
       advisorName:_.startCase(req.user.firstName),
-      sponsorName: '[[Sponsor Name]]',
+      sponsorName: dealDetail?.sponsor?.name || '[[Sponsor Name]]',
       amount: formatCurrency(dealDetail?.loanAmount) || 'NA',
       loanPurpose: dealDetail.loanPurpose || 'NA',
       dealName: dealDetail.dealName || 'NA',
@@ -297,7 +298,8 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       existingLoanBalance: existingLoanBalance || 'NA',
       inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
       stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
-      sponsorBioName: '[[Sponsor bio from Sponsor bio page]]',
+      // we only need first line of sponsor bio so splitting it with (.).
+      sponsorBioName: dealDetail?.sponsor?.description.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
       loanTypeValue: dealDetail?.loanType || 'NA',
       dealSummaryLink: `<a href='#'>Deal Summary</a>`,
       passLink:`<a href='#'>Pass</a>`,
@@ -330,7 +332,7 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
     const data = _.template(req.body.emailContent)({
       lenderFirstName: _.startCase(firstName),
       advisorName:_.startCase(req.user.firstName),
-      sponsorName: '[[Sponsor Name]]',
+      sponsorName: dealDetail?.sponsor?.name || '[[Sponsor Name]]',
       amount: formatCurrency(dealDetail?.loanAmount) || 'NA',
       loanPurpose: dealDetail?.loanPurpose || 'NA',
       dealName: dealDetail?.dealName || 'NA',
@@ -352,7 +354,8 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       existingLoanBalance: existingLoanBalance || 'NA',
       inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
       stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
-      sponsorBioName: '[[Sponsor bio from Sponsor bio page]]',
+      // we only need first line of sponsor bio so splitting it with (.).
+      sponsorBioName: dealDetail?.sponsor?.description.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
       loanTypeValue: dealDetail?.loanType || 'NA',
       dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
       passLink:`<a href=${passLink}>Pass</a>`,
