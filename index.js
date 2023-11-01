@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import config from 'config/config';
 import { logger } from 'config/logger';
 import socketAPI from 'appEvents/socketAPI';
-import redisAdapter from 'socket.io-redis';
 import app from './app';
 import { seedDatabase } from './seed';
 
@@ -19,7 +18,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   });
   seedDatabase().then().catch();
   // check whether Socket is enabled or not TODO: implement in the future
-  socketAPI.io.adapter(redisAdapter({ host: config.redis.host, port: config.redis.port }));
+  // socketAPI.io.adapter(redisAdapter({ host: config.redis.host, port: config.redis.port }));
   socketAPI.io.attach(server);
   initSockets();
 });

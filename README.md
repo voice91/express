@@ -83,19 +83,6 @@ EMAIL_FROM=support@yourapp.com
 FRONT_URL=frontend-url
 
 
-# Redis connection options for creating redis client instance
-# it will connect to localhost:6379 (hostName:port)
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=root
-
-
-# Authentication via Google
-# Options specifying a app clinet ID and app client secret for google strategy
-GOOGLE_CLIENT_ID=google_client_id
-GOOGLE_CLIENT_SECRET=google_client_secret
-
-
 # Authentication via FaceBook
 # Options specifying a app clinet ID and app client secret for FaceBook strategy
 FACEBOOK_CLIENT_ID=facebook_client_id
@@ -119,11 +106,6 @@ GITHUB_CLIENT_SECRET=github_team_id
 # Stripe account's secret key for stripe module configuration
 STRIPE_KEY=stripe_key
 STRIPE_GATEWAY_ID=stripe_gateway_id
-
-
-# Captcha for verifing the human identity
-# Captcha secret key for validating Captcha
-CAPTCHA_SECRET_KEY=captcha_secret_key
 
 
 # Logger Utility - log messages for the system

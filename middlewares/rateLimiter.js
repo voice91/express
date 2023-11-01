@@ -1,10 +1,8 @@
 import rateLimit from 'express-rate-limit';
-import RedisStore from 'rate-limit-redis';
 import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
-// eslint-disable-next-line import/named
-import { redisClient } from '../config/redis';
 
+// If we don't have a Redis client or don't need to persist rate limiting data in Redis, we can remove the store configuration, and the rate limiting will work with in-memory storage.
 const globalLimiter = rateLimit({
   keyGenerator: (request) => {
     // You can customise the Global Rate Limiter as well
@@ -17,10 +15,6 @@ const globalLimiter = rateLimit({
   handler: (request, response, next) => {
     next(new ApiError(httpStatus.TOO_MANY_REQUESTS, 'Error Limit is Reached'));
   },
-  store: new RedisStore({
-    // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-    sendCommand: (...args) => redisClient.call(...args),
-  }),
 });
 module.exports = {
   globalLimiter,

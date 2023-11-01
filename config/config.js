@@ -18,9 +18,6 @@ const envVarsSchema = Joi.object()
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     FRONT_URL: Joi.string().description('frontend url for email service'),
-    REDIS_HOST: Joi.string().required().description('Redis Host is required'),
-    REDIS_PORT: Joi.string().required().description('Redis Port is required'),
-    REDIS_PASSWORD: Joi.string().required().description('Redis Password is required'),
     AWS_BUCKET_NAME: Joi.string().required().description('Aws Bucket Name is required'),
     AWS_ACCESS_KEY: Joi.string().required().description('Aws Access Key is required'),
     AWS_SECRET_ACCESS_KEY: Joi.string().required().description('Aws Secret Access Key is required'),
@@ -30,9 +27,6 @@ const envVarsSchema = Joi.object()
     URL_EXPIRATION_SECONDS: Joi.number().default(3600),
     PARTY_USER_LIMIT: Joi.number().default(8),
     RESET_PASSWORD_CODE_SIZE: Joi.number().default(6),
-    GOOGLE_CLIENT_ID: Joi.string().required().description('Google Client is required'),
-    GOOGLE_CLIENT_SECRET: Joi.string().required().description('Google Client Secret required'),
-    CAPTCHA_SECRET_KEY: Joi.string().required().description('Google Captcha Secret Key required'),
     ACTIVITY_SYSTEM_USER: Joi.string(),
     ADMIN_EMAILS: Joi.string().required().default(['richardjsutt@gmail.com', 'richard@parallelcre.com']),
     DEFAULT_ADVISORS_TO_ADD_DEAL: Joi.string()
@@ -121,11 +115,6 @@ export default {
   notification: {
     ttl: 60 * 60 * 24,
   },
-  redis: {
-    host: envVars.REDIS_HOST,
-    port: envVars.REDIS_PORT,
-    password: envVars.REDIS_PASSWORD,
-  },
   party: {
     limit: envVars.PARTY_USER_LIMIT,
   },
@@ -135,12 +124,5 @@ export default {
     bucket: envVars.AWS_BUCKET_NAME,
     enablePrivateAccess: envVars.ENABLE_PRIVATE_ACCESS,
     urlExpirationSeconds: envVars.URL_EXPIRATION_SECONDS,
-  },
-  google: {
-    clientID: envVars.GOOGLE_CLIENT_ID,
-    clientSecret: envVars.GOOGLE_CLIENT_SECRET,
-  },
-  captcha: {
-    secretKey: envVars.CAPTCHA_SECRET_KEY,
   },
 };
