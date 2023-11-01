@@ -299,7 +299,7 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
       stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
       // we only need first line of sponsor bio so splitting it with (.).
-      sponsorBioName: dealDetail?.sponsor?.description.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
+      sponsorBioName: dealDetail?.sponsor?.description?.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
       loanTypeValue: dealDetail?.loanType || 'NA',
       dealSummaryLink: `<a href='#'>Deal Summary</a>`,
       passLink:`<a href='#'>Pass</a>`,
@@ -355,7 +355,7 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
       stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
       // we only need first line of sponsor bio so splitting it with (.).
-      sponsorBioName: dealDetail?.sponsor?.description.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
+      sponsorBioName: dealDetail?.sponsor?.description?.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
       loanTypeValue: dealDetail?.loanType || 'NA',
       dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
       passLink:`<a href=${passLink}>Pass</a>`,
