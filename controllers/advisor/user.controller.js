@@ -75,6 +75,12 @@ export const update = catchAsync(async (req, res) => {
     _id: userId,
   };
   const options = { new: true };
+  Object.entries(body).forEach(([key, value]) => {
+    if (!value) {
+      body.$unset = { ...body.$unset, [key]: '' };
+      delete body[key];
+    }
+  });
   const user = await userService.updateUser(filter, body, options);
   return res.status(httpStatus.OK).send({ results: user });
 });
