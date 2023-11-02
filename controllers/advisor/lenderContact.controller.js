@@ -3,7 +3,7 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { lenderContactService, userService } from 'services';
+import { lenderContactService, lendingInstitutionService, userService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
@@ -77,6 +77,19 @@ export const create = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Advisor or Borrower can not be added as Lender Contact');
   }
   const lenderContact = await lenderContactService.createLenderContact(body, options);
+  const lenderInstitute = await lendingInstitutionService.getLendingInstitutionById(lenderContact.lenderInstitute);
+  const userBody = {
+    firstName: lenderContact.firstName,
+    companyName: lenderInstitute.lenderNameVisible,
+    lastName: lenderContact.lastName,
+    role: enumModel.EnumRoleOfUser.LENDER,
+    enforcePassword: true,
+    email: lenderContact.email,
+    emailVerified: true,
+    password: Math.random().toString(36).slice(-10),
+  };
+  // Creating the user at the time of creating contact
+  await userService.createUser(userBody);
   return res.status(httpStatus.CREATED).send({ results: lenderContact });
 });
 

@@ -7,7 +7,7 @@ import {
   EnumOfTypeOfValue,
   EnumStatesOfDeal,
 } from 'models/enum.model';
-import _ from 'lodash';
+import _, { find, includes, isEmpty, isUndefined, round, sum } from "lodash";
 import ApiError from './ApiError';
 import contentType from './content-type.json';
 import { lenderPlacementStageToStageNumberMapping } from './enumStageOfLenderPlacement';
@@ -740,4 +740,129 @@ export const getKeyFromUrl = (url) => {
     return match[1].substring(1);
   }
   return url;
+};
+
+/**
+ * Common function for the template of send deal test mail and send mail
+ */
+export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorName, passLink, dealSummaryLink }) => {
+  //function for format currency (round of the value and to show in the form of 'k' if the value is less than 1 million)
+  const formatCurrency = (amount) => {
+    if (typeof amount === 'string') {
+      const floatValue = getAmountInFloat(amount);
+      if (isNaN(floatValue)) {
+
+        return 0;
+      }
+      amount = floatValue;
+
+    } else if (isUndefined(amount)) {
+      return 0;
+    }
+    if (amount >= 1000000) {
+      const lastDigit = round(amount / 1000000, 2)
+        .toString()
+        .slice(-1);
+      if (lastDigit === '5') {
+        return `$${round(amount / 1000000, 2)}m`;
+      } else {
+        return `$${round(amount / 1000000, 1)}m`;
+      }
+    } else {
+      return `$${round(amount / 1000, 0)}k`;
+    }
+  };
+
+// To convert the value into string
+  const getAmountFromString = (value) => {
+    if (value) {
+      return value.toString()?.replace(/[$,]/g, '');
+    }
+    return value;
+  };
+
+// To convert the value into float
+  const getAmountInFloat = (value, removeDollarAndCommas = true) => {
+    if (value) {
+      if (removeDollarAndCommas) {
+        return parseFloat(getAmountFromString(value));
+      }
+      return parseFloat(value?.toString());
+    }
+    return value;
+  };
+
+// To remove the sentence for unitCount, Occupancy and SF when we don't have its value
+  const removeStringFromTemplate = (sentence = '') => {
+    const updatedSentence = sentence
+      .replace(/\[unitCount\]-unit,/, '')
+      .replace(/\[Occupancy\] occupied/, '')
+      .replace(/\[Square Footage\] SF,/, '');
+    return updatedSentence;
+  };
+
+  const dealSummaryUsesData = dealDetail.dealSummary?.sourcesAndUses?.uses || [];
+  const totalUses = sum(dealSummaryUsesData?.map((use) => getAmountInFloat(use?.value)));
+  const removeTotalUses = dealSummaryUsesData?.filter((item) => item?.key !== 'Total Uses');
+  const usesKeyValue = removeTotalUses
+    ?.map((value) => {
+      return `${formatCurrency(value.value)} of ${value.key}`;
+    })
+    .join(', ');
+  const firstUsesValue = formatCurrency(dealSummaryUsesData ? _.get(dealSummaryUsesData[0], 'value', '') : '');
+  const ltcValue = getAmountInFloat(dealDetail?.loanAmount) / totalUses || 0;
+  const inPlaceDYVal = find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place DY')?.value;
+  const inStabilizedDYVal = find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized DY')?.value;
+  const existingLoanBalance = find(dealSummaryUsesData, (data) =>
+    includes(
+      [
+        'Loan Balance',
+        'Current Loan Balance',
+        'Existing Loan Balance',
+        'Current Debt',
+        'Current Debt Balance',
+        'Debt Balance',
+        'Payoff Loan Balance',
+        'Payoff Current Loan Balance',
+        'Payoff Existing Loan Balance',
+        'Payoff Current Debt Balance',
+        'Payoff Debt Balance',
+      ],
+      data?.key
+    )
+  )?.value;
+
+  const getText = _.template(emailContent)({
+    lenderFirstName: _.startCase(firstName),
+    advisorName:_.startCase(advisorName),
+    sponsorName: dealDetail.sponsor?.name || '[[Sponsor Name]]',
+    amount: formatCurrency(dealDetail.loanAmount) || 'NA',
+    loanPurpose: dealDetail.loanPurpose || 'NA',
+    dealName: dealDetail.dealName || 'NA',
+    unitCount: dealDetail.unitCount || '[unitCount]',
+    propertyType: dealDetail.assetType || 'NA',
+    toBeBuilt: 'NA',
+    address: dealDetail.address || 'NA',
+    city: dealDetail.city || 'NA',
+    state: getStateFullName(dealDetail.state) || 'NA',
+    purchasePrice: formatCurrency(find(dealSummaryUsesData, (data) => data.key === 'Purchase Price')?.value) || 'NA',
+    inPlaceNOI: formatCurrency(find(dealDetail.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
+    stabilizedNOI: formatCurrency(find(dealDetail.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
+    squareFootage: dealDetail.squareFootage || '[Square Footage]',
+    occupancy: dealDetail.occupancy || '[Occupancy]',
+    totalUsesValue: !isEmpty(dealSummaryUsesData) ? formatCurrency(totalUses) : 'NA',
+    usesKeyValue: usesKeyValue || 'NA',
+    LTC: round(ltcValue / 100, 1) || 'NA',
+    firstUsesValue: firstUsesValue || 'NA',
+    existingLoanBalance: existingLoanBalance || 'NA',
+    inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
+    stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
+    // we only need first line of sponsor bio so splitting it with (.).
+    sponsorBioName: dealDetail.sponsor?.description?.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
+    loanTypeValue: dealDetail.loanType || 'NA',
+    dealSummaryLink: dealSummaryLink,
+    passLink: passLink,
+  });
+
+  return removeStringFromTemplate(getText)
 };

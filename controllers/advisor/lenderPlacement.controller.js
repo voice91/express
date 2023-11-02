@@ -28,8 +28,8 @@ import {
   getStateFullName,
   getTextFromTemplate,
   manageDealStageTimeline,
-  manageLenderPlacementStageTimeline,
-} from 'utils/common';
+  manageLenderPlacementStageTimeline, sendDealTemplate
+} from "utils/common";
 import _, {find, includes, isEmpty, isUndefined, round, sum} from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
@@ -169,95 +169,10 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
   req.body.followUpContent = req.body.followUpContent && he.decode(req.body.followUpContent);
 
   _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
-  //function for format currency (round of the value and to show in the form of 'k' if the value is less than 1 million)
-const formatCurrency = (amount) => {
-    if (typeof amount === 'string') {
-      const floatValue = getAmountInFloat(amount);
-      if (isNaN(floatValue)) {
-
-        return 0;
-      }
-      amount = floatValue;
-
-    } else if (isUndefined(amount)) {
-      return 0;
-    }
-    if (amount >= 1000000) {
-      const lastDigit = round(amount / 1000000, 2)
-          .toString()
-          .slice(-1);
-      if (lastDigit === '5') {
-        return `$${round(amount / 1000000, 2)}m`;
-      } else {
-        return `$${round(amount / 1000000, 1)}m`;
-      }
-    } else {
-      return `$${round(amount / 1000, 0)}k`;
-    }
-  };
-
-// To convert the value into string
-const getAmountFromString = (value) => {
-    if (value) {
-      return value.toString()?.replace(/[$,]/g, '');
-    }
-    return value;
-  };
-
-// To convert the value into float
-const getAmountInFloat = (value, removeDollarAndCommas = true) => {
-    if (value) {
-      if (removeDollarAndCommas) {
-        return parseFloat(getAmountFromString(value));
-      }
-      return parseFloat(value?.toString());
-    }
-    return value;
-  };
-
-// To remove the sentence for unitCount, Occupancy and SF when we don't have its value
- const removeStringFromTemplate = (sentence = '') => {
-    const updatedSentence = sentence
-        .replace(/\[unitCount\]-unit,/, '')
-        .replace(/\[Occupancy\] occupied/, '')
-        .replace(/\[Square Footage\] SF,/, '');
-    return updatedSentence;
-  };
-
   // we need to populate the deal summary as for the email's subject we need heading field of the deal summary
   // populating sponsor as we need its details in send deal and send test mail
   const dealDetail = await dealService.getOne({_id: req.body.deal},{populate: [{ path: 'dealSummary' },{ path: 'sponsor' }]})
   const dealId = dealDetail._id;
-  const dealSummaryUsesData = dealDetail?.dealSummary?.sourcesAndUses?.uses || [];
-  const totalUses = sum(dealSummaryUsesData?.map((use) => getAmountInFloat(use?.value)));
-  const removeTotalUses = dealSummaryUsesData?.filter((item) => item?.key !== 'Total Uses');
-  const usesKeyValue = removeTotalUses
-      ?.map((value) => {
-        return `${formatCurrency(value.value)} of ${value.key}`;
-      })
-      .join(', ');
-  const firstUsesValue = formatCurrency(dealSummaryUsesData ? _.get(dealSummaryUsesData[0], 'value', '') : '');
-  const ltcValue = getAmountInFloat(dealDetail?.loanAmount) / totalUses || 0;
-  const inPlaceDYVal = find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place DY')?.value;
-  const inStabilizedDYVal = find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized DY')?.value;
-  const existingLoanBalance = find(dealSummaryUsesData, (data) =>
-      includes(
-          [
-            'Loan Balance',
-            'Current Loan Balance',
-            'Existing Loan Balance',
-            'Current Debt',
-            'Current Debt Balance',
-            'Debt Balance',
-            'Payoff Loan Balance',
-            'Payoff Current Loan Balance',
-            'Payoff Existing Loan Balance',
-            'Payoff Current Debt Balance',
-            'Payoff Debt Balance',
-          ],
-          data?.key
-      )
-  )?.value;
   if (sendToAdvisor) {
     let firstName = 'lenderName'
     // if we send to multiple placement than send generic lender name else selected lender name
@@ -272,38 +187,6 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       const lenderPlacement = await lenderPlacementService.getOne({ _id: req.body.lenderPlacementIds[0] }, options);
       firstName = lenderPlacement.lenderContact.firstName
     }
-    // Todo: create common function for creating template for both send test email and send email
-    const isAdvisor = _.template(req.body.emailContent)({
-      lenderFirstName: _.startCase(firstName),
-      advisorName:_.startCase(req.user.firstName),
-      sponsorName: dealDetail?.sponsor?.name || '[[Sponsor Name]]',
-      amount: formatCurrency(dealDetail?.loanAmount) || 'NA',
-      loanPurpose: dealDetail.loanPurpose || 'NA',
-      dealName: dealDetail.dealName || 'NA',
-      unitCount: dealDetail.unitCount || '[unitCount]',
-      propertyType: dealDetail.assetType || 'NA',
-      toBeBuilt: 'NA',
-      address: dealDetail.address || 'NA',
-      city: dealDetail.city || 'NA',
-      state: getStateFullName(dealDetail.state) || 'NA',
-      purchasePrice: formatCurrency(find(dealSummaryUsesData, (data) => data.key === 'Purchase Price')?.value) || 'NA',
-      inPlaceNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
-      stabilizedNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
-      squareFootage: dealDetail?.squareFootage || '[Square Footage]',
-      occupancy: dealDetail?.occupancy || '[Occupancy]',
-      totalUsesValue: !isEmpty(dealSummaryUsesData) ? formatCurrency(totalUses) : 'NA',
-      usesKeyValue: usesKeyValue || 'NA',
-      LTC: round(ltcValue / 100, 1) || 'NA',
-      firstUsesValue: firstUsesValue || 'NA',
-      existingLoanBalance: existingLoanBalance || 'NA',
-      inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
-      stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
-      // we only need first line of sponsor bio so splitting it with (.).
-      sponsorBioName: dealDetail?.sponsor?.description?.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
-      loanTypeValue: dealDetail?.loanType || 'NA',
-      dealSummaryLink: `<a href='#'>Deal Summary</a>`,
-      passLink:`<a href='#'>Pass</a>`,
-    });
     const emailAttachments = req.body.emailAttachments.map((item) => {
       return {
         fileName: item.fileName,
@@ -318,9 +201,10 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
       to: req.user.email,
       from: req.user.sendEmailFrom,
       pass: decrypt(req.user.appPassword, config.encryptionPassword),
-      subject: `TEST - ${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling commmon function for setting subject
+      subject: `TEST - ${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling common function for setting subject
       // ...(emailPresentingPostmark && { from: req.user.email }),
-      text: removeStringFromTemplate(isAdvisor),
+      // calling the common function for send deal template
+      text: sendDealTemplate({ emailContent: req.body.emailContent, dealDetail: dealDetail, firstName: firstName, advisorName: req.user.firstName, passLink: `<a href='#'>Pass</a>`, dealSummaryLink: `<a href='#'>Deal Summary</a>` }),
       attachments: emailAttachments,
       isHtml: true,
       // headers - if you want the functionality like advisor can also reply its own email then we can pass the headers
@@ -328,40 +212,6 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
     logger.info(`Test email successfully sent to ${req.user.email} from ${req.user.sendEmailFrom}`);
     return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
   }
-  const getText = (passLink, dealSummaryLink, firstName) => {
-    const data = _.template(req.body.emailContent)({
-      lenderFirstName: _.startCase(firstName),
-      advisorName:_.startCase(req.user.firstName),
-      sponsorName: dealDetail?.sponsor?.name || '[[Sponsor Name]]',
-      amount: formatCurrency(dealDetail?.loanAmount) || 'NA',
-      loanPurpose: dealDetail?.loanPurpose || 'NA',
-      dealName: dealDetail?.dealName || 'NA',
-      unitCount: dealDetail?.unitCount || '[unitCount]',
-      propertyType: dealDetail?.assetType || 'NA',
-      toBeBuilt: 'NA',
-      address: dealDetail?.address || 'NA',
-      city: dealDetail?.city || 'NA',
-      state: getStateFullName(dealDetail.state) || 'NA',
-      purchasePrice: formatCurrency(find(dealSummaryUsesData, (data) => data.key === 'Purchase Price')?.value) || 'NA',
-      inPlaceNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
-      stabilizedNOI: formatCurrency(find(dealDetail?.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
-      squareFootage: dealDetail?.squareFootage || '[Square Footage]',
-      occupancy: dealDetail?.occupancy || '[Occupancy]',
-      totalUsesValue: !isEmpty(dealSummaryUsesData) ? formatCurrency(totalUses) : 'NA',
-      usesKeyValue: usesKeyValue || 'NA',
-      LTC: round(ltcValue / 100, 1) || 'NA',
-      firstUsesValue: firstUsesValue || 'NA',
-      existingLoanBalance: existingLoanBalance || 'NA',
-      inPlaceDY: inPlaceDYVal ? `${getAmountInFloat(inPlaceDYVal)}%` : 'NA',
-      stabilizedDY: inStabilizedDYVal ? `${getAmountInFloat(inStabilizedDYVal)}%` : 'NA',
-      // we only need first line of sponsor bio so splitting it with (.).
-      sponsorBioName: dealDetail?.sponsor?.description?.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
-      loanTypeValue: dealDetail?.loanType || 'NA',
-      dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
-      passLink:`<a href=${passLink}>Pass</a>`,
-    });
-    return removeStringFromTemplate(data)
-  };
   // for adding lender's userid in the deal when we send deal to them
   const lenderUserIdsToAddInDeal= []
   // we send email to all selected placement & if we have one than also we are taking in the array
@@ -379,22 +229,8 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
         const lenderPlacement = await lenderPlacementService.getOne({ _id: lenderPlacementId }, options);
         const frontEndUrl = config.front.url || 'http://54.196.81.18';
 
-        let user = await userService.getOne({ email: lenderPlacement.lenderContact.email, role: enumModel.EnumRoleOfUser.LENDER });
-        if (!user) {
-          const isLenderContact = await lenderContactService.getOne({ email: lenderPlacement.lenderContact.email }, { populate: 'lenderInstitute' });
-          // create user if user has not register
-          const userBody = {
-            firstName: isLenderContact.firstName,
-            companyName: isLenderContact.lenderInstitute.lenderNameVisible,
-            lastName: isLenderContact.lastName,
-            role: enumModel.EnumRoleOfUser.LENDER,
-            enforcePassword: true,
-            email: lenderPlacement.lenderContact.email,
-            emailVerified: true,
-            password: Math.random().toString(36).slice(-10)
-          }
-          user = await userService.createUser(userBody);
-        }
+        const user = await userService.getOne({ email: lenderPlacement.lenderContact.email, role: enumModel.EnumRoleOfUser.LENDER });
+        // we are now creating the user at the time of creating contact
         lenderUserIdsToAddInDeal.push(user._id)
         const tokens = await tokenService.generateAuthTokens(user);
         const dealSummaryLink =`${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&token=${tokens.access.token}`
@@ -422,14 +258,15 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
         const response = await emailService.sendEmailUsingGmail({
           to: lenderPlacement.lenderContact.email,
           cc: ccList,
-          subject: isFollowUp ? `RE: ${getEmailSubjectForDeal(dealDetail.dealSummary)}` : `${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling commmon function for setting subject
+          subject: isFollowUp ? `RE: ${getEmailSubjectForDeal(dealDetail.dealSummary)}` : `${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling common function for setting subject
           // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
           from: req.user.sendEmailFrom,
           pass: decrypt(req.user.appPassword, config.encryptionPassword),
           // for followup, we use this template
           // we want send deal mail, followup mails and other messages as reply so calling common function for it along with followup content
           text: isFollowUp ? `${getFollowUpContent()}${constructEmailContent({lenderPlacement: lenderPlacement, sender: req.user.sendEmailFrom})}` :
-          getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
+            // calling the common function for send deal template
+          sendDealTemplate({ emailContent: req.body.emailContent, dealDetail: dealDetail, firstName: lenderPlacement.lenderContact.firstName, advisorName: req.user.firstName, dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`, passLink: `<a href=${passLink}>Pass</a>` }),
           attachments: req.body.emailAttachments && req.body.emailAttachments.map((item) => {
             return {
               fileName: item.fileName,
@@ -468,7 +305,7 @@ const getAmountInFloat = (value, removeDollarAndCommas = true) => {
             timeLine: manageLenderPlacementStageTimeline(lenderPlacement.stage, stage, lenderPlacement.timeLine),
             // also adding send deal's mail once the mail is sent
             sendDealMail: {
-              mailContent: getText(passLink, dealSummaryLink, lenderPlacement.lenderContact.firstName),
+              mailContent:  sendDealTemplate({ emailContent: req.body.emailContent, dealDetail: dealDetail, firstName: lenderPlacement.lenderContact.firstName, advisorName: req.user.firstName, dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>` }),
               sentAt: new Date()
             }
           });
