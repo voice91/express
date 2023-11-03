@@ -15,6 +15,13 @@ const extensionsSchema = Joi.object().keys({
   }),
   extensionFee: Joi.string(),
 });
+
+// dynamic field schema for repetitive code in embedded terms schema
+const termsDynamicFieldSchema = Joi.object().keys({
+  value: Joi.number(),
+  extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
+});
+
 const termsEmbed = Joi.object().keys({
   initialFunding: Joi.number().integer().required(),
   futureFunding: Joi.number().integer(),
@@ -25,26 +32,14 @@ const termsEmbed = Joi.object().keys({
   spread: Joi.string(),
   totalRate: Joi.string(),
   rateNotes: Joi.string(),
-  initialTerm: Joi.object().keys({
-    value: Joi.number(),
-    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
-  }),
+  initialTerm: termsDynamicFieldSchema,
   interestRateIndex: Joi.string(),
   extensions: Joi.array().items(extensionsSchema),
   LTC: Joi.string(),
   termNotes: Joi.string(),
-  prePaymentPeriod: Joi.object().keys({
-    value: Joi.number(),
-    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
-  }),
-  IO: Joi.object().keys({
-    value: Joi.number(),
-    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
-  }),
-  amortization: Joi.object().keys({
-    value: Joi.number(),
-    extensionTime: Joi.string().valid(...Object.values(enumFields.EnumofExtension)),
-  }),
+  prePaymentPeriod: termsDynamicFieldSchema,
+  IO: termsDynamicFieldSchema,
+  amortization: termsDynamicFieldSchema,
   originationFee: Joi.string(),
   exitFee: Joi.string(),
   recourse: Joi.string().valid(...Object.values(enumFields.EnumOfRecourse)),

@@ -20,10 +20,21 @@ const headingSchema = Joi.object().keys({
 });
 
 // TODO : use this embed schema validation to reduce code duplication
-const dynamicFieldSchema = Joi.object().keys({
+// dynamic field schema for repetitive code in create and update deal summary
+const dealSummaryDynamicFieldSchema = Joi.object().keys({
   key: Joi.string(),
   value: Joi.any(),
   type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+});
+
+// dynamic field schema for repetitive code in create and update financial summary in deal summary
+const financialSummaryDynamicFieldSchema = Joi.object().keys({
+  key: Joi.string(),
+  stabilizedValue: Joi.string(),
+  inPlaceValue: Joi.string(),
+  stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+  inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+  note: Joi.string(),
 });
 
 // eslint-disable-next-line import/prefer-default-export
@@ -51,35 +62,17 @@ export const getDealSummaryById = {
 
 export const createDealSummary = {
   body: Joi.object().keys({
-    propertySummary: Joi.array().items(dynamicFieldSchema),
-    dealMetrics: Joi.array().items(dynamicFieldSchema),
-    financingRequest: Joi.array().items(dynamicFieldSchema),
+    propertySummary: Joi.array().items(dealSummaryDynamicFieldSchema),
+    dealMetrics: Joi.array().items(dealSummaryDynamicFieldSchema),
+    financingRequest: Joi.array().items(dealSummaryDynamicFieldSchema),
     sourcesAndUses: Joi.object().keys({
-      sources: Joi.array().items(dynamicFieldSchema),
-      uses: Joi.array().items(dynamicFieldSchema),
+      sources: Joi.array().items(dealSummaryDynamicFieldSchema),
+      uses: Joi.array().items(dealSummaryDynamicFieldSchema),
     }),
-    rentRollSummary: Joi.array().items(Joi.array().items(dynamicFieldSchema)),
+    rentRollSummary: Joi.array().items(Joi.array().items(dealSummaryDynamicFieldSchema)),
     financialSummary: Joi.object().keys({
-      revenue: Joi.array().items(
-        Joi.object().keys({
-          key: Joi.string(),
-          stabilizedValue: Joi.string(),
-          inPlaceValue: Joi.alternatives().try(Joi.string(), Joi.number()),
-          stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          note: Joi.string(),
-        })
-      ),
-      expenses: Joi.array().items(
-        Joi.object().keys({
-          key: Joi.string(),
-          stabilizedValue: Joi.string(),
-          inPlaceValue: Joi.alternatives().try(Joi.string(), Joi.number()),
-          stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          note: Joi.string(),
-        })
-      ),
+      revenue: Joi.array().items(financialSummaryDynamicFieldSchema),
+      expenses: Joi.array().items(financialSummaryDynamicFieldSchema),
       netOperatingIncome: Joi.object().keys({
         inPlaceValue: Joi.alternatives().try(Joi.string(), Joi.number()),
       }),
@@ -150,7 +143,7 @@ export const createDealSummary = {
                       bulletPoints: Joi.optional(),
                       fileUrl: Joi.string().uri().required(),
                       fileName: Joi.string(),
-                      tableData: Joi.array().items(Joi.array().items(dynamicFieldSchema)),
+                      tableData: Joi.array().items(Joi.array().items(dealSummaryDynamicFieldSchema)),
                     }).required(),
                   }),
                 }),
@@ -168,38 +161,20 @@ export const createDealSummary = {
 
 export const updateDealSummary = {
   body: Joi.object().keys({
-    propertySummary: Joi.array().items(dynamicFieldSchema).allow(''),
-    dealMetrics: Joi.array().items(dynamicFieldSchema).allow(''),
-    financingRequest: Joi.array().items(dynamicFieldSchema).allow(''),
+    propertySummary: Joi.array().items(dealSummaryDynamicFieldSchema).allow(''),
+    dealMetrics: Joi.array().items(dealSummaryDynamicFieldSchema).allow(''),
+    financingRequest: Joi.array().items(dealSummaryDynamicFieldSchema).allow(''),
     sourcesAndUses: Joi.object()
       .keys({
-        sources: Joi.array().items(dynamicFieldSchema),
-        uses: Joi.array().items(dynamicFieldSchema),
+        sources: Joi.array().items(dealSummaryDynamicFieldSchema),
+        uses: Joi.array().items(dealSummaryDynamicFieldSchema),
       })
       .allow(''),
-    rentRollSummary: Joi.array().items(Joi.array().items(dynamicFieldSchema)).allow(''),
+    rentRollSummary: Joi.array().items(Joi.array().items(dealSummaryDynamicFieldSchema)).allow(''),
     financialSummary: Joi.object()
       .keys({
-        revenue: Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            stabilizedValue: Joi.string(),
-            inPlaceValue: Joi.string(),
-            stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-            inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-            note: Joi.string(),
-          })
-        ),
-        expenses: Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            stabilizedValue: Joi.string(),
-            inPlaceValue: Joi.string(),
-            stabilizedType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-            inPlaceType: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-            note: Joi.string(),
-          })
-        ),
+        revenue: Joi.array().items(financialSummaryDynamicFieldSchema),
+        expenses: Joi.array().items(financialSummaryDynamicFieldSchema),
       })
       .allow(''),
     executiveSummary: Joi.string().allow(null),
@@ -267,7 +242,7 @@ export const updateDealSummary = {
                       bulletPoints: Joi.optional(),
                       fileUrl: Joi.string().uri().required(),
                       fileName: Joi.string(),
-                      tableData: Joi.array().items(Joi.array().items(dynamicFieldSchema)),
+                      tableData: Joi.array().items(Joi.array().items(dealSummaryDynamicFieldSchema)),
                     }).required(),
                   }),
                 }),

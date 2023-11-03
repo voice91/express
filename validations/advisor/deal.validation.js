@@ -27,6 +27,14 @@ const headingSchema = Joi.object().keys({
   cityState: Joi.string(),
   dealInfo: Joi.string(),
 });
+
+// dynamic field schema for repetitive code in create and update deal
+const dealDynamicFieldSchema = Joi.object().keys({
+  key: Joi.string(),
+  value: Joi.any(),
+  type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
+});
+
 export const createDeal = {
   body: Joi.object().keys({
     dealName: Joi.string().required(),
@@ -63,52 +71,16 @@ export const createDeal = {
     squareFootage: Joi.string(),
     unitCount: Joi.number(),
     occupancy: Joi.string(),
-    loanInformation: Joi.array().items(
-      Joi.object({
-        key: Joi.string(),
-        value: Joi.any(),
-        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-      })
-    ),
+    loanInformation: Joi.array().items(dealDynamicFieldSchema),
     dealSummaryBody: Joi.object({
       heading: headingSchema.required().min(1),
       mainPhoto: photoSchema,
-      propertySummary: Joi.array().items(
-        Joi.object({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      ),
-      financingRequest: Joi.array().items(
-        Joi.object({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      ),
-      dealMetrics: Joi.array().items(
-        Joi.object({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      ),
+      propertySummary: Joi.array().items(dealDynamicFieldSchema),
+      financingRequest: Joi.array().items(dealDynamicFieldSchema),
+      dealMetrics: Joi.array().items(dealDynamicFieldSchema),
       sourcesAndUses: Joi.object().keys({
-        sources: Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            value: Joi.string(),
-            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          })
-        ),
-        uses: Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            value: Joi.string(),
-            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          })
-        ),
+        sources: Joi.array().items(dealDynamicFieldSchema),
+        uses: Joi.array().items(dealDynamicFieldSchema),
       }),
     }),
   }),
@@ -141,52 +113,16 @@ export const updateDeal = {
     squareFootage: Joi.string().allow(null),
     unitCount: Joi.number().allow(null),
     occupancy: Joi.string().allow(null),
-    loanInformation: Joi.array().items(
-      Joi.object({
-        key: Joi.string(),
-        value: Joi.any(),
-        type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-      })
-    ),
+    loanInformation: Joi.array().items(dealDynamicFieldSchema),
     dealSummaryBody: Joi.object({
       _id: Joi.objectId(),
       mainPhoto: photoSchema,
-      propertySummary: Joi.array().items(
-        Joi.object({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      ),
-      financingRequest: Joi.array().items(
-        Joi.object({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      ),
-      dealMetrics: Joi.array().items(
-        Joi.object({
-          key: Joi.string(),
-          value: Joi.any(),
-          type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-        })
-      ),
+      propertySummary: Joi.array().items(dealDynamicFieldSchema),
+      financingRequest: Joi.array().items(dealDynamicFieldSchema),
+      dealMetrics: Joi.array().items(dealDynamicFieldSchema),
       sourcesAndUses: Joi.object().keys({
-        sources: Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            value: Joi.string(),
-            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          })
-        ),
-        uses: Joi.array().items(
-          Joi.object().keys({
-            key: Joi.string(),
-            value: Joi.string(),
-            type: Joi.string().valid(...Object.values(enumFields.EnumOfTypeOfValue)),
-          })
-        ),
+        sources: Joi.array().items(dealDynamicFieldSchema),
+        uses: Joi.array().items(dealDynamicFieldSchema),
       }),
     }),
   }),
