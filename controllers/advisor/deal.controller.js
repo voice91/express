@@ -26,7 +26,7 @@ import ApiError from '../../utils/ApiError';
 import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
 import { detailsInDeal } from '../../utils/detailsInDeal';
 import { dealSummeryDto } from '../../services/dealSummary.service';
-import { manageDealStageTimeline } from '../../utils/common';
+import { manageDealStageTimeline, removeNullFields } from '../../utils/common';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -227,14 +227,8 @@ export const update = catchAsync(async (req, res) => {
     body.details = await detailsInDeal(body.stage, dealId);
     body.timeLine = manageDealStageTimeline(oldStage, body.stage, dealStage.timeLine);
   }
-
-  Object.entries(body).forEach(([key, value]) => {
-    if (!value) {
-      body.$unset = { ...body.$unset, [key]: '' };
-      delete body[key];
-    }
-  });
-
+  // this for unsetting the field whose value is null in the body
+  removeNullFields(body);
   const deal = await dealService.updateDeal(filter, body, options);
   if (dealSummaryBody) {
     await dealSummaryService.updateDealSummary({ _id: dealSummaryBody._id || body.dealSummary }, dealSummaryBody);

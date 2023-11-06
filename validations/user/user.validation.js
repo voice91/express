@@ -47,20 +47,19 @@ export const updateUser = {
     codes: Joi.array().items(codesEmbed),
     password: Joi.string(),
     googleProvider: googleProviderEmbed,
-    firstName: Joi.string(),
-    lastName: Joi.string(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
     phoneNumber: Joi.string().allow(null),
-    companyName: Joi.string(),
-    companyAddress: Joi.string(),
-    city: Joi.string(),
-    state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
-    zipcode: Joi.number().integer().min(100).max(999999),
+    companyName: Joi.string().required(),
+    companyAddress: Joi.string().allow(null),
+    city: Joi.string().allow(null),
+    state: Joi.string()
+      .valid(...Object.values(enumFields.EnumStatesOfDeal))
+      .allow(null),
+    zipcode: Joi.number().integer().min(100).max(999999).allow(null),
     lastSignIn: Joi.date(),
     profilePhoto: Joi.string(),
     emailPresentingPostmark: Joi.bool().default(false),
-  }),
-  params: Joi.object().keys({
-    userId: Joi.objectId().required(),
   }),
 };
 

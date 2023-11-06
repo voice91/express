@@ -866,3 +866,20 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
 
   return removeStringFromTemplate(getText)
 };
+
+/**
+ * Common function for unsetting the field whose value is null in the body
+ */
+export const removeNullFields = (obj) => {
+  Object.entries(obj).forEach(([key, value]) => {
+    if (!value) {
+      // eslint-disable-next-line no-param-reassign
+      obj.$unset = { ...obj.$unset, [key]: '' };
+      // eslint-disable-next-line no-param-reassign
+      delete obj[key];
+    } else if (typeof value === 'object') {
+      removeNullFields(value);
+    }
+  });
+  return obj;
+};

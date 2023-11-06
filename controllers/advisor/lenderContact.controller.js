@@ -8,6 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import enumModel from '../../models/enum.model';
+import { removeNullFields } from '../../utils/common';
 
 const getLenderContactFilterQuery = (query) => {
   const filter = pick(query, ['lenderInstitute']);
@@ -106,12 +107,7 @@ export const update = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, ' Can not Update Lender Contact with this Email Id ');
   }
   // for the null values we are unsetting the field from the db
-  Object.entries(body).forEach(([key, value]) => {
-    if (!value) {
-      body.$unset = { ...body.$unset, [key]: '' };
-      delete body[key];
-    }
-  });
+  removeNullFields(body);
   const lenderContact = await lenderContactService.updateLenderContact(filter, body, options);
   return res.status(httpStatus.OK).send({ results: lenderContact });
 });

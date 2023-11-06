@@ -10,6 +10,7 @@ import {
   encodeUrl,
   removeFalsyValueFromDealSummery,
   validateLoanAmount,
+  removeNullFields,
 } from '../../utils/common';
 import FileFieldValidationEnum from '../../models/fileFieldValidation.model';
 import { EnumOfDynamicFieldType } from '../../models/enum.model';
@@ -124,20 +125,7 @@ export const update = catchAsync(async (req, res) => {
   };
 
   // this for unsetting the field whose value is null in the body and also for the object that's in the body's object
-  const unsetting = (obj) => {
-    Object.entries(obj).forEach(([key, value]) => {
-      if (!value) {
-        // eslint-disable-next-line no-param-reassign
-        obj.$unset = { ...obj.$unset, [key]: '' };
-        // eslint-disable-next-line no-param-reassign
-        delete obj[key];
-      } else if (typeof value === 'object') {
-        unsetting(value);
-      }
-    });
-    return obj;
-  };
-  unsetting(body);
+  removeNullFields(body);
 
   if (body.otherPhotos) {
     const fileName = otherPhotos.map((item) => item.fileName);

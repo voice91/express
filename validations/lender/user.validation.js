@@ -37,20 +37,17 @@ export const updateUser = {
   body: Joi.object().keys({
     name: Joi.string(),
     googleProvider: googleProviderEmbed,
-    firstName: Joi.string(),
-    lastName: Joi.string(),
-    phoneNumber: Joi.string(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    phoneNumber: Joi.string().allow(null),
     company: Joi.string(),
     lastSignIn: Joi.date(),
     profilePhoto: Joi.string(),
-    companyName: Joi.string(),
-    companyAddress: Joi.string(),
-    city: Joi.string(),
-    state: Joi.string(),
-    zipcode: Joi.number().integer().min(100).max(999999),
-  }),
-  params: Joi.object().keys({
-    userId: Joi.objectId().required(),
+    companyName: Joi.string().required(),
+    companyAddress: Joi.string().allow(null),
+    city: Joi.string().allow(null),
+    state: Joi.string().allow(null),
+    zipcode: Joi.number().integer().min(100).max(999999).allow(null),
   }),
 };
 

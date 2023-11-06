@@ -64,9 +64,6 @@ export const updateUser = {
     emailPresentingPostmark: Joi.bool().default(false),
     signature: Joi.string().allow(null),
   }),
-  params: Joi.object().keys({
-    userId: Joi.objectId().required(),
-  }),
 };
 
 export const getUserById = {

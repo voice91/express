@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 import { pick } from '../../utils/pick';
 import { LenderProgram } from '../../models';
 import TempS3 from '../../models/tempS3.model';
-import { asyncForEach, encodeUrl } from '../../utils/common';
+import { asyncForEach, encodeUrl, removeNullFields } from '../../utils/common';
 import FileFieldValidationEnum from '../../models/fileFieldValidation.model';
 import { EnumStageOfLenderPlacement } from '../../models/enum.model';
 
@@ -271,13 +271,8 @@ export const update = catchAsync(async (req, res) => {
     body.logo = { url: encodeUrl(body.logo), fileName };
   }
   const options = { new: true };
-
-  Object.entries(body).forEach(([key, value]) => {
-    if (!value) {
-      body.$unset = { ...body.$unset, [key]: '' };
-      delete body[key];
-    }
-  });
+  // this for unsetting the field whose value is null in the body
+  removeNullFields(body);
 
   const lendingInstitution = await lendingInstitutionService.updateLendingInstitutionDetails(filter, body, options);
   if (lendingInstitution.logo) {

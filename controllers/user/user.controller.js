@@ -5,6 +5,7 @@
 import httpStatus from 'http-status';
 import { userService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import { removeNullFields } from 'utils/common';
 import { pick } from '../../utils/pick';
 
 const getUserFilterQuery = (query) => {
@@ -70,11 +71,14 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  const { userId } = req.params;
+  // updating user who's logged in
+  const userId = req.user._id;
   const filter = {
     _id: userId,
   };
   const options = { new: true };
+  // this for unsetting the field whose value is null in the body
+  removeNullFields(body);
   const user = await userService.updateUser(filter, body, options);
   return res.status(httpStatus.OK).send({ results: user });
 });

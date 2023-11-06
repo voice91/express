@@ -10,29 +10,29 @@ router
   /**
    * createUser
    * */
-  .post(validate(userValidation.createUser), userController.create)
+  .post(auth('user'), validate(userValidation.createUser), userController.create)
   /**
    * getUser
    * */
-  .get(validate(userValidation.getUser), userController.list);
+  .get(auth('user'), validate(userValidation.getUser), userController.list)
+  /**
+   * updateUser
+   * */
+  .put(auth('user'), validate(userValidation.updateUser), userController.update);
 router
   .route('/paginated')
   /**
    * getUserPaginated
    * */
-  .get(validate(userValidation.paginatedUser), userController.paginate);
+  .get(auth('user'), validate(userValidation.paginatedUser), userController.paginate);
 router
   .route('/:userId')
   /**
    * getUserById
    * */
-  .get(validate(userValidation.getUserById), userController.get)
-  /**
-   * updateUser
-   * */
-  .put(auth(), validate(userValidation.updateUser), userController.update)
+  .get(auth('user'), validate(userValidation.getUserById), userController.get)
   /**
    * deleteUserById
    * */
-  .delete(validate(userValidation.deleteUserById), userController.remove);
+  .delete(auth('user'), validate(userValidation.deleteUserById), userController.remove);
 export default router;

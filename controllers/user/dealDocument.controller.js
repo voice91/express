@@ -8,7 +8,7 @@ import { catchAsync } from 'utils/catchAsync';
 import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
-import { asyncForEach, encodeUrl } from 'utils/common';
+import { asyncForEach, encodeUrl, removeNullFields } from 'utils/common';
 import { Deal, DealDocument } from 'models';
 import { flatMap } from 'lodash';
 import { pick } from '../../utils/pick';
@@ -269,12 +269,8 @@ export const update = catchAsync(async (req, res) => {
     _id: dealDocumentId,
   };
   const options = { new: true };
-  Object.entries(body).forEach(([key, value]) => {
-    if (!value) {
-      body.$unset = { ...body.$unset, [key]: '' };
-      delete body[key];
-    }
-  });
+  // this for unsetting the field whose value is null in the body
+  removeNullFields(body);
   const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, body, options);
   // tempS3
   if (dealDocumentResult) {
