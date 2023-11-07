@@ -96,6 +96,8 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
+  // for the null values we are unsetting the field from the db
+  removeNullFields(body);
   body.updatedBy = req.user;
   const { lenderContactId } = req.params;
   const loginEmail = req.user.email;
@@ -106,8 +108,6 @@ export const update = catchAsync(async (req, res) => {
   if (loginEmail === body.email) {
     throw new ApiError(httpStatus.BAD_REQUEST, ' Can not Update Lender Contact with this Email Id ');
   }
-  // for the null values we are unsetting the field from the db
-  removeNullFields(body);
   const lenderContact = await lenderContactService.updateLenderContact(filter, body, options);
   return res.status(httpStatus.OK).send({ results: lenderContact });
 });

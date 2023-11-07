@@ -201,7 +201,9 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
-  body.updatedBy = req.user;
+  // this for unsetting the field whose value is null in the body
+  removeNullFields(body);
+  body.updatedBy = req.user._id;
   const { dealId } = req.params;
   const { dealSummaryBody } = body;
   body.user = req.user._id;
@@ -227,8 +229,6 @@ export const update = catchAsync(async (req, res) => {
     body.details = await detailsInDeal(body.stage, dealId);
     body.timeLine = manageDealStageTimeline(oldStage, body.stage, dealStage.timeLine);
   }
-  // this for unsetting the field whose value is null in the body
-  removeNullFields(body);
   const deal = await dealService.updateDeal(filter, body, options);
   if (dealSummaryBody) {
     await dealSummaryService.updateDealSummary({ _id: dealSummaryBody._id || body.dealSummary }, dealSummaryBody);

@@ -254,6 +254,8 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
+  // this for unsetting the field whose value is null in the body
+  removeNullFields(body);
   body.updatedBy = req.user;
   const { user } = req;
   const { lendingInstitutionId } = req.params;
@@ -271,8 +273,6 @@ export const update = catchAsync(async (req, res) => {
     body.logo = { url: encodeUrl(body.logo), fileName };
   }
   const options = { new: true };
-  // this for unsetting the field whose value is null in the body
-  removeNullFields(body);
 
   const lendingInstitution = await lendingInstitutionService.updateLendingInstitutionDetails(filter, body, options);
   if (lendingInstitution.logo) {

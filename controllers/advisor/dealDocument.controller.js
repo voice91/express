@@ -216,6 +216,8 @@ export const createV2 = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const { body } = req;
+  // this for unsetting the field whose value is null in the body
+  removeNullFields(body);
   body.updatedBy = req.user;
   const { dealDocumentId } = req.params;
   const { user } = req;
@@ -269,8 +271,6 @@ export const update = catchAsync(async (req, res) => {
     _id: dealDocumentId,
   };
   const options = { new: true };
-  // this for unsetting the field whose value is null in the body
-  removeNullFields(body);
   const dealDocumentResult = await dealDocumentService.updateDealDocument(filter, body, options);
   // tempS3
   if (dealDocumentResult) {

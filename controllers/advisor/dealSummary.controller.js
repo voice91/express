@@ -110,6 +110,8 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   let { body } = req;
+  // this for unsetting the field whose value is null in the body and also for the object that's in the body's object
+  removeNullFields(body);
   const { otherPhotos, sponsor, sponsorOverview } = body;
   body.updatedBy = req.user.id;
   const { dealSummaryId } = req.params;
@@ -123,9 +125,6 @@ export const update = catchAsync(async (req, res) => {
   const filter = {
     _id: dealSummaryId,
   };
-
-  // this for unsetting the field whose value is null in the body and also for the object that's in the body's object
-  removeNullFields(body);
 
   if (body.otherPhotos) {
     const fileName = otherPhotos.map((item) => item.fileName);
