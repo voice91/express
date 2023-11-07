@@ -78,7 +78,6 @@ export const importExcelFile = async (url) => {
     const financingRequest = [];
     const sourcesAndUses = {};
     const rentRollSummary = [];
-    const customTableData = [];
     const financialSummary = {};
 
     workbook.eachSheet((excelSheetData) => {
@@ -557,92 +556,6 @@ export const importExcelFile = async (url) => {
             }
           }
         }
-      } else {
-        // TODO: make the common function for this to make reusable .
-        // Get the data for the current custom block table
-        const customBlockTableData = Workbook.Sheets[excelSheetData.name];
-        // Find the starting point in the sheet (skip the first entry which is usually "!" in Excel)
-        const startingPoint = Object.entries(customBlockTableData)[1];
-        if (startingPoint) {
-          // Initialize the current cell to the starting point
-          let currentCell = excelSheetData.getCell(startingPoint[0]);
-          // Get the value of the cell immediately to the right of the currentCell cell,
-          // if return null then it is title row , else headings row
-          const adjacentCellValue = excelSheetData.getCell(currentCell.row, currentCell.col + 1).value;
-          // Need to get the title for the table type customBlock from the excelSheet.
-          // So assume that the title is typically found at the beginning of the Excel sheet.
-          // If adjacentCellValue not present then current cell is title , else title not present.
-          const customTableTitle = !adjacentCellValue ? currentCell.value : null; //  store the title of the customTable if present in the sheet
-          const columnHeaders = [];
-          // Get the row number where the column headers are located
-          // If adjacentCellValue present then current row is headers row , else current row is title row so headers row will be next.
-          const columnHeaderRow = adjacentCellValue ? currentCell.row : currentCell.row + 1;
-          // Retrieve column headers dynamically
-          while (true) {
-            // Get the cell for the current column header
-            const columnHeaderCell = excelSheetData.getCell(columnHeaderRow, currentCell.col);
-            // Break the loop if there are no more column headers
-            if (!columnHeaderCell.value) {
-              break;
-            }
-            // Add the column header to the array
-            columnHeaders.push(columnHeaderCell.value);
-            // Move to the next column
-            currentCell = excelSheetData.getCell(currentCell.row, currentCell.col + 1);
-          }
-          // Reset the current cell to the starting point
-          currentCell = excelSheetData.getCell(startingPoint[0]);
-          // Start processing data rows below the column headers
-          let dataRow = columnHeaderRow + 1;
-
-          // Process data rows dynamically
-          while (true) {
-            const rowData = [];
-            let hasData = false;
-
-            // Iterate through each column dynamically
-            // eslint-disable-next-line no-plusplus
-            for (let i = 0; i < columnHeaders.length; i++) {
-              const rowDataObject = {};
-              const columnValueCell = excelSheetData.getCell(dataRow, currentCell.col + i);
-              let columnValue = formatMathFormulaFormValue({
-                val: columnValueCell.value,
-                key: 'customTable',
-                tableName: 'customTable',
-              });
-              if (columnValue !== null) {
-                rowDataObject.key = columnHeaders[i];
-                rowDataObject.value = columnValue;
-                if (columnValue) {
-                  rowDataObject.type = typeOfValue(columnValue, columnValueCell.numFmt ? columnValueCell.numFmt : '');
-                }
-                if (columnValueCell.numFmt) {
-                  if (columnValueCell.numFmt.includes('%')) {
-                    columnValue *= 100;
-                  }
-                }
-                rowData.push(rowDataObject);
-                hasData = true;
-              }
-            }
-
-            if (hasData) {
-              customTableData.push(rowData);
-            }
-            // eslint-disable-next-line no-plusplus
-            dataRow++;
-            const checkEmptyCell = excelSheetData.getCell(dataRow, currentCell.col);
-
-            // Break the loop if the row is empty
-            if (!checkEmptyCell.value) {
-              break;
-            }
-          }
-          // Throw an error if only headers row present in sheet, no data rows present
-          if (customTableData.length) {
-            data.customTableTitle = customTableTitle;
-          }
-        }
       }
     });
     data.propertySummary = propertySummary;
@@ -651,12 +564,122 @@ export const importExcelFile = async (url) => {
     data.sourcesAndUses = sourcesAndUses;
     data.rentRollSummary = rentRollSummary;
     data.financialSummary = financialSummary;
-    data.customTableData = customTableData;
+
     // Validates the consistency of the requested loan amount across Sources, Deal Metrics and Financing Request
     validateLoanAmount(data);
     return data;
   } catch (error) {
     logger.error(error.message);
     throw new ApiError(httpStatus.BAD_REQUEST, `Failed to read XLSheet: ${error.message}`);
+  }
+};
+export const importTableDataFromExcel = async (url, keyToMatch) => {
+  try {
+    const data = {};
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const buffer = Buffer.from(response.data, 'binary');
+
+    const Workbook = XLSX.read(buffer, { type: 'buffer' });
+    const customTableData = [];
+    await workbook.xlsx.load(buffer);
+    workbook.eachSheet((excelSheetData) => {
+      const customBlockTableData = Workbook.Sheets[excelSheetData.name];
+      // Find the starting point in the sheet (skip the first entry which is usually "!" in Excel)
+      let startingPoint = Object.entries(customBlockTableData)[1];
+
+      const matchingPair = Object.keys(customBlockTableData).filter((key) => customBlockTableData[key].v === keyToMatch);
+      if (matchingPair && matchingPair.length === 1) {
+        const titleIndex = matchingPair[0];
+        const matchingKeyValuePair = { [titleIndex]: customBlockTableData[titleIndex] };
+        [startingPoint] = Object.entries(matchingKeyValuePair);
+      } else if (matchingPair.length > 1) {
+        throw new ApiError(httpStatus.BAD_REQUEST, `Multiple titles present in the sheet`);
+      } else {
+        throw new ApiError(httpStatus.BAD_REQUEST, `Title not found in the sheet `);
+      }
+
+      if (startingPoint) {
+        // Initialize the current cell to the starting point
+        let currentCell = excelSheetData.getCell(startingPoint[0]);
+        const belowCellValue = excelSheetData.getCell(currentCell.row + 1, currentCell.col).value;
+        if (!belowCellValue) {
+          throw new ApiError(httpStatus.BAD_REQUEST, `Headings row must be start below the title`);
+        }
+        const customTableTitle = currentCell.value; //  store the title of the customTable
+        const columnHeaders = [];
+        const columnHeaderRow = currentCell.row + 1;
+        // Retrieve column headers dynamically
+        while (true) {
+          // Get the cell for the current column header
+          const columnHeaderCell = excelSheetData.getCell(columnHeaderRow, currentCell.col);
+          // Break the loop if there are no more column headers
+          if (!columnHeaderCell.value) {
+            break;
+          }
+          // Add the column header to the array
+          columnHeaders.push(columnHeaderCell.value);
+          // Move to the next column
+          currentCell = excelSheetData.getCell(currentCell.row, currentCell.col + 1);
+        }
+        // Reset the current cell to the starting point
+        currentCell = excelSheetData.getCell(startingPoint[0]);
+        // Start processing data rows below the column headers
+        let dataRow = columnHeaderRow + 1;
+
+        // Process data rows dynamically
+        while (true) {
+          const rowData = [];
+          let hasData = false;
+
+          // Iterate through each column dynamically
+          // eslint-disable-next-line no-plusplus
+          for (let i = 0; i < columnHeaders.length; i++) {
+            const rowDataObject = {};
+            const columnValueCell = excelSheetData.getCell(dataRow, currentCell.col + i);
+            let columnValue = formatMathFormulaFormValue({
+              val: columnValueCell.value,
+              key: 'customTable',
+              tableName: 'customTable',
+            });
+            if (columnValue !== null) {
+              rowDataObject.key = columnHeaders[i];
+              rowDataObject.value = columnValue;
+              if (columnValue) {
+                rowDataObject.type = typeOfValue(columnValue, columnValueCell.numFmt ? columnValueCell.numFmt : '');
+              }
+              if (columnValueCell.numFmt) {
+                if (columnValueCell.numFmt.includes('%')) {
+                  columnValue *= 100;
+                }
+              }
+              rowData.push(rowDataObject);
+              hasData = true;
+            }
+          }
+
+          if (hasData) {
+            customTableData.push(rowData);
+          }
+          // eslint-disable-next-line no-plusplus
+          dataRow++;
+          const checkEmptyCell = excelSheetData.getCell(dataRow, currentCell.col);
+          const checkEmptyCellNext = excelSheetData.getCell(dataRow, currentCell.col + 1);
+
+          // Break the loop if the row is empty
+          if (!checkEmptyCell.value && !checkEmptyCellNext.value) {
+            break;
+          }
+        }
+        // Throw an error if only headers row present in sheet, no data rows present
+        if (customTableData.length < 1) {
+          throw new ApiError(httpStatus.BAD_REQUEST, `Table has insufficient data`);
+        }
+        data.customTableTitle = customTableTitle;
+        data.customTableData = customTableData;
+      }
+    });
+    return data;
+  } catch (error) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `Failed to read data from file: ${error.message}`);
   }
 };

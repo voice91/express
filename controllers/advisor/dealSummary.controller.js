@@ -14,7 +14,7 @@ import {
 } from '../../utils/common';
 import FileFieldValidationEnum from '../../models/fileFieldValidation.model';
 import { EnumOfDynamicFieldType } from '../../models/enum.model';
-import { importExcelFile } from '../../utils/importExcel';
+import { importTableDataFromExcel } from '../../utils/importExcel';
 
 // eslint-disable-next-line import/prefer-default-export
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
@@ -144,7 +144,7 @@ export const update = catchAsync(async (req, res) => {
     await Promise.all(
       tableTypeDynamicFields.map(async (block) => {
         if (block.isUpdated) {
-          const importDataFromFile = await importExcelFile(block.response.fileUrl);
+          const importDataFromFile = await importTableDataFromExcel(block.response.fileUrl, block.name);
           Object.assign(block.response, { tableData: addSymbolInData(importDataFromFile.customTableData) });
           // update the name if found in the import data
           if (importDataFromFile.customTableTitle) {
