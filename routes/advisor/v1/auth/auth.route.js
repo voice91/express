@@ -15,6 +15,7 @@ router.post(
   /* verifyCaptcha('captcha'), // we have disable the captcha so that nothing will break in the code. */
   authController.register
 );
+
 /**
  * Token-based verification
  * If User did not receive Email during register then call this API Again

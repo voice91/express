@@ -7,7 +7,10 @@ import ApiError from '../../utils/ApiError';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
-  if (body.isRedirectedFromSendDeal) {
+  const loggedInUser = req.user;
+  const isBorrowerAddingByAdmin = loggedInUser.role === enumModel.EnumRoleOfUser.ADVISOR;
+  const { isRedirectedFromSendDeal } = body;
+  if (isRedirectedFromSendDeal) {
     const LenderInvitation = await invitationService.getOne({
       inviteeEmail: body.email,
       role: enumModel.EnumRoleOfUser.LENDER,
@@ -48,26 +51,33 @@ export const register = catchAsync(async (req, res) => {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid lender email');
     }
   } else {
+    if (isBorrowerAddingByAdmin) {
+      Object.assign(body, { emailVerified: true, enforcePassword: true });
+    }
     const user = await userService.createUser(body);
     // Add user to the respective deal once registered.
-    const update = {
-      invitee: user._id,
-      status: 'accepted',
-    };
-    const [invitation] = await Promise.all([
-      Invitation.find({ inviteeEmail: user.email }),
-      Invitation.updateMany({ inviteeEmail: user.email }, update),
-    ]);
-    const updateDeal = {
-      $addToSet: { 'involvedUsers.borrowers': user._id },
-    };
-    await Deal.updateMany({ _id: { $in: invitation.map((item) => item.deal) } }, updateDeal);
-    const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
-    emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
+    if (!isBorrowerAddingByAdmin) {
+      const update = {
+        invitee: user._id,
+        status: 'accepted',
+      };
+      const [invitation] = await Promise.all([
+        Invitation.find({ inviteeEmail: user.email }),
+        Invitation.updateMany({ inviteeEmail: user.email }, update),
+      ]);
+      const updateDeal = {
+        $addToSet: { 'involvedUsers.borrowers': user._id },
+      };
+      await Deal.updateMany({ _id: { $in: invitation.map((item) => item.deal) } }, updateDeal);
+      const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
+      emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
+    }
     res.status(httpStatus.OK).send({
       results: {
         success: true,
-        message: 'Email has been sent to your registered email. Please check your email and verify it',
+        message: isBorrowerAddingByAdmin
+          ? 'Borrower successfully registered'
+          : 'Email has been sent to your registered email. Please check your email and verify it',
         user,
       },
     });

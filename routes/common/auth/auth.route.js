@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * Register API
  */
-router.post('/register', validate(authValidation.register), authController.register);
+router.post('/register', auth('advisor'), validate(authValidation.register), authController.register);
 /**
  * Token-based verification
  * If User did not receive Email during register then call this API Again

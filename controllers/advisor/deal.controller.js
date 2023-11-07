@@ -213,7 +213,7 @@ export const update = catchAsync(async (req, res) => {
     user,
   };
 
-  const options = { new: true };
+  const options = { new: true, populate: { path: 'sponsor' } };
   const dealStage = await dealService.getOne(filter);
   const oldStage = dealStage.stage;
   if (oldStage !== EnumStageOfDeal.CLOSED && body.stage === EnumStageOfDeal.ARCHIVE) {
@@ -231,6 +231,9 @@ export const update = catchAsync(async (req, res) => {
   }
   const deal = await dealService.updateDeal(filter, body, options);
   if (dealSummaryBody) {
+    if (deal.sponsor && deal.sponsor.description) {
+      Object.assign(dealSummaryBody, { sponsorOverview: deal.sponsor.description });
+    }
     await dealSummaryService.updateDealSummary({ _id: dealSummaryBody._id || body.dealSummary }, dealSummaryBody);
   }
   const lenderPlacement = await LenderPlacement.find({ deal: dealId }).populate([{ path: 'lendingInstitution' }]);
