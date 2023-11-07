@@ -73,44 +73,48 @@ export async function createDeal(body) {
         body.dealMembers,
         existingUsers.map((item) => item.email)
       );
-
-      if (userEmailNotExists.length) {
-        await Promise.allSettled(
-          userEmailNotExists.map(async (user) => {
-            return emailService
-              .sendInvitationEmail({
-                fromEmail,
-                pass,
-                user,
-                userName,
-                dealName: body.dealName,
-                isDealCreated: false,
-                link: 'register',
-              })
-              .then()
-              .catch();
-          })
-        );
-
-        userEmailNotExists.map(async (user) => {
-          const notification = {
-            createdBy: body.createdBy,
-            updatedBy: body.createdBy,
-            message: `${user} Requested to be added to ${body.dealName}`,
-            deal,
-          };
-          await notificationService.createNotification(notification);
-        });
-
-        await Invitation.insertMany(
-          userEmailNotExists.map((nonExistingEmail) => ({
-            deal: deal._id,
-            invitedBy: body.user,
-            inviteeEmail: nonExistingEmail,
-            role: enumModel.EnumRoleOfUser.USER, // as while creating deal we can only add user/advisor to the deal
-          }))
-        );
+      if (userEmailNotExists && userEmailNotExists.length) {
+        throw new ApiError(httpStatus.BAD_REQUEST, `The borrowers : ${userEmailNotExists.join(', ')} doesn't exists`);
       }
+      // Below flow is updated as per client's requirements ,so commented that part
+      // if (userEmailNotExists.length) {
+      //   await Promise.allSettled(
+      //     userEmailNotExists.map(async (user) => {
+      //       return emailService
+      //         .sendInvitationEmail({
+      //           fromEmail,
+      //           pass,
+      //           user,
+      //           userName,
+      //           dealName: body.dealName,
+      //           isDealCreated: false,
+      //           link: 'register',
+      //         })
+      //         .then()
+      //         .catch();
+      //     })
+      //   );
+      //
+      //   userEmailNotExists.map(async (user) => {
+      //     const notification = {
+      //       createdBy: body.createdBy,
+      //       updatedBy: body.createdBy,
+      //       message: `${user} Requested to be added to ${body.dealName}`,
+      //       deal,
+      //     };
+      //     await notificationService.createNotification(notification);
+      //   });
+      //
+      //   await Invitation.insertMany(
+      //     userEmailNotExists.map((nonExistingEmail) => ({
+      //       deal: deal._id,
+      //       invitedBy: body.user,
+      //       inviteeEmail: nonExistingEmail,
+      //       role: enumModel.EnumRoleOfUser.USER, // as while creating deal we can only add user/advisor to the deal
+      //     }))
+      //   );
+      // }
+
       // need to send first name in the mail for existing users
       existingUsers.map(async (item) => {
         const { firstName, email: user } = item;
@@ -148,42 +152,46 @@ export async function createDeal(body) {
         }))
       );
     } else {
-      await Promise.allSettled(
-        body.dealMembers.map(async (user) => {
-          return emailService
-            .sendInvitationEmail({
-              fromEmail,
-              pass,
-              user,
-              userName,
-              dealName: body.dealName,
-              isDealCreated: false,
-              link: 'register',
-            })
-            .then()
-            .catch();
-        })
-      );
-
-      body.dealMembers.map(async (user) => {
-        const notification = {
-          createdBy: body.createdBy,
-          updatedBy: body.createdBy,
-          message: `${user} Requested to be added to ${body.dealName}`,
-          deal,
-        };
-        await notificationService.createNotification(notification);
-      });
-
-      await Invitation.insertMany(
-        body.dealMembers.map((nonExistingEmail) => ({
-          deal: deal._id,
-          invitedBy: body.user,
-          inviteeEmail: nonExistingEmail,
-          role: enumModel.EnumRoleOfUser.USER,
-        }))
-      );
+      throw new ApiError(httpStatus.BAD_REQUEST, `The borrowers : ${body.dealMembers.join(', ')} doesn't exists`);
     }
+    // Below flow is updated as per client's requirements ,so commented that part
+    // else {
+    //   await Promise.allSettled(
+    //     body.dealMembers.map(async (user) => {
+    //       return emailService
+    //         .sendInvitationEmail({
+    //           fromEmail,
+    //           pass,
+    //           user,
+    //           userName,
+    //           dealName: body.dealName,
+    //           isDealCreated: false,
+    //           link: 'register',
+    //         })
+    //         .then()
+    //         .catch();
+    //     })
+    //   );
+    //
+    //   body.dealMembers.map(async (user) => {
+    //     const notification = {
+    //       createdBy: body.createdBy,
+    //       updatedBy: body.createdBy,
+    //       message: `${user} Requested to be added to ${body.dealName}`,
+    //       deal,
+    //     };
+    //     await notificationService.createNotification(notification);
+    //   });
+    //
+    //   await Invitation.insertMany(
+    //     body.dealMembers.map((nonExistingEmail) => ({
+    //       deal: deal._id,
+    //       invitedBy: body.user,
+    //       inviteeEmail: nonExistingEmail,
+    //       role: enumModel.EnumRoleOfUser.USER,
+    //     }))
+    //   );
+    // }
   }
 
   const dealCreate = await Deal.create({ ...body, ...deal });
@@ -279,50 +287,54 @@ export async function InviteToDeal(fromEmail, body, role, userName, deal, pass) 
       if (userAlreadyIncluded) {
         throw new ApiError(httpStatus.BAD_REQUEST, `The ${role} is already part of the deal`);
       }
-      await Deal.findByIdAndUpdate(dealId, {
-        $addToSet: { [`involvedUsers.${roleChanged[role]}s`]: existingUsers.map((item) => item._id) },
-      });
       const userEmailNotExists = _.differenceBy(
         body.email,
         existingUsers.map((item) => item.email)
       );
-      if (userEmailNotExists.length) {
-        await Promise.allSettled(
-          userEmailNotExists.map(async (user) => {
-            return emailService
-              .sendInvitationEmail({
-                fromEmail,
-                pass,
-                user,
-                userName,
-                dealName: deal.dealName,
-                isDealCreated: false,
-                link: 'register',
-              })
-              .then()
-              .catch();
-          })
-        );
-
-        userEmailNotExists.map(async (user) => {
-          const notification = {
-            createdBy: body.createdBy,
-            updatedBy: body.createdBy,
-            message: `${user} Requested to be added to ${deal.dealName}`,
-            deal: dealId,
-          };
-          await notificationService.createNotification(notification);
-        });
-
-        await Invitation.insertMany(
-          userEmailNotExists.map((nonExistingEmail) => ({
-            deal: dealId,
-            invitedBy: body.user,
-            inviteeEmail: nonExistingEmail,
-            role: body.role,
-          }))
-        );
+      if (userEmailNotExists && userEmailNotExists.length) {
+        throw new ApiError(httpStatus.BAD_REQUEST, `The borrowers : ${userEmailNotExists.join(', ')} doesn't exists`);
       }
+      await Deal.findByIdAndUpdate(dealId, {
+        $addToSet: { [`involvedUsers.${roleChanged[role]}s`]: existingUsers.map((item) => item._id) },
+      });
+      // Below flow is updated as per client's requirements ,so commented that part
+      // if (userEmailNotExists.length) {
+      //   await Promise.allSettled(
+      //     userEmailNotExists.map(async (user) => {
+      //       return emailService
+      //         .sendInvitationEmail({
+      //           fromEmail,
+      //           pass,
+      //           user,
+      //           userName,
+      //           dealName: deal.dealName,
+      //           isDealCreated: false,
+      //           link: 'register',
+      //         })
+      //         .then()
+      //         .catch();
+      //     })
+      //   );
+      //
+      //   userEmailNotExists.map(async (user) => {
+      //     const notification = {
+      //       createdBy: body.createdBy,
+      //       updatedBy: body.createdBy,
+      //       message: `${user} Requested to be added to ${deal.dealName}`,
+      //       deal: dealId,
+      //     };
+      //     await notificationService.createNotification(notification);
+      //   });
+      //   await Invitation.insertMany(
+      //     userEmailNotExists.map((nonExistingEmail) => ({
+      //       deal: dealId,
+      //       invitedBy: body.user,
+      //       inviteeEmail: nonExistingEmail,
+      //       role: body.role,
+      //     }))
+      //   );
+      // }
+
       // need to send first name in the mail for existing users
       existingUsers.map(async (item) => {
         const { firstName, email: user } = item;
@@ -358,41 +370,45 @@ export async function InviteToDeal(fromEmail, body, role, userName, deal, pass) 
         }))
       );
     } else {
-      await Promise.allSettled(
-        email.map(async (user) => {
-          return emailService
-            .sendInvitationEmail({
-              fromEmail,
-              pass,
-              user,
-              userName,
-              dealName: deal.dealName,
-              isDealCreated: false,
-              link: 'register',
-            })
-            .then()
-            .catch();
-        })
-      );
-
-      email.map(async (user) => {
-        const notification = {
-          createdBy: body.createdBy,
-          updatedBy: body.createdBy,
-          message: `${user} Requested to be added to ${deal.dealName}`,
-          deal: dealId,
-        };
-        await notificationService.createNotification(notification);
-      });
-
-      await Invitation.insertMany(
-        body.email.map((nonExistingEmail) => ({
-          deal: dealId,
-          invitedBy: body.user,
-          inviteeEmail: nonExistingEmail,
-          role: body.role,
-        }))
-      );
+      throw new ApiError(httpStatus.BAD_REQUEST, `The borrowers : ${email.join(', ')} doesn't exists`);
     }
+    // Below flow is updated as per client's requirements ,so commented that part
+    // else {
+    //   await Promise.allSettled(
+    //     email.map(async (user) => {
+    //       return emailService
+    //         .sendInvitationEmail({
+    //           fromEmail,
+    //           pass,
+    //           user,
+    //           userName,
+    //           dealName: deal.dealName,
+    //           isDealCreated: false,
+    //           link: 'register',
+    //         })
+    //         .then()
+    //         .catch();
+    //     })
+    //   );
+    //
+    //   email.map(async (user) => {
+    //     const notification = {
+    //       createdBy: body.createdBy,
+    //       updatedBy: body.createdBy,
+    //       message: `${user} Requested to be added to ${deal.dealName}`,
+    //       deal: dealId,
+    //     };
+    //     await notificationService.createNotification(notification);
+    //   });
+    //
+    //   await Invitation.insertMany(
+    //     body.email.map((nonExistingEmail) => ({
+    //       deal: dealId,
+    //       invitedBy: body.user,
+    //       inviteeEmail: nonExistingEmail,
+    //       role: body.role,
+    //     }))
+    //   );
+    // }
   }
 }
