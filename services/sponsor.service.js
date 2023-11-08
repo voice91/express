@@ -48,7 +48,7 @@ export async function checkIfBorrowerAttachedToSponsor(borrowersEmails) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       // [...new Set(alreadyAttachedBorrowers)] make array with unique emails (remove repeated emails from array)
-      `Emails ${[...new Set(alreadyAttachedBorrowers)].join(', ')} is already attached to another Sponsor`
+      `${[...new Set(alreadyAttachedBorrowers)].join(', ')} is already attached to another Sponsor`
     );
   }
 }

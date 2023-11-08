@@ -24,10 +24,7 @@ export async function checkForExistingUser(emails, role) {
       existingUsers.map((item) => item.email)
     );
     if (userEmailNotExists.length) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `${userEmailNotExists}: email address(es) does not correspond to any registered ${role}.`
-      );
+      throw new ApiError(httpStatus.BAD_REQUEST, `${userEmailNotExists} does not correspond to any registered ${role}`);
     }
   } else {
     throw new ApiError(

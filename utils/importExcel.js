@@ -603,7 +603,7 @@ export const importTableDataFromExcel = async (url, keyToMatch) => {
         let currentCell = excelSheetData.getCell(startingPoint[0]);
         const belowCellValue = excelSheetData.getCell(currentCell.row + 1, currentCell.col).value;
         if (!belowCellValue) {
-          throw new ApiError(httpStatus.BAD_REQUEST, `Headings row must be start below the title`);
+          throw new ApiError(httpStatus.BAD_REQUEST, `No data found below title.`);
         }
         const customTableTitle = currentCell.value; //  store the title of the customTable
         const columnHeaders = [];
