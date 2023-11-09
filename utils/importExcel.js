@@ -637,7 +637,8 @@ export const importTableDataFromExcel = async (url, keyToMatch) => {
             const rowDataObject = {};
             const columnValueCell = excelSheetData.getCell(dataRow, currentCell.col + i);
             let columnValue = formatMathFormulaFormValue({
-              val: columnValueCell.value,
+              // if columnValueCell has not value then add dash (-)
+              val: columnValueCell.value ? columnValueCell.value : '-',
               key: 'customTable',
               tableName: 'customTable',
             });
@@ -650,6 +651,7 @@ export const importTableDataFromExcel = async (url, keyToMatch) => {
               if (columnValueCell.numFmt) {
                 if (columnValueCell.numFmt.includes('%')) {
                   columnValue *= 100;
+                  rowDataObject.value = columnValue;
                 }
               }
               rowData.push(rowDataObject);
@@ -662,11 +664,17 @@ export const importTableDataFromExcel = async (url, keyToMatch) => {
           }
           // eslint-disable-next-line no-plusplus
           dataRow++;
-          const checkEmptyCell = excelSheetData.getCell(dataRow, currentCell.col);
-          const checkEmptyCellNext = excelSheetData.getCell(dataRow, currentCell.col + 1);
+          const nextRow = [];
+          // get the values of nextRow and push into an array for checking break condition
+          for (let i = 0; i < columnHeaders.length; i += 1) {
+            const cellValue = excelSheetData.getCell(dataRow, currentCell.col + i).value;
+            if (cellValue) {
+              nextRow.push(cellValue);
+            }
+          }
 
-          // Break the loop if the row is empty
-          if (!checkEmptyCell.value && !checkEmptyCellNext.value) {
+          // Break the loop if the next row is empty
+          if (!nextRow.length) {
             break;
           }
         }
