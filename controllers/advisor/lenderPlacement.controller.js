@@ -545,10 +545,6 @@ export const update = catchAsync(async (req, res) => {
     body.termSheet = encodeUrl(body.termSheet);
     body.termSheet = { url: body.termSheet, fileName };
   }
-  if (body.terms) {
-    const futureFunding = body.terms.futureFunding ? body.terms.futureFunding : 0;
-    body.terms.totalLoanAmount = body.terms.initialFunding + futureFunding;
-  }
 
   const options = {
     new: true,
@@ -574,6 +570,16 @@ export const update = catchAsync(async (req, res) => {
     ]
   }
   const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId, optionForGetPlacement);
+  if (body.terms) {
+    const futureFunding = body.terms.futureFunding ? body.terms.futureFunding : 0;
+    body.terms.totalLoanAmount = body.terms.initialFunding + futureFunding;
+    // checking for placement we are adding terms into already has orderOfTerms or not
+    if(!beforeLenderPlacementResult.orderOfTerms){
+      // if not then we are counting all the placements of that particular deal in which orderOfTerms exists
+      const placementsInDeal = await lenderPlacementService.getLenderPlacementListCount({deal: beforeLenderPlacementResult.deal, orderOfTerms: { $exists: true }})
+      body.orderOfTerms = placementsInDeal;
+    }
+  }
 
   // check & throw error if term is not added
   // bcs we have requirement that if term is added than only we can add term-sheet
@@ -587,10 +593,10 @@ export const update = catchAsync(async (req, res) => {
     // we change the isEmailSent to same as what we have when we add lender bcs if we don't change than it will not chane stage of deal & timeline when we send the deal after changing stage
     if (body.stage === enumModel.EnumStageOfDeal.NEW) {
       body.isEmailSent = enumModel.EnumOfEmailStatus.SEND_DEAL;
-      // When we change the status from sent to new then all the messages , contact, task, postmarkMessageId and sendEmailPostmarkMessageId should get removed
+      // When we change the status from sent to new then all the messages , contact, task, postmarkMessageId, sendEmailPostmarkMessageId, terms, followOnDate, sendDealMail and orderOfTerms should get removed
       body.isEmailSentFirstTime = false
       body.messages = [];
-      body.$unset = { lenderContact: '', terms: '', termSheet: '', followOnDate: '', sendDealMail: '' };
+      body.$unset = { lenderContact: '', terms: '', termSheet: '', followOnDate: '', sendDealMail: '', orderOfTerms: '' };
       body.postmarkMessageId = [];
       body.sendEmailPostmarkMessageId = [];
       body.followUpMail = []

@@ -5,7 +5,7 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { DealDocument, LenderContact, LenderPlacement, LendingInstitution } from 'models';
-import { dealService, lenderNotesService, taskService, userService } from './index';
+import { dealService, lenderNotesService, lenderPlacementService, taskService, userService } from './index';
 
 export async function getLenderPlacementById(id, options = {}) {
   const lenderPlacement = await LenderPlacement.findById(id, options.projection, options).populate('lendingInstitution');
@@ -19,6 +19,14 @@ export async function getOne(query, options = {}) {
 
 export async function getLenderPlacementList(filter, options = {}) {
   const lenderPlacement = await LenderPlacement.find(filter, options.projection, options);
+  return lenderPlacement;
+}
+
+/**
+ * Get the count of document found
+ */
+export async function getLenderPlacementListCount(filter, options = {}) {
+  const lenderPlacement = await LenderPlacement.find(filter, options.projection, options).count();
   return lenderPlacement;
 }
 
@@ -88,6 +96,15 @@ export const removeLenderPlacementAssociatedThings = async (lenderPlacement) => 
     taskService.removeManyTask(filterForTask),
     lenderNotesService.removeManyLenderNotes({ lenderPlacement: lenderPlacement._id }),
   ]);
+
+  if (typeof lenderPlacement.orderOfTerms === 'number') {
+    // if order of terms is there, then we are finding all the placements having order of terms greater than the one we are updating status of
+    // for all the lender placements having orderOfTerms greater , we are decrementing their orderOfTerms
+    await lenderPlacementService.updateManyLenderPlacement(
+      { deal: lenderPlacement.deal, orderOfTerms: { $gt: lenderPlacement.orderOfTerms } },
+      { $inc: { orderOfTerms: -1 } }
+    );
+  }
 };
 
 export async function removeLenderPlacement(filter) {

@@ -93,6 +93,7 @@ export const updateLenderPlacement = {
     stage: Joi.string().valid(...Object.values(enumFields.EnumStageOfLenderPlacement)),
     terms: termsEmbed,
     termSheet: TermSheetSchema,
+    orderOfTerms: Joi.number().integer(),
   }),
   params: Joi.object().keys({
     lenderPlacementId: Joi.objectId().required(),

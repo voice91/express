@@ -270,6 +270,12 @@ const LenderPlacementSchema = new mongoose.Schema(
       type: TermsSchema,
     },
     /**
+     * The order in which the terms will be visible
+     * */
+    orderOfTerms: {
+      type: Number,
+    },
+    /**
      * An official document that has the final terms; will be uploaded by advisor to lenderPlacement
      * */
     termSheet: {
