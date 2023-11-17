@@ -46,9 +46,10 @@ const SponsorSchema = new mongoose.Schema(
     name: {
       type: String,
     },
-    borrowersEmails: {
-      type: [String],
-    },
+    //  Removed this field from schema because added virtual
+    // borrowersEmails: {
+    //   type: [String],
+    // },
     website: {
       type: String,
     },
@@ -71,13 +72,19 @@ const SponsorSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    borrowers: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'User',
-    },
+    // Removed this field from schema and added virtual for this field
+    // borrowers: {
+    //   type: [mongoose.Schema.Types.ObjectId],
+    //   ref: 'User',
+    // },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
+SponsorSchema.virtual('borrowers', {
+  ref: 'User',
+  localField: '_id',
+  foreignField: 'sponsor',
+});
 SponsorSchema.plugin(toJSON);
 SponsorSchema.plugin(mongoosePaginateV2);
 const SponsorModel = mongoose.models.Sponser || mongoose.model('Sponsor', SponsorSchema, 'Sponsor');

@@ -61,7 +61,9 @@ export const getSponsor = catchAsync(async (req, res) => {
   const filter = {
     _id: sponsorId,
   };
-  const options = {};
+  const options = {
+    populate: { path: 'borrowers', select: { email: 1 } },
+  };
   const sponsor = await sponsorService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: sponsor });
 });
@@ -79,7 +81,7 @@ export const listSponsor = catchAsync(async (req, res) => {
   const options = {
     limit: query.limit,
     skip: (query.page - 1) * query.limit,
-    populate: { path: 'sponsor' },
+    populate: { path: 'borrowers', select: { email: 1 } },
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
@@ -174,7 +176,7 @@ export const updateSponsor = catchAsync(async (req, res) => {
   const filter = {
     _id: sponsorId,
   };
-  const options = { new: true };
+  const options = { new: true, populate: { path: 'borrowers', select: { email: 1 } } };
   const sponsorResult = await sponsorService.updateSponsor(filter, body, options);
   await userService.updateManyUser({ email: { $in: body.borrowersEmails } }, { sponsor: sponsorResult._id });
   // tempS3

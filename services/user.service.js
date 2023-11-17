@@ -16,7 +16,7 @@ import { notificationService } from './index';
  * @returns {Promise<Array>} - Array of existing users matching the criteria.
  * @throws {ApiError} - Throws an error if the provided email addresses are not associated with registered users.
  */
-export async function checkForExistingUser(emails, role) {
+export async function checkForExistingUsers(emails, role) {
   const existingUsers = await User.find({ email: { $in: emails }, role });
   if (existingUsers.length) {
     const userEmailNotExists = _.differenceBy(

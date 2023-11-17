@@ -5,7 +5,7 @@
 import { Sponsor } from 'models';
 import httpStatus from 'http-status';
 import { EnumRoleOfUser } from '../models/enum.model';
-import { checkForExistingUser } from './user.service';
+import { checkForExistingUsers } from './user.service';
 import { userService } from './index';
 import ApiError from '../utils/ApiError';
 
@@ -32,18 +32,32 @@ export async function getSponsorListWithPagination(filter, options = {}) {
 /**
  * Checks if a list of borrowers' emails is already attached to a sponsor in the system.
  *
- * @param {string[]} borrowersEmails - An array of borrowers' email addresses to check.
- * @throws {ApiError} If any of the provided borrower emails are already attached to a sponsor.
+ * @param {string[]} borrowers - An array of borrowers id to check , ids are converted to string from objectId to validate more efficiently.
+ * @throws {ApiError} If any of the provided borrower id are already attached to a sponsor.
  */
-export async function checkIfBorrowerAttachedToSponsor(borrowersEmails) {
+export async function validateBorrowersNotAttachedToSponsor(borrowers) {
   // Retrieve a list of sponsors that include any of the provided borrowers' emails
-  const sponsorsIncludedBorrowers = await getSponsorList({ borrowersEmails: { $in: borrowersEmails } });
-  if (sponsorsIncludedBorrowers.length) {
+  const filteredSponsorsIncludedBorrowers = await getSponsorList(
+    {},
+    {
+      populate: {
+        path: 'borrowers',
+        match: {
+          _id: {
+            $in: borrowers,
+          },
+        },
+        select: { _id: 1, email: 1 },
+      },
+    }
+  ).then((sponsors) => sponsors.filter((sponsor) => sponsor.borrowers.length));
+
+  if (filteredSponsorsIncludedBorrowers.length) {
     const alreadyAttachedBorrowers = [];
     // Iterate through sponsors and check for common emails with provided borrowers
-    sponsorsIncludedBorrowers.forEach((sponsor) => {
-      const commonEmails = sponsor.borrowersEmails.filter((email) => borrowersEmails.includes(email));
-      alreadyAttachedBorrowers.push(...commonEmails);
+    filteredSponsorsIncludedBorrowers.forEach((sponsor) => {
+      const commonBorrowers = sponsor.borrowers.filter((borrower) => borrowers.includes(borrower._id.toString()));
+      alreadyAttachedBorrowers.push(...commonBorrowers.map((borrower) => borrower.email));
     });
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -55,10 +69,10 @@ export async function checkIfBorrowerAttachedToSponsor(borrowersEmails) {
 
 export async function createSponsor(body) {
   if (body.borrowersEmails && body.borrowersEmails.length) {
-    const borrowers = await checkForExistingUser(body.borrowersEmails, EnumRoleOfUser.USER);
-    Object.assign(body, { borrowers: borrowers.map((user) => user._id) });
+    const borrowers = await checkForExistingUsers(body.borrowersEmails, EnumRoleOfUser.USER);
+    Object.assign(body, { borrowers: borrowers.map((user) => user._id.toString()) });
     // check if borrower is attached with any other sponsor.
-    await checkIfBorrowerAttachedToSponsor(body.borrowersEmails);
+    await validateBorrowersNotAttachedToSponsor(body.borrowers);
   }
   const sponsor = await Sponsor.create(body);
   return sponsor;
@@ -66,21 +80,24 @@ export async function createSponsor(body) {
 
 export async function updateSponsor(filter, body, options = {}) {
   if (body.borrowersEmails && body.borrowersEmails.length) {
-    const borrowers = await checkForExistingUser(body.borrowersEmails, EnumRoleOfUser.USER);
+    const borrowers = await checkForExistingUsers(body.borrowersEmails, EnumRoleOfUser.USER);
     Object.assign(body, { borrowers: borrowers.map((user) => user._id) });
   }
   // Verify whether the borrower emails have been modified.
   // Locate the associated sponsor and compare their list of borrower emails.
   // If the borrower emails have changed, identify the removed borrowers, and eliminate the sponsor's association from their records
-  const sponsor = await getOne(filter);
-  if (sponsor && body.borrowersEmails && sponsor.borrowersEmails !== body.borrowersEmails) {
-    const removedBorrower = sponsor.borrowersEmails.filter((item) => !body.borrowersEmails.includes(item));
-    const addedBorrower = body.borrowersEmails.filter((item) => !sponsor.borrowersEmails.includes(item));
-    if (addedBorrower && addedBorrower.length) {
-      await checkIfBorrowerAttachedToSponsor(addedBorrower);
+  // If the borrower emails have changed, identify the added borrowers, and update the sponsor's association with their records
+  const sponsor = await getOne(filter, { populate: { path: 'borrowers' } });
+  const existingBorrowerIds = sponsor.borrowers ? sponsor.borrowers.map((borrower) => borrower._id.toString()) : [];
+  const updatedBorrowerIds = body.borrowers ? body.borrowers.map((id) => id.toString()) : [];
+  if (existingBorrowerIds.length && updatedBorrowerIds.length && existingBorrowerIds !== updatedBorrowerIds) {
+    const removedBorrowers = existingBorrowerIds.filter((id) => !updatedBorrowerIds.includes(id));
+    const addedBorrowers = updatedBorrowerIds.filter((id) => !existingBorrowerIds.includes(id));
+    if (addedBorrowers && addedBorrowers.length) {
+      await validateBorrowersNotAttachedToSponsor(addedBorrowers);
     }
-    if (removedBorrower && removedBorrower.length) {
-      await userService.updateManyUser({ email: { $in: removedBorrower } }, { $unset: { sponsor: '' } });
+    if (removedBorrowers && removedBorrowers.length) {
+      await userService.updateManyUser({ _id: { $in: removedBorrowers } }, { $unset: { sponsor: '' } });
     }
   }
   const updatedSponsor = await Sponsor.findOneAndUpdate(filter, body, options);

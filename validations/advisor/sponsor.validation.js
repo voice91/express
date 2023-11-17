@@ -17,7 +17,7 @@ export const createSponsor = {
   body: Joi.object().keys({
     name: Joi.string().required(),
     website: Joi.string(),
-    borrowersEmails: Joi.array().items(Joi.string().email()).min(1),
+    borrowersEmails: Joi.array().items(Joi.string().email()).min(1).required(),
     headquarter: Joi.string().allow(null),
     description: Joi.string().allow(null),
     photo: FileSchema.allow(null),
