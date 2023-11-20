@@ -100,7 +100,7 @@ export const list = catchAsync(async (req, res) => {
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
-    options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
+    // options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
   const lenderPlacements = await lenderPlacementService.getLenderPlacementList(filter, options);
   // here finding placements for the particular lender from the all lenderPlacementsList for a deal
