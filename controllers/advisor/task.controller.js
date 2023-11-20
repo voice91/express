@@ -106,7 +106,7 @@ export const paginate = catchAsync(async (req, res) => {
   };
   if (sortingObj.sort) {
     options.sort = sortObj; // Setting the sort options in the options object
-    options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
+    // options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
   let task;
   if (Array.isArray(sortingObj.sort) && sortingObj.sort.includes('askingPartyInstitute.lenderNameVisible')) {
@@ -155,7 +155,7 @@ export const listByDeal = catchAsync(async (req, res) => {
   };
   if (sortingObj.sort) {
     options.sort = sortObj; // Setting the sort options in the options object
-    options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
+    // options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
   let task = await taskService.getTaskList(filter, options); // Call the function to get task list with pagination
   task = task.map((taskObject) => ({

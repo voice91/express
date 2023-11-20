@@ -120,7 +120,7 @@ export const list = catchAsync(async (req, res) => {
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
-    options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
+    // options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
   const lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });

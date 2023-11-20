@@ -596,7 +596,7 @@ export const list = catchAsync(async (req, res) => {
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
-    options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
+    // options.collation = { locale: 'en', caseLevel: false }; // Case-insensitive sorting
   }
   let lenderPlacement = await lenderPlacementService.getLenderPlacementList(filter, options);
   // filter out if we only need outstanding tasks placement
