@@ -131,7 +131,6 @@ const getPropertyType = (propertyValue) => {
           }
         });
         propertyType = valueToAddInProperty.filter(Boolean);
-        // console.log(`==={ propertyType }====>`, propertyType);
       } else if (propertyValue.includes('-')) {
         const valueToRemoveProperty = defaultAssetTypeOfDeal.slice();
         // eslint-disable-next-line array-callback-return
