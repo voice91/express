@@ -93,3 +93,36 @@
 >> We have OutStanding Tasks and Completed Task
 > Completed Task: The tasks that are marked as completed will be shown here
 > OutStanding Tasks: The tasks that are unfinished and need to be complete will be shown here
+
+# Messages
+
+>> We can send message from the manage lender page, this tab will be visible once the deal is sent to the lender
+> The email address we will send messages to will receive an email.
+> The message will also be received by the particular lender by default when we send any message 
+> Note: When we reply to messages from the gmail then it might take 1-2 minutes to display in messages
+
+1. Send To: This will have the email addresses to which we want to send the message to
+   - Once the message is sent for the next message the "Send To" box will auto-populate to the email addresses of the most recent message.
+   - Replies received via Gmail will be displayed at the top of the messages.
+   - Upon receiving a reply via email, the "Send To" box will be updated to the sender's email address.
+   - At least one email address is required to send the message
+   
+2. Cc: The email address which we want to receive a copy of the original email
+   - Once the message is sent for the next message the "Cc" box will auto-populate to the email addresses in the Cc of the most recent message.
+   
+3. Message content: We can write the message that we want to send here
+   - We have different formatting styles to apply to the message you want to send
+     - B: Allows the text to be displayed in a bold font.
+     - I: Enables the italicized style for the text.
+     - U: Underlines the text.
+     - Strike: Strikes through the text with a horizontal line.
+     - Link: Provides the ability to insert hyperlinks.
+     - Blockquote: Formats the text as a blockquote, often used for quotations.
+     - Size: Allows the adjustment of the text size.
+     - Color: Enables the selection of text color.
+     - List: Creates a numbered list.
+     - Bullet: Creates a bulleted list.
+     - Align: Controls the alignment of the text, including options like left-align, right-align, center, and justify.
+
+> Note: Replies to both send deal mails and follow-up mails will be visible in the messages.
+> The send deal mail, follow-up mails and message all will get threaded in the gmail.
