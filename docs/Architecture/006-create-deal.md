@@ -27,8 +27,8 @@
      - Outdoor Storage
    - Upload Photo: The photo that we need as a deal logo
    - Square Footage: The square footage of the property.
-   - Unit Count:
-   - Occupancy:
+   - Unit Count: The unit count for the property
+   - Occupancy: The occupancy of the property
 
 2. Loan Information:
    - Loan Purpose: A list of loan purpose for the program, values for this must be from below

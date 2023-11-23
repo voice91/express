@@ -16,8 +16,8 @@ The workbook should contain two worksheets, each organized with specific columns
 5. Nick Name: A nickname or alias associated with the contact.(String)
 6. Email : The email address of the lender-contact, this is **required**.(String)
 7. Main Phone: The primary phone number for contacting the contact person.(String)
-8. Mobile Phone : (String)
-9. Office Phone: (String)
+8. Mobile Phone : The phone number for contacting the contact person.(String)
+9. Office Phone: The office phone number for contacting the contact person.(String)
 10. Title : The job title or position of the contact person within the lending institution.(String)
 11. City : The city where the lender or contact person is located.(String)
 12. State : The state or region where the lender or contact person is located, value for this must be from below(String)
@@ -195,7 +195,7 @@ The workbook should contain two worksheets, each organized with specific columns
     - If no matching documents are found, add new entries and also update the respective data.
     - Ensure no empty row between the column names and the data rows.
 2. If Sheet Does Not Contain Id Columns:
-   - Always Add new data from the provided sheet (CLEAN_LENDERS) for the lenderProgrammes.
-   - Update the lenderInstitution data if find with LenderName else add new .
-   - Update the lenderContact data if find with email else add new .
+   - Always add new data from the provided sheet (CLEAN_LENDERS) for the lenderProgrammes.
+   - If a matching LenderName is found, update the data for the corresponding lenderInstitution; otherwise, add a new entry.
+   - If a matching email is found, update the data for the corresponding lenderContact; otherwise, add a new entry.
    - Ensure no empty row between the column names and the data rows.
