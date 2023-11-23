@@ -16,6 +16,11 @@
 
 6. Photo: The photo of sponsor
 
+7. Documents: The documents related to the sponsor, this can be added from edit sponsor page
+
+8. Portfolio: The property related to the sponsor 
+>> This is not operational yet
+
 # Add sponsor to the deal
 
 - When creating a deal, sponsors can be added from a dropdown list. 
