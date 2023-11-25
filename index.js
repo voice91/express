@@ -22,6 +22,26 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   socketAPI.io.attach(server);
   initSockets();
 });
+
+const db = mongoose.connection;
+// reconnecting the server if the mongoose got disconnected
+db.on('disconnected', () => {
+  logger.info('Database Disconnected');
+  setTimeout(() => {
+    mongoose.connect(config.mongoose.url, config.mongoose.options);
+    logger.info('Successfully reconnected to the mongoDB database');
+  }, 1000); // Retry connection after 1 seconds
+});
+
+// reconnecting the server if we get mongoose error
+db.on('error', (error) => {
+  logger.info('MongoDB connection error');
+  console.error('MongoDB connection error:', error);
+  setTimeout(() => {
+    mongoose.connect(config.mongoose.url, config.mongoose.options);
+    logger.info('Successfully reconnected to the mongoDB database');
+  }, 1000); // Retry connection after 1 seconds
+});
 const exitHandler = () => {
   if (server) {
     server.close(() => {
