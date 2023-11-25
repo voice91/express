@@ -7,10 +7,11 @@ import {
   CsvLenderPropertyTypeMapping,
   CsvLenderTypeMapping,
   CsvStatesArrayMapping,
+  isObjectId,
 } from 'utils/common';
 import { catchAsync } from 'utils/catchAsync';
-import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution } from 'models';
-import { EnumAssetTypeOfDeal } from 'models/enum.model';
+import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution, User } from 'models';
+import enumModel, { EnumAssetTypeOfDeal } from 'models/enum.model';
 import ApiError from '../../utils/ApiError';
 import { logger } from '../../config/logger';
 
@@ -45,10 +46,32 @@ export const LenderWorkBookKeyColMappingForInstitute = {
   COUNTIES: 17,
   RECOURSE: 18,
   NON_RECOURSE: 19,
-  NOTES: 20,
-  NOTES_ID: 21,
-  PROGRAM_ID: 22,
-  INSTITUTE_ID: 23,
+  DESCRIPTION: 20,
+  HEADQUARTERS: 21,
+  WEBSITE: 22,
+  RANKING: 23,
+  NOTE_1_DATE: 24,
+  NOTE_1_CONTENT: 25,
+  NOTE_1_PERSON: 26,
+  NOTE_2_DATE: 27,
+  NOTE_2_CONTENT: 28,
+  NOTE_2_PERSON: 29,
+  NOTE_3_DATE: 30,
+  NOTE_3_CONTENT: 31,
+  NOTE_3_PERSON: 32,
+  NOTE_4_DATE: 33,
+  NOTE_4_CONTENT: 34,
+  NOTE_4_PERSON: 35,
+  NOTE_5_DATE: 36,
+  NOTE_5_CONTENT: 37,
+  NOTE_5_PERSON: 38,
+  PROGRAM_ID: 39,
+  INSTITUTE_ID: 40,
+  NOTE_1_ID: 41,
+  NOTE_2_ID: 42,
+  NOTE_3_ID: 43,
+  NOTE_4_ID: 44,
+  NOTE_5_ID: 45,
 };
 // column mapping for CLEAN_CONTACT sheet
 export const LenderWorkBookKeyColMappingForContact = {
@@ -173,9 +196,9 @@ const getColumnValueNumber = (row, col, validationMessage, lenderWorksheet) => {
 };
 
 /**
- * This function processes lender program and institution data from an Excel workbook
+ * This function processes lender program, notes and institution data from an Excel workbook
  */
-const processLenderProgramAndInstitutionData = async (lenderWorkbook) => {
+const processLenderProgramAndInstitutionData = async (lenderWorkbook, user) => {
   // Extracting worksheet and sheet details from the workbook
   const lenderWorksheet = workbook.getWorksheet(lenderWorkbook.SheetNames[1]);
   const lenderWorkbookSheetName = lenderWorkbook.SheetNames[1];
@@ -368,6 +391,29 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook) => {
     );
     program.nonRecourseLTV = nonRecourse.value;
 
+    const lenderData = {};
+    const description = lenderWorksheet.getCell(
+      currentRowNo,
+      currentCell.col + LenderWorkBookKeyColMappingForInstitute.DESCRIPTION
+    );
+    const headquarters = lenderWorksheet.getCell(
+      currentRowNo,
+      currentCell.col + LenderWorkBookKeyColMappingForInstitute.HEADQUARTERS
+    );
+    const website = lenderWorksheet.getCell(currentRowNo, currentCell.col + LenderWorkBookKeyColMappingForInstitute.WEBSITE);
+    const ranking = lenderWorksheet.getCell(currentRowNo, currentCell.col + LenderWorkBookKeyColMappingForInstitute.RANKING);
+    if (description && description.value) {
+      lenderData.description = description.value;
+    }
+    if (headquarters && headquarters.value) {
+      lenderData.headquarter = headquarters.value;
+    }
+    if (website && website.value) {
+      lenderData.website = website.value;
+    }
+    if (ranking && ranking.value) {
+      lenderData.creRanking = ranking.value;
+    }
     // changing the column number as lender id is in the column 24 and current cell col is 1
     const lenderId = lenderWorksheet.getCell(
       currentRowNo,
@@ -377,6 +423,7 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook) => {
       lenderNameVisible: lenderName.value,
       lenderType: CsvLenderTypeMapping[lenderType.value],
     };
+    Object.assign(obj, lenderData);
     // If lenderId exists, update the existing record; otherwise, create a new record
     if (lenderId.value) {
       // eslint-disable-next-line no-await-in-loop
@@ -385,35 +432,67 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook) => {
       program.lenderInstitute = lenderId.value;
     } else {
       // eslint-disable-next-line no-await-in-loop
-      const findInstitute = await LendingInstitution.findOne({ lenderNameVisible: lenderName.value });
+      const findInstitute = await LendingInstitution.findOneAndUpdate({ lenderNameVisible: lenderName.value }, obj);
       if (!findInstitute && lenderName.value) {
         // eslint-disable-next-line no-await-in-loop
-        const institute = await LendingInstitution.create({
-          lenderNameVisible: lenderName.value,
-          lenderType: CsvLenderTypeMapping[lenderType.value],
-        });
+        const institute = await LendingInstitution.create(obj);
         logger.info(`LendingInstitution created Id: ${institute._id}, Name: ${lenderName.value}`);
         program.lenderInstitute = institute._id;
       }
       if (findInstitute) {
+        logger.info(`LendingInstitution updated for Id: ${findInstitute._id}, Name: ${lenderName.value}`);
         program.lenderInstitute = findInstitute._id;
       }
     }
+    // process 5 notes
+    for (let i = 1; i <= 5; i += 1) {
+      // Retrieve note content and ID from the worksheet based on the mapping
+      const noteContent = lenderWorksheet.getCell(
+        currentRowNo,
+        currentCell.col + LenderWorkBookKeyColMappingForInstitute[`NOTE_${i}_CONTENT`]
+      );
+      const noteId = lenderWorksheet.getCell(
+        currentRowNo,
+        currentCell.col + LenderWorkBookKeyColMappingForInstitute[`NOTE_${i}_ID`]
+      );
 
-    const notes = lenderWorksheet.getCell(currentRowNo, currentCell.col + LenderWorkBookKeyColMappingForInstitute.NOTES);
-    const notesId = lenderWorksheet.getCell(
-      currentRowNo,
-      currentCell.col + LenderWorkBookKeyColMappingForInstitute.NOTES_ID
-    );
-    if (notesId.value) {
-      // eslint-disable-next-line no-await-in-loop
-      await LenderInstituteNotes.findByIdAndUpdate(notesId.value, { content: notes.value });
-    } else if (notes.value) {
-      // eslint-disable-next-line no-await-in-loop
-      await LenderInstituteNotes.create({
-        content: notes.value,
-        lenderInstitute: program.lenderInstitute,
-      });
+      if (noteId.value) {
+        // If note ID exists, update the corresponding note
+        // eslint-disable-next-line no-await-in-loop
+        const updatedNote = await LenderInstituteNotes.findByIdAndUpdate(noteId.value, {
+          content: noteContent.value,
+        });
+
+        // Prepare data for creating a new note if the update operation did not find a matching note
+        const noteData = {
+          content: noteContent.value,
+          lenderInstitute: program.lenderInstitute,
+          createdBy: user._id,
+          updatedBy: user._id,
+        };
+
+        if (!updatedNote) {
+          // If the note was not updated, create a new note
+          if (isObjectId(noteId.value)) {
+            // If the note ID is a valid ObjectId, assign it to the note data
+            Object.assign(noteData, { _id: noteId.value });
+          }
+
+          // eslint-disable-next-line no-await-in-loop
+          await LenderInstituteNotes.create(noteData);
+          logger.info(`Lender note updated for id ${noteId.value} for lender : ${lenderName.value}`);
+        }
+      } else if (noteContent.value) {
+        // If no note ID exists, create a new note if there is content
+        // eslint-disable-next-line no-await-in-loop
+        const note = await LenderInstituteNotes.create({
+          content: noteContent.value,
+          lenderInstitute: program.lenderInstitute,
+          createdBy: user._id,
+          updatedBy: user._id,
+        });
+        logger.info(`Lender Note created with id ${note._id} for lender : ${lenderName.value}`);
+      }
     }
 
     // changing the column number as program id is in the column 23 and current cell col is 1
@@ -436,7 +515,15 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook) => {
     // If programId exists, update the existing record; otherwise, create a new record
     if (programId.value) {
       // eslint-disable-next-line no-await-in-loop
-      await LenderProgram.findByIdAndUpdate(programId.value, program);
+      const updatedLenderProgram = await LenderProgram.findByIdAndUpdate(programId.value, program);
+      if (!updatedLenderProgram) {
+        if (isObjectId(programId.value)) {
+          Object.assign(program, { _id: programId.value });
+        }
+        // eslint-disable-next-line no-await-in-loop
+        const lenderProgram = await LenderProgram.create(program);
+        logger.info(`LenderProgram created Id : ${lenderProgram._id} for lendingInstitute name : ${lenderName.value}`);
+      }
       logger.info(`LenderProgram updated for Id : ${programId.value} for lendingInstitute name : ${lenderName.value}`);
     } else {
       // eslint-disable-next-line no-await-in-loop
@@ -446,6 +533,9 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook) => {
   }
 };
 
+/**
+ * This function processes lender contacts data from an Excel workbook
+ */
 const processLenderContactData = async (lenderWorkbook) => {
   const lenderContactWorksheet = workbook.getWorksheet(lenderWorkbook.SheetNames[0]);
   const lenderContactWorkbookSheetName = lenderWorkbook.SheetNames[0];
@@ -622,10 +712,26 @@ const processLenderContactData = async (lenderWorkbook) => {
       contact.contactTag = contact.contactTag ? contact.contactTag : 1;
       contact.emailTag = contact.emailTag ? contact.emailTag : 1;
       // eslint-disable-next-line no-await-in-loop
-      if (contact.email) {
+      const updatedContact = await LenderContact.findOneAndUpdate({ email: contact.email }, contact, { new: true });
+      if (updatedContact) {
+        logger.info(`LenderContact updated for email ${updatedContact.email}`);
+      }
+      if (!updatedContact && contact.email && contact.lenderInstitute) {
         // eslint-disable-next-line no-await-in-loop
         await LenderContact.findOneAndUpdate({ email: contact.email }, contact, { upsert: true });
-        logger.info(`LenderContact updated or created for email ${contact.email}`);
+        const userBody = {
+          firstName: contact.firstName,
+          companyName: lender.value,
+          lastName: contact.lastName,
+          role: enumModel.EnumRoleOfUser.LENDER,
+          enforcePassword: true,
+          email: contact.email,
+          emailVerified: true,
+          password: Math.random().toString(36).slice(-10),
+        };
+        // Creating the user at the time of creating contact
+        // eslint-disable-next-line no-await-in-loop
+        await User.findOneAndUpdate({ email: contact.email }, userBody, { upsert: true });
       }
     }
   }
@@ -636,6 +742,11 @@ const processLenderContactData = async (lenderWorkbook) => {
 export const importDataFromFile = catchAsync(async (file, res) => {
   try {
     let data;
+    const { user } = file;
+    // if file is not uploaded then throw an error
+    if (!file.files) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `Please upload a file`);
+    }
     if (Object.values(file.files).length) {
       data = Object.values(file.files)[0].data;
     }
@@ -645,7 +756,7 @@ export const importDataFromFile = catchAsync(async (file, res) => {
     const lenderWorkbook = XLSX.read(data, { type: 'buffer' });
     await workbook.xlsx.load(data);
 
-    await processLenderProgramAndInstitutionData(lenderWorkbook);
+    await processLenderProgramAndInstitutionData(lenderWorkbook, user);
     const notAvailableLender = await processLenderContactData(lenderWorkbook);
     if (notAvailableLender.length > 0) {
       return res.status(httpStatus.OK).send({

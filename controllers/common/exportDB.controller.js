@@ -19,6 +19,20 @@ const path = require('path');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const excel = require('exceljs');
 
+// This function takes an index and returns the corresponding column reference in Excel-style letters.
+function getColumnReference(index) {
+  let dividend = index + 1;
+  let columnName = '';
+
+  while (dividend > 0) {
+    const modulo = (dividend - 1) % 26;
+    columnName = String.fromCharCode(65 + modulo) + columnName;
+    dividend = Math.floor((dividend - modulo) / 26);
+  }
+
+  return columnName;
+}
+
 // eslint-disable-next-line import/prefer-default-export
 export const exportToExcel = catchAsync(async (req, res) => {
   // Create a new workbook
@@ -46,13 +60,13 @@ export const exportToExcel = catchAsync(async (req, res) => {
 
   // Write field names to Excel sheet
   fieldNamesofLenderContact.forEach((fieldName, columnIndex) => {
-    const cell = LenderContactsheet.getCell(`${String.fromCharCode(65 + columnIndex)}1`);
+    const cell = LenderContactsheet.getCell(`${getColumnReference(columnIndex)}1`);
     cell.value = fieldName;
     cell.font = { bold: true };
   });
 
   const lenderInstitution = await LendingInstitution.find().lean();
-  const lenderNotes = await LenderInstituteNotes.find().lean();
+  const lenderNotes = await LenderInstituteNotes.find({}, {}, { populate: 'createdBy' }).lean();
 
   const lenderContact = await LenderContact.find().lean();
 
@@ -102,15 +116,37 @@ export const exportToExcel = catchAsync(async (req, res) => {
     'Counties',
     'Recourse Required',
     'Non-Recourse LTV',
-    'Notes',
-    'NotesId',
+    'Description',
+    'Headquarters',
+    'Website',
+    'Ranking',
+    'Note 1 Date',
+    'Note 1 Content',
+    'Note 1 Person',
+    'Note 2 Date',
+    'Note 2 Content',
+    'Note 2 Person',
+    'Note 3 Date',
+    'Note 3 Content',
+    'Note 3 Person',
+    'Note 4 Date',
+    'Note 4 Content',
+    'Note 4 Person',
+    'Note 5 Date',
+    'Note 5 Content',
+    'Note 5 Person',
     'ProgramId',
     'LenderInstituteId',
+    'Note 1 Id',
+    'Note 2 Id',
+    'Note 3 Id',
+    'Note 4 Id',
+    'Note 5 Id',
   ];
 
   // Write field names to Excel sheet
   fieldNamesofLenderProgram.forEach((fieldName, columnIndex) => {
-    const cell = LenderProgramsheet.getCell(`${String.fromCharCode(65 + columnIndex)}1`);
+    const cell = LenderProgramsheet.getCell(`${getColumnReference(columnIndex)}1`);
     cell.value = fieldName;
     cell.font = { bold: true };
   });
@@ -120,7 +156,9 @@ export const exportToExcel = catchAsync(async (req, res) => {
   lenderProgram.forEach((item) => {
     const lender = lenderInstitution.find((lenderItem) => lenderItem._id.toString() === item.lenderInstitute.toString());
     // eslint-disable-next-line no-shadow
-    const notes = lenderNotes.find((notes) => notes.lenderInstitute.toString() === lender._id.toString());
+    const notes = lenderNotes
+      .filter((note) => note.lenderInstitute.toString() === lender._id.toString())
+      .sort((a, b) => b.createdAt - a.createdAt);
     let { statesArray } = item;
     const result = _.intersection(statesArray, CsvStatesArrayMapping.Nationwide);
     if (result.length >= CsvStatesArrayMapping.Nationwide.length) {
@@ -160,9 +198,9 @@ export const exportToExcel = catchAsync(async (req, res) => {
     rowValues[1] = lender.lenderNameVisible;
     rowValues[2] = CsvReverseLenderTypeMapping[lender.lenderType];
     rowValues[3] = item.lenderProgramType;
-    rowValues[4] = `$${item.minLoanSize}`;
+    rowValues[4] = item.minLoanSize ? `$${item.minLoanSize}` : '';
     rowValues[5] = item.minLoanTag;
-    rowValues[6] = `$${item.maxLoanSize}`;
+    rowValues[6] = item.maxLoanSize ? `$${item.maxLoanSize}` : '';
     rowValues[7] = item.maxLoanTag;
     rowValues[8] = statesArray.join(', ');
     rowValues[9] = item.statesArrTag.join(', ');
@@ -174,16 +212,31 @@ export const exportToExcel = catchAsync(async (req, res) => {
     rowValues[15] = item.loanTypeArrTag.join(', ');
     rowValues[16] = item.indexUsed;
     rowValues[17] = item.spreadEstimate;
-    rowValues[18] = item.counties;
+    rowValues[18] = item.counties ? item.counties.join(', ') : '';
     rowValues[19] = item.recourseRequired;
     rowValues[20] = item.nonRecourseLTV;
-    if (notes) {
-      rowValues[21] = notes.content;
-      rowValues[22] = `${notes._id}`;
+    rowValues[21] = lender.description;
+    rowValues[22] = lender.headquarter;
+    rowValues[23] = lender.website;
+    rowValues[24] = lender.creRanking;
+    if (notes.length) {
+      let refCellNumber = 25;
+      for (let i = 0; i < notes.length && i <= 4; i += 1) {
+        rowValues[refCellNumber] = notes[i].createdAt;
+        refCellNumber += 1;
+        rowValues[refCellNumber] = notes[i].content;
+        refCellNumber += 1;
+        rowValues[refCellNumber] = notes[i].createdBy && notes[i].createdBy.firstName ? notes[i].createdBy.firstName : '';
+        refCellNumber += 1;
+      }
     }
-    rowValues[23] = `${item._id}`;
-    rowValues[24] = `${lender._id}`;
-
+    rowValues[40] = `${item._id}`;
+    rowValues[41] = `${lender._id}`;
+    if (notes.length) {
+      for (let i = 0; notes[i] && i <= 4; i += 1) {
+        rowValues[42 + i] = `${notes[i]._id}`;
+      }
+    }
     LenderProgramsheet.addRow(rowValues);
   });
 
@@ -196,6 +249,6 @@ export const exportToExcel = catchAsync(async (req, res) => {
   const filePath = path.join(basePath, fileName);
   await workbook.xlsx.writeFile(filePath);
   const outPath = `${filePath}`;
-  res.sendFile(outPath);
+  // res.sendFile(outPath);
   return res.status(httpStatus.OK).sendFile(outPath);
 });
