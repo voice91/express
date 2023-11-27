@@ -79,7 +79,7 @@ export const listSponsor = catchAsync(async (req, res) => {
   const options = {
     limit: query.limit,
     skip: (query.page - 1) * query.limit,
-    populate: { path: 'sponsor' },
+    // populate: { path: 'sponsor' },
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
