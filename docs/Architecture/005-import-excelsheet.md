@@ -1,9 +1,14 @@
 # Import Data from Excel Sheet
 ***
 
-## Extracting Data Related to Lenders, Contacts, and Lending Programs from Excel Spreadsheet
+- Extracting Data Related to Lender Contacts, Programmes & Institution from Excel Spreadsheet
 
-# Data Processing Instructions
+# Important Note
+
+> - When importing data from an Excel sheet, it is crucial to include unique identifiers (IDs) for each record, particularly for lenderProgrammes. IDs play a significant role in preventing data duplication and ensuring the accuracy of your dataset.
+> -  **Without proper IDs for lenderProgrammes, data duplication may occur**
+> - Please review and confirm that your Excel sheet includes the necessary IDs before proceeding with the import process.
+
 
 ## Without IDs
 
@@ -23,6 +28,7 @@
 > - Update lenderNotes; if not found with ID, add new.
 > - Update lenderContacts if found with ID; if not found, find with email and update; otherwise, add new.
 
+---
 
 ### Workbook Structure
 
