@@ -3,188 +3,108 @@
 
 ## Extracting Data Related to Lenders, Contacts, and Lending Programs from Excel Spreadsheet
 
+# Data Processing Instructions
+
+## Without IDs
+
+> **Note:**
+> - Ensure no empty row between the column names and the data rows.
+> - Always add new LenderPrograms.
+> - Update the lendingInstitution data if found with names; otherwise, add new.
+> - Add new lenderNotes.
+> - Update lenderContacts if found with email; otherwise, add new.
+
+## With IDs
+
+> **Note:**
+> - Ensure no empty row between the column names and the data rows.
+> - Update LenderPrograms; if not found with ID, add new.
+> - Update lendingInstitution data if found with ID; if not found, find with name and update; otherwise, add new.
+> - Update lenderNotes; if not found with ID, add new.
+> - Update lenderContacts if found with ID; if not found, find with email and update; otherwise, add new.
+
+
 ### Workbook Structure
 
 The workbook should contain two worksheets, each organized with specific columns.
 
-#### **Worksheet 1: Lender Contacts Details**
+#### **Worksheet 1: Lender Contacts Details (CLEAN_CONTACTS)**
 
-1. Lender Name : The name of the lending institution or individual lender. (String)
-2. First Name : The first name of the contact person associated with the lender, this is **required**.(String)
-3. Last Name : The last name of the contact person associated with the lender, this is **required**.(String)
-4. Program(s) : The lending program or programs associated with the lender. This field may contain multiple program names.(String)
-5. Nick Name: A nickname or alias associated with the contact.(String)
-6. Email : The email address of the lender-contact, this is **required**.(String)
-7. Main Phone: The primary phone number for contacting the contact person.(String)
-8. Mobile Phone : The phone number for contacting the contact person.(String)
-9. Office Phone: The office phone number for contacting the contact person.(String)
-10. Title : The job title or position of the contact person within the lending institution.(String)
-11. City : The city where the lender or contact person is located.(String)
-12. State : The state or region where the lender or contact person is located, value for this must be from below(String)
-    - AL
-    - AK
-    - AZ
-    - AR
-    - CA
-    - CO
-    - CT
-    - DE
-    - DC
-    - FL
-    - GA
-    - HI
-    - ID
-    - IL
-    - IN
-    - IA
-    - KS
-    - KY
-    - LA
-    - ME
-    - MD
-    - MA
-    - MI
-    - MN
-    - MS
-    - MO
-    - MT
-    - NE
-    - NV
-    - NH
-    - NJ
-    - NM
-    - NY
-    - NC
-    - ND
-    - OH
-    - OK
-    - OR
-    - PA
-    - RI
-    - SC
-    - SD
-    - TN
-    - TX
-    - UT
-    - VT
-    - VA
-    - WA
-    - WV
-    - WI
-    - WY
-13. Contact Tag : Values between 1 and 5, default is 1. (Number)
-14. Email Tag :  Values between 1 and 5, default is 1. (Number)
-15. Contact ID : A unique identifier for the contact person . (ObjectId)
-16. Lender ID : A unique identifier for the lending institution or lender.(ObjectId)
+
+| #   | ColumnReference   | Field        | Description                                                                                                         |
+|-----|-------------------|--------------|---------------------------------------------------------------------------------------------------------------------|
+| 1   | A                 | Lender Name  | The name of the lending institution or individual lender. (String)                                                  |
+| 2   | B                 | First Name   | The first name of the contact person associated with the lender. **Required**. (String)                             |
+| 3   | C                 | Last Name    | The last name of the contact person associated with the lender. **Required**. (String)                              |
+| 4   | D                 | Program(s)   | The lending program or programs associated with the lender. This field may contain multiple program names. (String) |
+| 5   | E                 | Nick Name    | A nickname or alias associated with the contact. (String)                                                           |
+| 6   | F                 | Email        | The email address of the lender-contact. **Required**. (String)                                                     |
+| 7   | G                 | Main Phone   | The primary phone number for contacting the contact person. (String)                                                |
+| 8   | H                 | Mobile Phone | The phone number for contacting the contact person. (String)                                                        |
+| 9   | I                 | Office Phone | The office phone number for contacting the contact person. (String)                                                 |
+| 10  | J                 | Title        | The job title or position of the contact person within the lending institution. (String)                            |
+| 11  | K                 | City         | The city where the lender or contact person is located. (String)                                                    |
+| 12  | L                 | State        | The state or region where the lender or contact person is located. (String)                                         |
+| 13  | M                 | Contact Tag  | Values between 1 and 5, default is 1. (Number)                                                                      |
+| 14  | N                 | Email Tag    | Values between 1 and 5, default is 1. (Number)                                                                      |
+| 15  | O                 | Contact ID   | A unique identifier for the contact person. (ObjectId)                                                              |
+| 16  | P                 | Lender ID    | A unique identifier for the lending institution or lender. (ObjectId)                                               |
 
 
 
-#### **Worksheet 2: Lenders & Lending Programs Details**
 
-1. Lender Name :The name of the lending institution or lender, stored in **lenderInstitution** table, this is **required**.
-2. Lender Type : The type or category of the lender, such as a bank, credit union, or private lender, stored in **lenderInstitution** table
-3. Program Name :  The name or identifier of the lending program.
-4. Min : The minimum value or threshold associated with the program, it must be greater than 100000.
-5. Min Tag : Values between 1 and 5 (Number)
-6. Max : The maximum value or threshold associated with the program it must be greater than min value and less than 1000000000.
-7. Max Tag : Values between 1 and 5 (Number)
-8. States Array : An array or list of states where the program is applicable, values for this must be from below
-   - Nationwide : for adding all states
-   - AL
-   - AK
-   - AZ
-   - AR
-   - CA
-   - CO
-   - CT
-   - DE
-   - DC
-   - FL
-   - GA
-   - HI
-   - ID
-   - IL
-   - IN
-   - IA
-   - KS
-   - KY
-   - LA
-   - ME
-   - MD
-   - MA
-   - MI
-   - MN
-   - MS
-   - MO
-   - MT
-   - NE
-   - NV
-   - NH
-   - NJ
-   - NM
-   - NY
-   - NC
-   - ND
-   - OH
-   - OK
-   - OR
-   - PA
-   - RI
-   - SC
-   - SD
-   - TN
-   - TX
-   - UT
-   - VT
-   - VA
-   - WA
-   - WV
-   - WI
-   - WY
+#### **Worksheet 2: Lenders, Notes & Lending Programs Details (CLEAN_LENDERS)**
 
-9. States Tag : Values between 1 and 5 (Number)
-10. Property Type Array : An array or list of property types eligible for the program, this is **required**, values for this must be from below
-    - Default : will add below types as default, we can also perform + and - operations to add other properties with default and remove the property from default. Like default+Healthcare, default-Industrial, etc.
-    - Multifamily
-    - Office
-    - Retail
-    - Industrial
-    - Self-Storage
-    - Student Housing
-    - Mobile Home Park
-    - For Sale Condos
-    - NNN Retail
-    - All : will add all types
-    - Multifamily
-    - Office
-    - Retail
-    - Industrial
-    - Self-Storage
-    - Student Housing
-    - Mobile Home Park
-    - 1_4 SFR
-    - Cannabis
-    - Hotels
-    - For Sale Condos
-    - NNN Retail
-    - Healthcare
-    - Short-term rentals
-    - Co-living
-    - Outdoor Storage
-11. Property Type Tag : Values between 1 and 5 (Number)
-12. Does Not Do : Any restrictions or limitations associated with the program.
-13. Does Not Do Tag: Values between 1 and 5 (Number)
-14. Loan Type Array : An array or list of loan types available under the program.
-15. Loan Type Tag : Values between 1 and 5 (Number)
-16. Index Used : Values between 1 and 5 (Number)
-17. Spread Estimate : Values between 1 and 5 (Number)
-18. Counties : The counties or geographic areas where the program is offered.
-19. Recourse Required : Indicates whether recourse is required for loans under the program (Yes/No).
-20. Non-Recourse LTV : The loan-to-value ratio for non-recourse loans.
-21. Notes : (String): Values between 1 and 5. (Number)
-22. Notes ID : A unique identifier for the Notes. (ObjectId)
-23. Program ID : A unique identifier for the lending program.(ObjectId)
-24. Lender Institute ID : A unique identifier for the lending institution.(ObjectId)
+| #   | ColumnReference   | Field               | Description                                                      | Values/Constraints                                         |
+|-----|-------------------|---------------------|------------------------------------------------------------------|------------------------------------------------------------|
+| 1   | A                 | Lender Name         | Name of the lending institution or lender                        | String                                                     |
+| 2   | B                 | Lender Type         | Type or category of the lender                                   | String                                                     |
+| 3   | C                 | Program Name        | Name or identifier of the lending program                        | String                                                     |
+| 4   | D                 | Min                 | Minimum value or threshold associated with the program           | Greater than 100000                                        |
+| 5   | E                 | Min Tag             | Values between 1 and 5 (Number)                                  | Number                                                     |
+| 6   | F                 | Max                 | Maximum value or threshold associated with the program           | Greater than Min and less than 1000000000                  |
+| 7   | G                 | Max Tag             | Values between 1 and 5 (Number)                                  | Number                                                     |
+| 8   | H                 | States Array        | Array or list of applicable states                               | Nationwide, AL, AK, AZ, ... (List of state abbreviations)  |
+| 9   | I                 | States Tag          | Values between 1 and 5 (Number)                                  | Number                                                     |
+| 10  | J                 | Property Type Array | Array or list of eligible property types                         | Default, Multifamily, Office, ... (List of property types) |
+| 11  | K                 | Property Type Tag   | Values between 1 and 5 (Number)                                  | Number                                                     |
+| 12  | L                 | Does Not Do         | Restrictions or limitations associated with the program          | String                                                     |
+| 13  | M                 | Does Not Do Tag     | Values between 1 and 5 (Number)                                  | Number                                                     |
+| 14  | N                 | Loan Type Array     | Array or list of available loan types                            | String                                                     |
+| 15  | O                 | Loan Type Tag       | Values between 1 and 5 (Number)                                  | Number                                                     |
+| 16  | P                 | Index Used          | String                                                           | String                                                     |
+| 17  | Q                 | Spread Estimate     | Number                                                           | Number                                                     |
+| 18  | R                 | Counties            | Counties or geographic areas where the program is offered        | String                                                     |
+| 19  | S                 | Recourse Required   | Indicates whether recourse is required for loans , default 'no'  | String                                                     |
+| 20  | T                 | Non-Recourse LTV    | Loan-to-value ratio for non-recourse loans                       | String                                                     |
+| 21  | U                 | Description         | Description for the lending institution                          | String                                                     |
+| 22  | V                 | Headquarters        | Headquarters of the lending institution                          | String                                                     |
+| 23  | W                 | Website             | Website of the lending institution                               | String                                                     |
+| 24  | X                 | Ranking             | Rank for the lending institution                                 | Number                                                     |
+| 25  | Y                 | Note 1 Date         | Date for Note 1                                                  | String                                                     |
+| 26  | Z                 | Note 1 Content      | Content for Note 1                                               | String                                                     |
+| 27  | AA                | Note 1 Person       | Person associated with Note 1                                    | String                                                     |
+| 28  | AB                | Note 2 Date         | Date for Note 2                                                  | String                                                     |
+| 29  | AC                | Note 2 Content      | Content for Note 2                                               | String                                                     |
+| 30  | AD                | Note 2 Person       | Person associated with Note 2                                    | String                                                     |
+| 31  | AE                | Note 3 Date         | Date for Note 3                                                  | String                                                     |
+| 32  | AF                | Note 3 Content      | Content for Note 3                                               | String                                                     |
+| 33  | AG                | Note 3 Person       | Person associated with Note 3                                    | String                                                     |
+| 34  | AH                | Note 4 Date         | Date for Note 4                                                  | String                                                     |
+| 35  | AI                | Note 4 Content      | Content for Note 4                                               | String                                                     |
+| 36  | AJ                | Note 4 Person       | Person associated with Note 4                                    | String                                                     |
+| 37  | AK                | Note 5 Date         | Date for Note 5                                                  | String                                                     |
+| 38  | AL                | Note 5 Content      | Content for Note 5                                               | String                                                     |
+| 39  | AM                | Note 5 Person       | Person associated with Note 5                                    | String                                                     |
+| 40  | AN                | Program ID          | Unique identifier for the lending program                        | ObjectId                                                   |
+| 41  | AO                | Lender Institute ID | Unique identifier for the lending institution                    | ObjectId                                                   |
+| 42  | AP                | Note 1 Id           | Unique identifier for Note 1                                     | ObjectId                                                   |
+| 43  | AQ                | Note 2 Id           | Unique identifier for Note 2                                     | ObjectId                                                   |
+| 44  | AR                | Note 3 Id           | Unique identifier for Note 3                                     | ObjectId                                                   |
+| 45  | AS                | Note 4 Id           | Unique identifier for Note 4                                     | ObjectId                                                   |
+| 46  | AT                | Note 5 Id           | Unique identifier for Note 5                                     | ObjectId                                                   |
+
+
 
 [//]: # (Storing the "lenderName" and "lenderType" data from the second worksheet into the "lendingInstitution" table.)
 
