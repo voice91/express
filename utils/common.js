@@ -793,12 +793,13 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
   };
 
 // To remove the sentence for unitCount, Occupancy and SF when we don't have its value
-  const removeStringFromTemplate = (sentence = '') => {
+  const removeStringFromTemplate = (sentence = '', loanType = '') => {
     const updatedSentence = sentence
-      .replace(/\[unitCount\]-unit,/, '')
-      .replace(/\[Occupancy\] occupied/, '')
-      .replace(/\[Square Footage\] SF,/, '');
-    return updatedSentence;
+        ?.replace(/\[unitCount\]-unit,/, '')
+        ?.replace(/\[Occupancy\] occupied/, '')
+        ?.replace(/\[Square Footage\] SF,/, '');
+
+    return includes(EnumLoanTypeOfDeal.CONSTRUCTION, loanType) ? updatedSentence : updatedSentence?.replace(/\[\[toBeBuilt\]\],/g, '');
   };
 
   const dealSummaryUsesData = dealDetail.dealSummary?.sourcesAndUses?.uses || [];
@@ -841,7 +842,7 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
     dealName: dealDetail.dealName || 'NA',
     unitCount: dealDetail.unitCount || '[unitCount]',
     propertyType: dealDetail.assetType || 'NA',
-    toBeBuilt: 'NA',
+    toBeBuilt: '[[toBeBuilt]]',
     address: dealDetail.address || 'NA',
     city: dealDetail.city || 'NA',
     state: getStateFullName(dealDetail.state) || 'NA',
@@ -864,7 +865,7 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
     passLink: passLink,
   });
 
-  return removeStringFromTemplate(getText)
+  return removeStringFromTemplate(getText,dealDetail.loanType)
 };
 
 /**
