@@ -1,15 +1,15 @@
 import httpStatus from 'http-status';
 import { catchAsync } from 'utils/catchAsync';
 import { authService, tokenService, userService, emailService, lenderContactService, invitationService } from 'services';
-import { Deal, Invitation } from '../../models';
+import config from 'config/config';
 import enumModel from '../../models/enum.model';
 import ApiError from '../../utils/ApiError';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
   const loggedInUser = req.user;
-  const isBorrowerAddingByAdmin = loggedInUser.role === enumModel.EnumRoleOfUser.ADVISOR;
   const { isRedirectedFromSendDeal } = body;
+  const emailAccessToRegisterBorrower = loggedInUser.email === config.emailAccessToRegisterBorrower;
   if (isRedirectedFromSendDeal) {
     const LenderInvitation = await invitationService.getOne({
       inviteeEmail: body.email,
@@ -51,33 +51,43 @@ export const register = catchAsync(async (req, res) => {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid lender email');
     }
   } else {
-    if (isBorrowerAddingByAdmin) {
-      Object.assign(body, { emailVerified: true, enforcePassword: true });
+    if (!emailAccessToRegisterBorrower) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, `You don't have access to register borrower`);
     }
+    Object.assign(body, { emailVerified: true, enforcePassword: true });
     const user = await userService.createUser(body);
+
+    // NOTE: This is to send email verification to borrower which is not needed now. So commenting this in case we need this in the future.
     // Add user to the respective deal once registered.
-    if (!isBorrowerAddingByAdmin) {
-      const update = {
-        invitee: user._id,
-        status: 'accepted',
-      };
-      const [invitation] = await Promise.all([
-        Invitation.find({ inviteeEmail: user.email }),
-        Invitation.updateMany({ inviteeEmail: user.email }, update),
-      ]);
-      const updateDeal = {
-        $addToSet: { 'involvedUsers.borrowers': user._id },
-      };
-      await Deal.updateMany({ _id: { $in: invitation.map((item) => item.deal) } }, updateDeal);
-      const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
-      emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
-    }
+    // if (!emailAccessToRegisterBorrower) {
+    //   const update = {
+    //     invitee: user._id,
+    //     status: 'accepted',
+    //   };
+    //   const [invitation] = await Promise.all([
+    //     Invitation.find({ inviteeEmail: user.email }),
+    //     Invitation.updateMany({ inviteeEmail: user.email }, update),
+    //   ]);
+    //   const updateDeal = {
+    //     $addToSet: { 'involvedUsers.borrowers': user._id },
+    //   };
+    //   await Deal.updateMany({ _id: { $in: invitation.map((item) => item.deal) } }, updateDeal);
+    //   const emailVerifyToken = await tokenService.generateVerifyEmailToken(user.email);
+    //   emailService.sendEmailVerificationEmail(user, emailVerifyToken).then().catch();
+    // }
+    // res.status(httpStatus.OK).send({
+    //   results: {
+    //     success: true,
+    //     message: emailAccessToRegisterBorrower
+    //       ? 'Borrower successfully registered'
+    //       : 'Email has been sent to your registered email. Please check your email and verify it',
+    //     user,
+    //   },
+    // });
     res.status(httpStatus.OK).send({
       results: {
         success: true,
-        message: isBorrowerAddingByAdmin
-          ? 'Borrower successfully registered'
-          : 'Email has been sent to your registered email. Please check your email and verify it',
+        message: 'Borrower successfully registered',
         user,
       },
     });

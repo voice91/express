@@ -33,6 +33,7 @@ const envVarsSchema = Joi.object()
       .required()
       .default(['max@parallelcre.com', 'ag@parallelcre.com', 'richard@parallelcre.com']),
     // 1 hr = 3600000
+    EMAIL_ACCESS_TO_REGISTER_BORROWER: Joi.string().default('richard@parallelcre.com'),
     DISABLED_TIME_FOR_NOTES: Joi.number().default(3600000),
     JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: Joi.number()
       .required()
@@ -74,6 +75,7 @@ export default {
   postmarkInboundSenderName: envVars.POSTMARK_INBOUND_SENDERNAME,
   adminEmails: JSON.parse(envVars.ADMIN_EMAILS),
   defaultAdvisorToAddDeal: JSON.parse(envVars.DEFAULT_ADVISORS_TO_ADD_DEAL),
+  emailAccessToRegisterBorrower: envVars.EMAIL_ACCESS_TO_REGISTER_BORROWER,
   encryptionPassword: envVars.ENCRYPTION_PASSWORD,
   dataEncryption: envVars.DATA_ENCRYPTION,
   internalToken: envVars.INTERNAL_TOKEN,
