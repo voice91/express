@@ -344,106 +344,51 @@ function findValueFromSourcesForParticularKey(table, keys) {
  * @throws {Error} Throws an error if the requested loan amount values are inconsistent.
  */
 export const validateLoanAmount = (data) => {
+  const requestLoanAmountInFinancingRequest =
+      data.financingRequest && data.financingRequest.length
+          ? findValueFromGivenTableForPArticularKey(data.financingRequest, 'Requested Loan Amount')
+          : null;
+  const requestLoanAmountInDealMetrics =
+      data.dealMetrics && data.dealMetrics.length
+          ? findValueFromGivenTableForPArticularKey(data.dealMetrics, 'Requested Loan Amount')
+          : null;
+  const requestLoanAmountInSources =
+      data.sourcesAndUses &&
+      Object.keys(data.sourcesAndUses).length &&
+      data.sourcesAndUses.sources &&
+      data.sourcesAndUses.sources.length
+          ? findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
+            'Senior Loan',
+            'Loan Amount',
+            'Requested Loan Amount',
+          ])
+          : null;
+
   if (
-    data.financingRequest &&
-    data.financingRequest.length &&
-    data.dealMetrics &&
-    data.dealMetrics.length &&
-    data.sourcesAndUses &&
-    Object.keys(data.sourcesAndUses).length &&
-    data.sourcesAndUses.sources &&
-    data.sourcesAndUses.sources.length
-  ) {
-    // check key is available in given table if not. if available that we are assign in variables that is outside comments
-    const requestLoanAmountInFinancingRequest = findValueFromGivenTableForPArticularKey(
-      data.financingRequest,
-      'Requested Loan Amount'
-    );
-
-    const requestLoanAmountInDealMetrics = findValueFromGivenTableForPArticularKey(
-      data.dealMetrics,
-      'Requested Loan Amount'
-    );
-
-    const seniorLoanAmount = findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
-      'Senior Loan',
-      'Loan Amount',
-    ]);
-
-    if (
+      // Check if requested loan amount in Financing Request and Deal Metrics do not match
       (requestLoanAmountInFinancingRequest &&
-        requestLoanAmountInDealMetrics &&
-        requestLoanAmountInFinancingRequest !== requestLoanAmountInDealMetrics) ||
-      (requestLoanAmountInFinancingRequest && seniorLoanAmount && requestLoanAmountInFinancingRequest !== seniorLoanAmount)
-    ) {
-      throw new Error(
-        'Requested Loan Amount value in the deal metrics or financing request do not match the Loan Amount specified in the source.'
-      );
-    }
-  } else if (data.financingRequest && data.financingRequest.length && data.dealMetrics && data.dealMetrics.length) {
-    // check key is available in given table if not. if available that we are assign in variables that is outside comments
-    const requestLoanAmountInFinancingRequest = findValueFromGivenTableForPArticularKey(
-      data.financingRequest,
-      'Requested Loan Amount'
-    );
-
-    const requestLoanAmountInDealMetrics = findValueFromGivenTableForPArticularKey(
-      data.dealMetrics,
-      'Requested Loan Amount'
-    );
-
-    if (
-      requestLoanAmountInFinancingRequest &&
-      requestLoanAmountInDealMetrics &&
-      requestLoanAmountInFinancingRequest !== requestLoanAmountInDealMetrics
-    ) {
-      throw new Error("'Requested Loan Amount' of financing request values are not the same ");
-    }
-  } else if (
-    data.financingRequest &&
-    data.financingRequest.length &&
-    data.sourcesAndUses &&
-    Object.keys(data.sourcesAndUses).length &&
-    data.sourcesAndUses.sources &&
-    data.sourcesAndUses.sources.length
+          requestLoanAmountInDealMetrics &&
+          requestLoanAmountInFinancingRequest !== requestLoanAmountInDealMetrics) ||
+      // Check if requested loan amount in Financing Request and Sources do not match
+      (requestLoanAmountInFinancingRequest &&
+          requestLoanAmountInSources &&
+          requestLoanAmountInFinancingRequest !== requestLoanAmountInSources) ||
+      // Check if requested loan amount in Deal Metrics and Sources do not match
+      (requestLoanAmountInDealMetrics &&
+          requestLoanAmountInSources &&
+          requestLoanAmountInDealMetrics !== requestLoanAmountInSources)
   ) {
-    // check key is available in given table if not. if available that we are assign in variables that is outside comments
-    const requestLoanAmountInFinancingRequest = findValueFromGivenTableForPArticularKey(
-      data.financingRequest,
-      'Requested Loan Amount'
+    // If any of the above conditions are true, throw an error with details
+    //getting the sectionNames to show dynamically in the error
+    const sectionNames = [
+      requestLoanAmountInFinancingRequest ? `Financing Request` : null,
+      requestLoanAmountInDealMetrics ? `Deal Metrics` : null,
+      requestLoanAmountInSources ? `Sources` : null,
+    ].filter(Boolean);
+    throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Mismatched Requested Loan Amount values found in ${sectionNames.join(' and ')}.`
     );
-
-    const seniorLoanAmount = findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
-      'Senior Loan',
-      'Loan Amount',
-    ]);
-
-    if (
-      requestLoanAmountInFinancingRequest &&
-      seniorLoanAmount &&
-      requestLoanAmountInFinancingRequest !== seniorLoanAmount
-    ) {
-      throw new Error("The 'Requested Loan Amount' differs from the Loan Amount provided in the source.");
-    }
-  } else if (
-    data.dealMetrics &&
-    data.dealMetrics.length &&
-    data.sourcesAndUses &&
-    Object.keys(data.sourcesAndUses).length &&
-    data.sourcesAndUses.sources &&
-    data.sourcesAndUses.sources.length
-  ) {
-    const requestLoanAmountInDealMetrics = findValueFromGivenTableForPArticularKey(
-      data.dealMetrics,
-      'Requested Loan Amount'
-    );
-    const seniorLoanAmount = findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
-      'Senior Loan',
-      'Loan Amount',
-    ]);
-    if (requestLoanAmountInDealMetrics && seniorLoanAmount && requestLoanAmountInDealMetrics !== seniorLoanAmount) {
-      throw new Error('Requested Loan Amount of deal metrics is not the same with Loan Amount in source.');
-    }
   }
 };
 
