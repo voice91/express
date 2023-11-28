@@ -14,6 +14,10 @@ const getDealNotesFilterQuery = (query) => {
   }
   return filter;
 };
+/**
+ * @deprecated
+ * This function is no longer in use as in lender page we are not showing deal notes anymore.
+ */
 // eslint-disable-next-line import/prefer-default-export
 export const paginate = catchAsync(async (req, res) => {
   const { query } = req;

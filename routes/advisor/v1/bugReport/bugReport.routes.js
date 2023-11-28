@@ -10,5 +10,9 @@ router
   /**
    * createBugReport
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as it's been removed from the UI.
+   */
   .post(auth('advisor'), validate(bugReportValidation.createBugReport), bugReportController.create);
 export default router;

@@ -65,6 +65,10 @@ router
   /**
    * Create Template or sendDeal
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use instead we are using '/sendDeal/v3' as we only have one template instead of choosing different templates, and also we added functionality of sending deals to multiple lender.
+   */
   .post(auth('advisor'), validate(lenderPlacementValidation.sendDeal), lenderPlacementController.sendDeal);
 
 /**
@@ -91,6 +95,10 @@ router
    * Create Template and sendDeal
    * This route is also used for followUp
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use instead we are using '/sendDeal/v3' we added the functionality of sending deal to multiple lenders.
+   */
   .post(auth('advisor'), validate(lenderPlacementValidation.sendDealV2), lenderPlacementController.sendDealV2);
 
 router
@@ -98,6 +106,10 @@ router
   /**
    * Create Template or sendDeal
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as the functionality of choosing templates for send deal has been removed.
+   */
   .get(
     auth('advisor'),
     validate(lenderPlacementValidation.getEmailTemplatesByLanderPlacementId),
@@ -109,6 +121,10 @@ router
   /**
    * getTemplateByTemplateId
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as the functionality of email templates has been removed.
+   */
   .get(
     auth('advisor'),
     validate(lenderPlacementValidation.getEmailTemplateId),
@@ -117,12 +133,20 @@ router
   /**
    * sendTestMail or sendEmail
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use instead we are using '/sendDeal/v3'.
+   */
   .post(auth('advisor'), validate(lenderPlacementValidation.sendEmail), lenderPlacementController.sendEmail);
 router
   .route('/update-sendDeal/:emailTemplateId')
   /**
    * Update and Save Template
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as the functionality to choose and update email template has been removed.
+   */
   .post(
     auth('advisor'),
     validate(lenderPlacementValidation.updateAndSaveInitialEmailContent),

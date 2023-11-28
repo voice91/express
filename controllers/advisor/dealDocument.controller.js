@@ -62,7 +62,10 @@ export const get = catchAsync(async (req, res) => {
   const dealDocument = await dealDocumentService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use instead we are using '/v2/deal/:dealId'.
+ */
 export const getDealDocumentByDeal = catchAsync(async (req, res) => {
   const filter = {
     deal: req.params.dealId,
@@ -102,6 +105,10 @@ export const paginate = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
 
+/**
+ * @deprecated
+ * This function is no longer in use instead we are using '/v2/add' as we now have functionality of 'add recommended file' also we can add comment with the docs.
+ */
 export const create = catchAsync(async (req, res) => {
   const { body } = req;
   body.createdBy = req.user._id;

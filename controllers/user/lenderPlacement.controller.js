@@ -239,7 +239,10 @@ export const remove = catchAsync(async (req, res) => {
   const lenderPlacement = await lenderPlacementService.removeLenderPlacement(filter);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use as borrower don't have access to remove placements from the deal.
+ */
 export const removeByDealAndLendingInstitution = catchAsync(async (req, res) => {
   const { deal, lendingInstitution } = req.query;
   const filter = {
@@ -249,7 +252,10 @@ export const removeByDealAndLendingInstitution = catchAsync(async (req, res) => 
   const lenderPlacement = await lenderPlacementService.removeLenderPlacement(filter);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use as borrower don't have access to messages.
+ */
 export const getDocumentsOfMessages = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const filter = {

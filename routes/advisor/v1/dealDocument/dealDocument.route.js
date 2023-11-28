@@ -11,6 +11,10 @@ router
   /**
    * createDealDocument
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use instead we are using '/v2/add' as we now have functionality of 'add recommended file' also we can add comment with the docs.
+   */
   .post(
     auth('advisor'),
     validate(dealDocumentValidation.createDealDocument),
@@ -33,6 +37,10 @@ router
   /**
    * getDealDocument
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use instead we are using '/v2/deal/:dealId'.
+   */
   .get(
     auth('advisor'),
     validate(dealDocumentValidation.getDealDocument),

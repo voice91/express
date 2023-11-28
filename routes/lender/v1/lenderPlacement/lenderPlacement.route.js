@@ -29,6 +29,10 @@ router
   /**
    * email lender
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as lender can't send messages anymore.
+   */
   .post(auth('lender'), validate(lenderPlacementValidation.sendMessage), lenderPlacementController.sendMessage)
   .get(auth('lender'), validate(lenderPlacementValidation.getMessages), lenderPlacementController.getMessages);
 router
@@ -36,6 +40,10 @@ router
   /**
    * remove document from message
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as lender don't have access to messages anymore.
+   */
   .delete(auth('lender'), validate(lenderPlacementValidation.removeDocument), lenderPlacementController.removeDocument);
 router
   .route('/:lenderPlacementId')

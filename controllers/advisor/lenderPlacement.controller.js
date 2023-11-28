@@ -724,6 +724,10 @@ export const removeByDealAndLendingInstitution = catchAsync(async (req, res) => 
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 
+/**
+ * @deprecated
+ * This function is no longer in use instead we are using '/sendDeal/v3' as we only have one template instead of choosing different templates, and also we added functionality of sending deals to multiple lender.
+ */
 export const sendDeal = catchAsync(async (req, res) => {
   const { lenderInstitute, deal, lenderPlacement } = req.body;
   const advisorName = req.user.name;
@@ -817,6 +821,10 @@ export const sendDeal = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ createTemplates });
 });
 
+/**
+ * @deprecated
+ * This function is no longer in use as the functionality of choosing templates for send deal has been removed.
+ */
 export const getEmailTemplatesByLanderPlacementId = catchAsync(async (req, res) => {
   const { lenderPlacement } = req.params;
   const filter = {
@@ -826,7 +834,10 @@ export const getEmailTemplatesByLanderPlacementId = catchAsync(async (req, res) 
   const emailTemplate = await emailTemplateService.getEmailTemplateList(filter);
   return res.status(httpStatus.OK).send({ results: emailTemplate });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use as the functionality of email templates has been removed.
+ */
 export const getTemplateByTemplateId = catchAsync(async (req, res) => {
   const { emailTemplateId } = req.params;
 
@@ -862,7 +873,10 @@ export const getTemplateByTemplateId = catchAsync(async (req, res) => {
   getEmailTemplate.emailAttachments = emailAttachments;
   return res.status(httpStatus.OK).send({ getEmailTemplate });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use as the functionality to choose and update email template has been removed.
+ */
 export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
   const { emailTemplateId } = req.params;
 
@@ -949,7 +963,10 @@ export const updateAndSaveInitialEmailContent = catchAsync(async (req, res) => {
 
   return res.status(httpStatus.OK).send({ templateData });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use instead we are using '/sendDeal/v3'.
+ */
 export const sendEmail = catchAsync(async (req, res) => {
   const { emailTemplateId } = req.params;
   const { sendToAdvisor } = req.body;
@@ -1197,7 +1214,10 @@ export const sendEmail = catchAsync(async (req, res) => {
   }
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use instead we are using '/sendDeal/v3' we added the functionality of sending deal to multiple lenders.
+ */
 export const sendDealV2 = catchAsync(async (req, res) => {
   const { deals } = req.body;
   const frontEndUrl = config.front.url || 'http://54.196.81.18';

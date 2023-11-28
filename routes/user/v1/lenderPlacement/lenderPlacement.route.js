@@ -26,6 +26,10 @@ router
   /**
    * getDocumentsUploadedInMessages
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as borrower don't have access to messages.
+   */
   .get(
     auth('user'),
     validate(lenderPlacementValidation.getDocumentsOfMessages),
@@ -36,6 +40,10 @@ router
   /**
    * removeLenderPlacement
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as borrower don't have access to remove placements from the deal.
+   */
   .delete(
     auth('user'),
     validate(lenderPlacementValidation.removeLenderPlacement),

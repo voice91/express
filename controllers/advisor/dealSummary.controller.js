@@ -66,6 +66,10 @@ export const importFileForDealSummary = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send({ results: dealSummary });
 });
 
+/**
+ * @deprecated
+ * This function is no longer in use as we are not exporting file for deal summary.
+ */
 export const exportFileForDealSummary = catchAsync(async (req, res) => {
   const { body } = req;
   const { dealSummaryId } = req.params;

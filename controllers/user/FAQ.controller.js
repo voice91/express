@@ -6,7 +6,10 @@ import httpStatus from 'http-status';
 import { emailService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import { FAQ } from '../../models';
-
+/**
+ * @deprecated
+ * This function is no longer in use as it's been removed from the UI.
+ */
 // eslint-disable-next-line import/prefer-default-export
 export const sendMail = catchAsync(async (req, res) => {
   const { question } = req.body;

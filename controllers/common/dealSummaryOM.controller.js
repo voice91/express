@@ -3,7 +3,10 @@ import { catchAsync } from '../../utils/catchAsync';
 import { dealService } from '../../services';
 import ApiError from '../../utils/ApiError';
 import { dealSummeryDto } from '../../services/dealSummary.service';
-
+/**
+ * @deprecated
+ * This function is no longer in use as we are creating the OM from FE.
+ */
 // eslint-disable-next-line import/prefer-default-export
 export const dealSummaryOM = catchAsync(async (req, res) => {
   const { dealId } = req.params;

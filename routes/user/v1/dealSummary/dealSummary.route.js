@@ -11,6 +11,10 @@ router
   /**
    * importFileForDealSummary
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as borrower don't have access to import file for deal summary anymore.
+   */
   .post(
     auth('user'),
     validate(dealSummaryValidation.importFileForDealSummary),

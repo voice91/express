@@ -312,7 +312,10 @@ export const remove = catchAsync(async (req, res) => {
   const lenderPlacement = await lenderPlacementService.removeLenderPlacement(filter);
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use as lender can't send messages anymore.
+ */
 export const sendMessage = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const lender = req.user;
@@ -346,7 +349,10 @@ export const getMessages = catchAsync(async (req, res) => {
 
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use as lender don't have access to messages anymore.
+ */
 export const removeDocument = catchAsync(async (req, res) => {
   const { lenderPlacementId, documentId } = req.params;
   const query = {

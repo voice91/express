@@ -6,6 +6,10 @@ import httpStatus from 'http-status';
 import { bugReportService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 
+/**
+ * @deprecated
+ * This function is no longer in use as it's been removed from the UI.
+ */
 // eslint-disable-next-line import/prefer-default-export
 export const create = catchAsync(async (req, res) => {
   const { body } = req;

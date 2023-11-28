@@ -45,6 +45,10 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
     }
   });
 };
+/**
+ * @deprecated
+ * This function is no longer in use as borrower don't have access to import file for deal summary anymore.
+ */
 export const importFileForDealSummary = catchAsync(async (req, res) => {
   const { url, deal } = req.query;
   const dealSummary = await dealSummaryService.importFileForDealSummary({

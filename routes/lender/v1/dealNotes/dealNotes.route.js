@@ -10,5 +10,9 @@ router
   /**
    * getDealNotesPaginated
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as in lender page we are not showing deal notes anymore.
+   */
   .get(auth('lender'), validate(dealNotesValidation.paginatedDealNotes), dealNotesController.paginate);
 export default router;

@@ -11,6 +11,10 @@ router
   /**
    * getDealDocument
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use instead we are using '/v2/deal/:dealId'.
+   */
   .get(auth('lender'), validate(dealDocumentValidation.getDealDocument), dealDocumentController.list);
 router
   .route('/v2/deal/:dealId')

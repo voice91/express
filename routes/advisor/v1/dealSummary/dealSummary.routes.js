@@ -27,6 +27,10 @@ router
   /**
    * update-and-download DealSummary
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as we are not exporting file for deal summary.
+   */
   .post(
     auth('advisor'),
     validate(dealSummaryValidation.exportFileForDealSummary),

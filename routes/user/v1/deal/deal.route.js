@@ -30,5 +30,9 @@ router
   .delete(auth('user'), validate(dealValidation.deleteDealById), dealController.remove);
 router
   .route('/invitation')
+  /**
+   * @deprecated
+   * This route is no longer in use as borrowers don't have access to send invitation to other borrowers in the deal anymore.
+   */
   .post(auth('user'), validate(dealValidation.invitationToDeal), checkAccessOfDeal, dealController.dealInvitation);
 export default router;

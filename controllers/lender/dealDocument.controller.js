@@ -68,7 +68,10 @@ export const getDealDocumentByDealV2 = catchAsync(async (req, res) => {
   const dealDocument = await dealDocumentService.getDealDocumentList(filter, options);
   return res.status(httpStatus.OK).send({ results: dealDocument });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use instead we are using '/v2/deal/:dealId'.
+ */
 export const list = catchAsync(async (req, res) => {
   const filter = {};
   const options = {};

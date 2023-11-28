@@ -131,7 +131,10 @@ export const remove = catchAsync(async (req, res) => {
   const deal = await dealService.removeDeal(filter);
   return res.status(httpStatus.OK).send({ results: deal });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use as borrowers don't have access to send invitation to other borrowers in the deal anymore.
+ */
 export const dealInvitation = catchAsync(async (req, res) => {
   const { body } = req;
   body.createdBy = req.user._id;

@@ -10,5 +10,9 @@ router
   /**
    * send Email to Support Team
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as it's been removed from the UI.
+   */
   .post(auth('user'), validate(FAQValidation.sendMail), FAQController.sendMail);
 export default router;

@@ -74,7 +74,10 @@ export const remove = catchAsync(async (req, res) => {
   const lenderProgram = await lenderProgramService.removeLenderProgram(filter);
   return res.status(httpStatus.OK).send({ results: lenderProgram });
 });
-
+/**
+ * @deprecated
+ * This function is no longer in use as borrower don't have access to programs.
+ */
 export const listLenderProgramByInstitute = catchAsync(async (req, res) => {
   const lendingInstitution = req.params.lenderInstitute;
   const filter = {

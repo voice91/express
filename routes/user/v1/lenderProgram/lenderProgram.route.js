@@ -22,6 +22,10 @@ router
   /**
    * getLenderProgramByLenderInstitute
    * */
+  /**
+   * @deprecated
+   * This route is no longer in use as borrower don't have access to programs.
+   */
   .get(
     auth('user'),
     validate(lenderProgramValidation.listLenderProgramByInstitute),
