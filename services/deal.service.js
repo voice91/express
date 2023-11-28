@@ -8,8 +8,32 @@ import { Deal, Invitation, User } from 'models';
 import mongoose from 'mongoose';
 import _ from 'lodash';
 import enumModel from '../models/enum.model';
-import { emailService, notificationService } from './index';
+import { emailService, notificationService, userService } from './index';
 import config from '../config/config';
+
+/**
+ * Validates the list of involved users for a specific role in a given request body.
+ *
+ * @param {Object} body - The request body containing information about involved users.
+ * @param {string} role - The role for which the involved users need to be validated.
+ * @throws {ApiError} Throws a BAD_REQUEST error if any user for the specified role is not found.
+ * @returns {Promise<void>} - Resolves if validation is successful.
+ */
+const validateInvolvedUsers = async (body, role) => {
+  // Check if the involved users for the specified role exist in the body.
+  if (body.involvedUsers && body.involvedUsers[role] && body.involvedUsers[role].length) {
+    const users = await userService.getUserList({ _id: { $in: body.involvedUsers[role] } });
+    // Check if the number of retrieved users matches the number of specified user IDs.
+    if (users.length !== body.involvedUsers[role].length) {
+      // Find the user IDs that were not found in the userService response.
+      const usersNotFound = _.differenceBy(
+        body.involvedUsers[role].map((userId) => userId.toString()),
+        users.map((user) => user._id.toString())
+      );
+      throw new ApiError(httpStatus.BAD_REQUEST, `${role} not found for id ${usersNotFound.join(', ')}`);
+    }
+  }
+};
 
 export async function getDealById(id, options = {}) {
   const deal = await Deal.findById(id, options.projection, options);
@@ -32,29 +56,14 @@ export async function getDealListWithPagination(filter, options = {}) {
 }
 
 export async function createDeal(body) {
-  const getUser = await User.findOne({ _id: body.user });
+  const getUser = await userService.getOne({ _id: body.user });
   const { firstName: userName, sendEmailFrom: fromEmail, appPassword: pass } = getUser;
-  if (body.involvedUsers && body.involvedUsers.advisors) {
-    const advisor = body.involvedUsers.advisors;
-    const advisors = await User.find({ _id: { $in: advisor } });
-    if (advisors.length !== advisor.length) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'advisors not found!');
-    }
-  }
-  if (body.involvedUsers && body.involvedUsers.lenders) {
-    const lender = body.involvedUsers.lenders;
-    const lenders = await User.find({ _id: { $in: lender } });
-    if (lenders.length !== lender.length) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'lenders not found!');
-    }
-  }
-  if (body.involvedUsers && body.involvedUsers.borrowers) {
-    const borrower = body.involvedUsers.borrowers;
-    const borrowers = await User.find({ _id: { $in: borrower } });
-    if (borrowers.length !== borrower.length) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'borrowers not found!');
-    }
-  }
+
+  await Promise.all([
+    validateInvolvedUsers(body, 'advisors'),
+    validateInvolvedUsers(body, 'lenders'),
+    validateInvolvedUsers(body, 'borrowers'),
+  ]);
 
   const dealId = mongoose.Types.ObjectId();
   const deal = { _id: dealId };
@@ -215,27 +224,11 @@ export async function createDeal(body) {
   return dealCreate;
 }
 export async function updateDeal(filter, body, options = {}) {
-  if (body.involvedUsers && body.involvedUsers.advisors) {
-    const advisor = body.involvedUsers.advisors;
-    const advisors = await User.find({ _id: { $in: advisor } });
-    if (advisors.length !== advisor.length) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'advisors not found!');
-    }
-  }
-  if (body.involvedUsers && body.involvedUsers.lenders) {
-    const lender = body.involvedUsers.lenders;
-    const lenders = await User.find({ _id: { $in: lender } });
-    if (lenders.length !== lender.length) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'lenders not found!');
-    }
-  }
-  if (body.involvedUsers && body.involvedUsers.borrowers) {
-    const borrower = body.involvedUsers.borrowers;
-    const borrowers = await User.find({ _id: { $in: borrower } });
-    if (borrowers.length !== borrower.length) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'borrowers not found!');
-    }
-  }
+  await Promise.all([
+    validateInvolvedUsers(body, 'advisors'),
+    validateInvolvedUsers(body, 'lenders'),
+    validateInvolvedUsers(body, 'borrowers'),
+  ]);
   const deal = await Deal.findOneAndUpdate(filter, body, options);
   return deal;
 }
