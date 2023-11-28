@@ -33,7 +33,7 @@ export const create = catchAsync(async (req, res) => {
     to: config.adminEmailId,
     subject: body.subject,
     description: body.description,
-    name: req.user.name,
+    name: req.user.firstName,
     attachments,
   });
   return res.status(httpStatus.CREATED).send({ results: feedback });

@@ -13,6 +13,7 @@ import dealDocumentRoutes from './v1/dealDocument/dealDocument.route';
 import authRoutes from './v1/auth/auth.route';
 import lenderNotesRoutes from './v1/lenderNotes/lenderNotes.route';
 import dealSummaryRoutes from './v1/dealSummary/dealSummary.route';
+import feedbackRoutes from './v1/feedback/feedback.routes';
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -29,4 +30,5 @@ router.use('/dealDocument', dealDocumentRoutes);
 router.use('/lenderNotes', lenderNotesRoutes);
 router.use('/dealSummary', dealSummaryRoutes);
 router.use('/auth', authRoutes);
+router.use('/feedback', feedbackRoutes);
 module.exports = router;

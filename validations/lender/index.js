@@ -51,3 +51,4 @@ module.exports.authValidation = require('./auth.validation');
  */
 module.exports.lenderNotesValidation = require('./lenderNotes.validation');
 module.exports.dealSummaryValidation = require('./dealSummary.validation');
+module.exports.feedbackValidation = require('./feedback.validation');
