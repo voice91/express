@@ -25,12 +25,6 @@ router
    * */
   .get(auth('advisor'), validate(dealNotesValidation.paginatedDealNotes), checkAccessOfDeal, dealNotesController.paginate);
 router
-  .route('/deal/:dealId/paginated')
-  /**
-   * getDealNotesPaginated
-   * */
-  .get(auth('advisor'), validate(dealNotesValidation.paginatedDealNotes), checkAccessOfDeal, dealNotesController.paginate);
-router
   .route('/:dealNotesId')
   /**
    * getDealNotesById
