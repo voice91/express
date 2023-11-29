@@ -4,6 +4,7 @@
  */
 import { Sponsor } from 'models';
 import httpStatus from 'http-status';
+import _ from 'lodash';
 import { EnumRoleOfUser } from '../models/enum.model';
 import { checkForExistingUsers } from './user.service';
 import { userService } from './index';
@@ -54,15 +55,19 @@ export async function validateBorrowersNotAttachedToSponsor(borrowers) {
 
   if (filteredSponsorsIncludedBorrowers.length) {
     const alreadyAttachedBorrowers = [];
+    let alreadyAttachedWithSponsor = '';
     // Iterate through sponsors and check for common emails with provided borrowers
     filteredSponsorsIncludedBorrowers.forEach((sponsor) => {
       const commonBorrowers = sponsor.borrowers.filter((borrower) => borrowers.includes(borrower._id.toString()));
       alreadyAttachedBorrowers.push(...commonBorrowers.map((borrower) => borrower.email));
+      alreadyAttachedWithSponsor = sponsor.name;
     });
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       // [...new Set(alreadyAttachedBorrowers)] make array with unique emails (remove repeated emails from array)
-      `${[...new Set(alreadyAttachedBorrowers)].join(', ')} is already attached to another Sponsor`
+      `${[...new Set(alreadyAttachedBorrowers)].join(
+        ', '
+      )} is already attached to another Sponsor ${alreadyAttachedWithSponsor}`
     );
   }
 }
@@ -90,7 +95,7 @@ export async function updateSponsor(filter, body, options = {}) {
   const sponsor = await getOne(filter, { populate: { path: 'borrowers' } });
   const existingBorrowerIds = sponsor.borrowers ? sponsor.borrowers.map((borrower) => borrower._id.toString()) : [];
   const updatedBorrowerIds = body.borrowers ? body.borrowers.map((id) => id.toString()) : [];
-  if (existingBorrowerIds.length && updatedBorrowerIds.length && existingBorrowerIds !== updatedBorrowerIds) {
+  if (!_.isEqual(existingBorrowerIds.sort(), updatedBorrowerIds.sort())) {
     const removedBorrowers = existingBorrowerIds.filter((id) => !updatedBorrowerIds.includes(id));
     const addedBorrowers = updatedBorrowerIds.filter((id) => !existingBorrowerIds.includes(id));
     if (addedBorrowers && addedBorrowers.length) {
