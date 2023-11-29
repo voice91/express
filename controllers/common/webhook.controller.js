@@ -12,9 +12,10 @@ const he = require('he');
 export const processEmailMessage = catchAsync(async (req, res) => {
   // This is used to extract specific part that matches the regex pattern from the decoded req.body.Htmlbody, as we only want message part from the req body.
   // he.decode decodes HTML-encoded text. It's commonly used to decode HTML entities like &lt; (represents <), &gt; (represents >), &amp; (represents &), and so on.
-  const messageContent = /<div dir="ltr">(.*?)<\/div>/.exec(he.decode(req.body.HtmlBody));
+  // Change in regex as it was taking the content only upto first </div> and not the other part, but we need all the div till <br><div class="gmail_quote">
+  const messageContent = /<div dir="ltr">(.*?)<br><div class="gmail_quote">/.exec(he.decode(req.body.HtmlBody));
   // need to set the message content in body tag as we have seperated the content for the threading on the basis of body tag.
-  const message = req.body.StrippedTextReply ? `<body>${messageContent[0]}</body>` : 'This file is coming from email';
+  const message = req.body.StrippedTextReply ? `<body>${messageContent[1]}</body>` : 'This file is coming from email';
 
   let msgId;
   if (req.body.Headers) {
