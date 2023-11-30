@@ -167,7 +167,7 @@ export const paginatedDeal = {
 
 export const invitationToDeal = {
   body: Joi.object().keys({
-    email: Joi.array().items(Joi.string().email().required()),
+    email: Joi.array().items(Joi.string().email().required().min(1)),
     deal: Joi.objectId().required(),
     role: Joi.string().required().valid(enumFields.EnumRoleOfUser.ADVISOR, enumFields.EnumRoleOfUser.USER),
   }),

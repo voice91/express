@@ -12,6 +12,9 @@ import ApiError from './ApiError';
 import contentType from './content-type.json';
 import { lenderPlacementStageToStageNumberMapping } from './enumStageOfLenderPlacement';
 import { dealStageToStageNumberMapping } from './enumStageForDeal';
+import { Deal, Invitation } from "../models";
+import enumModel from "../models/enum.model";
+import { dealService, emailService, notificationService } from "../services";
 /* eslint-disable */
 export const asyncForEach = async (array, callback) => {
   for (let index = 0; index < array.length; index += 1) {
@@ -829,3 +832,85 @@ export const removeNullFields = (obj) => {
   });
   return obj;
 };
+
+/**
+ * Common function for inviting borrowers and default advisors to the deal
+ */
+
+export const invitationToDeal = async ({existingUsers, fromEmail, pass, userName, dealName, deal, body, isDefaultAdvisor, isDealCreated }) => {
+  // Here,we will get the emails that are not in our system, as we can't add them we are throwing error for it.
+  const userEmailNotExists = _.differenceBy(
+      isDealCreated ? body.dealMembers : body.email,
+      existingUsers.map((item) => item.email)
+  );
+  if (userEmailNotExists && userEmailNotExists.length) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `The borrowers : ${userEmailNotExists.join(', ')} doesn't exists`);
+  }
+  // If default advisors are not getting added then we are checking whether the role is user or not
+  if (!isDefaultAdvisor && existingUsers.some((user) => user.role !== enumModel.EnumRoleOfUser.USER)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "You can only add borrowers to the deal");
+  }
+  // If default advisors are added then we are adding it in "involvedUsers advisors" of the deal
+  if(isDefaultAdvisor){
+      await Deal.findByIdAndUpdate(deal, {
+      $addToSet: { 'involvedUsers.advisors' : existingUsers.map((item) => item._id) },
+    });
+  }
+  else{
+      const filter = {
+        _id: deal,
+        'involvedUsers.borrowers': { $in: existingUsers.map((item) => item._id) },
+      };
+      // here we are checking whether the user is already in the deal
+      const userAlreadyIncluded = await dealService.getOne(filter);
+      if(userAlreadyIncluded){
+        throw new ApiError(httpStatus.BAD_REQUEST, "The borrower is already part of the deal");
+      }
+      // if not already in the deal but is an existing user then adding it to the "involvedUsers borrowers" of the deal
+      else{
+        const update = {
+          $addToSet: { 'involvedUsers.borrowers': existingUsers.map((item) => item._id) },
+        }
+        await Deal.findByIdAndUpdate( deal, update );
+      }
+  }
+    if (existingUsers.length) {
+      // here we are sending invitation email to user and default advisors
+      existingUsers.map(async (item) => {
+        const {firstName, email: user} = item;
+        await emailService.sendInvitationEmail({
+          fromEmail,
+          pass,
+          user,
+          userName,
+          dealName: dealName,
+          isDealCreated: false,
+          link: 'login',
+          firstName,
+        });
+      });
+      // here we are creating the notification after we send the invitation email to the users
+      existingUsers.map(async (user) => {
+        const notification = {
+          createdBy: body.createdBy,
+          updatedBy: body.createdBy,
+          message: `${user.email} Requested to be added to ${dealName}`,
+          deal,
+        };
+        await notificationService.createNotification(notification);
+      });
+
+      // as our existingUsers is array we are using map on it. below line will help us to insert many document in our db at once, and we have passed the object in the map we have to enter in our db,
+      // so we will get deal id, the user from which we log in or who is creating deal their id will go in invitedBy and in emailExists we get the whole document, and we just want id of the person which we are inviting the deal, so we did emailExists._id
+      // here we are adding invitations to the invitation model, if the default advisors are also getting added then we are setting role to "advisor" else "user"
+      await Invitation.insertMany(
+          existingUsers.map((emailExists) => ({
+            deal: deal,
+            status: 'accepted',
+            invitedBy: body.user,
+            invitee: emailExists._id,
+            role: isDefaultAdvisor? enumModel.EnumRoleOfUser.ADVISOR : enumModel.EnumRoleOfUser.USER,
+          }))
+      );
+    }
+}

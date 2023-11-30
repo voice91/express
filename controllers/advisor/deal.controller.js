@@ -13,11 +13,12 @@ import {
   lenderNotesService,
   lenderPlacementService,
   taskService,
+  userService,
 } from 'services';
 import { catchAsync } from 'utils/catchAsync';
 import _ from 'lodash';
 import { pick } from '../../utils/pick';
-import enumModel, { EnumOfActivityType, EnumStageOfDeal } from '../../models/enum.model';
+import { EnumOfActivityType, EnumStageOfDeal } from '../../models/enum.model';
 import { Deal, Invitation, LenderPlacement, User } from '../../models';
 // eslint-disable-next-line import/named
 import { getStageUpdateForActivityLogs } from '../../utils/activityLog';
@@ -26,7 +27,7 @@ import ApiError from '../../utils/ApiError';
 import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
 import { detailsInDeal } from '../../utils/detailsInDeal';
 import { dealSummeryDto } from '../../services/dealSummary.service';
-import { manageDealStageTimeline, removeNullFields } from '../../utils/common';
+import { invitationToDeal, manageDealStageTimeline, removeNullFields } from '../../utils/common';
 
 const getDealFilterQuery = (query) => {
   const filter = pick(query, []);
@@ -315,16 +316,11 @@ export const dealInvitation = catchAsync(async (req, res) => {
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
   body.user = req.user._id;
-  let { role } = body;
   const userName = req.user.firstName;
   const getUser = await User.findOne({ _id: req.user._id });
   const { sendEmailFrom: fromEmail, appPassword: pass } = getUser;
-  if (role === enumModel.EnumRoleOfUser.ADVISOR) {
-    role = enumModel.EnumRoleOfUser.ADVISOR;
-  } else {
-    role = enumModel.EnumRoleOfUser.USER;
-  }
   const deal = await Deal.findById({ _id: body.deal });
-  await dealService.InviteToDeal(fromEmail, body, role, userName, deal, pass);
+  const existingUsers = await userService.getUserList({ email: { $in: body.email } });
+  await invitationToDeal({ existingUsers, fromEmail, pass, userName, dealName: deal.dealName, deal: deal._id, body });
   return res.status(httpStatus.OK).send({ results: 'Invitation email sent' });
 });
