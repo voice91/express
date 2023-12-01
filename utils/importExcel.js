@@ -1,7 +1,12 @@
 import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
 import { logger } from '../config/logger';
-import { EnumOfTypeOfValue } from '../models/enum.model';
+import {
+  EnumColumnNameOfFinancialSummary,
+  EnumOfTypeOfValue,
+  EnumSheetNameOfUw,
+  EnumTableNameInUwSheet,
+} from '../models/enum.model';
 import { validateLoanAmount } from './common';
 
 const axios = require('axios');
@@ -62,6 +67,214 @@ function typeOfValue(val, valueFromExcel, key = '') {
   }
 }
 
+/**
+ * Retrieves and formats values from an Excel sheet for a specified table.
+ * @param {Object} params - Input parameters.
+ * @param {Object} params.excelSheetData - Excel sheet data object.
+ * @param {Object} params.currentCell - Current cell in the Excel sheet.
+ * @param {string} params.tableName - Name of the table being processed.
+ * @return {Array} resultArray - Array of retrieved and formatted data.
+ */
+function retrieveAndFormatTableValues({ excelSheetData, currentCell, tableName }) {
+  const resultArray = [];
+  while (true) {
+    const data = {};
+    const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
+    const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
+
+    let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName });
+
+    if (result) {
+      data.type = typeOfValue(result, value.numFmt ? value.numFmt : '', key.value || '');
+    }
+
+    if (value.numFmt && value.numFmt.includes('%') && data.type === 'percentage') {
+      result *= 100;
+    }
+
+    if (key.value) {
+      data.key = key.value;
+      data.value = result;
+    }
+
+    // eslint-disable-next-line no-param-reassign
+    currentCell = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
+
+    if (!key.value || !value.value || key.value === null || value.value === null) {
+      break;
+    }
+    resultArray.push(data);
+  }
+  return resultArray;
+}
+
+/**
+ * Processes data for a simple table from an Excel sheet based on the table name.
+ * @param {Object} params - Input parameters.
+ * @param {Object} params.summaryData - Summary data containing information about tables.
+ * @param {string} params.tableName - Name of the table being processed.
+ * @param {Object} params.excelSheetData - Excel sheet data object.
+ * @return {Array} resultArray - Array of retrieved and formatted data.
+ */
+function processSimpleTableData({ summaryData, tableName, excelSheetData }) {
+  let resultArray = [];
+  const tableValue = Object.entries(summaryData).find(([, value]) => value.v === tableName);
+
+  if (tableValue) {
+    const currentCell = excelSheetData.getCell(tableValue[0]);
+    resultArray = retrieveAndFormatTableValues({ excelSheetData, currentCell, tableName });
+  }
+  return resultArray;
+}
+
+/**
+ * Retrieves column headers of a table from an Excel sheet dynamically.
+ * @param {Object} excelSheetData - Excel sheet data object.
+ * @param {Object} currentCell - Current cell in the Excel sheet.
+ * @returns {Array} - Array of column headers.
+ */
+function getHeadersOfTable(excelSheetData, currentCell) {
+  const columnHeaders = [];
+  const columnHeaderRow = currentCell.row + 1;
+  // Retrieve column headers dynamically
+  while (true) {
+    // Get the cell for the current column header
+    const columnHeaderCell = excelSheetData.getCell(columnHeaderRow, currentCell.col);
+    // Break the loop if there are no more column headers
+    if (!columnHeaderCell.value) {
+      break;
+    }
+    // Add the column header to the array
+    columnHeaders.push(columnHeaderCell.value);
+    // Move to the next column
+    // eslint-disable-next-line no-param-reassign
+    currentCell = excelSheetData.getCell(currentCell.row, currentCell.col + 1);
+  }
+  return columnHeaders;
+}
+
+/**
+ * Processes financial summary data from an Excel sheet.
+ * @param {Object} params - Input parameters.
+ * @param {Object} params.excelSheetData - Excel sheet data object.
+ * @param {Object} params.currentCell - Current cell in the Excel sheet.
+ * @param {Object} params.headerOne - First header for financial summary data.
+ * @param {Object} params.headerTwo - Second header for financial summary data.
+ * @param {Object} params.headerThree - Third header for financial summary data.
+ * @returns {Object} - Processed data and updated current cell.
+ */
+function processFinancialSummaryData({ excelSheetData, currentCell, headerOne, headerTwo, headerThree }) {
+  const resultArray = [];
+  while (true) {
+    // eslint-disable-next-line no-shadow
+    const data = {};
+    const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
+    const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
+    let cellValue = formatMathFormulaFormValue({
+      val: value.value,
+      key: key.value,
+      tableName: EnumTableNameInUwSheet.FINANCIAL_SUMMARY,
+    });
+
+    if (
+      value.value !== EnumColumnNameOfFinancialSummary.IN_PLACE &&
+      value.value !== EnumColumnNameOfFinancialSummary.STABILIZED
+    ) {
+      data.key = key.value;
+      if (headerOne.value === EnumColumnNameOfFinancialSummary.IN_PLACE) {
+        if (cellValue) {
+          data.inPlaceType = typeOfValue(cellValue, value.numFmt);
+        }
+        if (value.numFmt) {
+          if (value.numFmt.includes('%')) {
+            cellValue *= 100;
+          }
+        }
+        data.inPlaceValue = cellValue;
+      } else if (headerOne.value === EnumColumnNameOfFinancialSummary.STABILIZED) {
+        if (cellValue) {
+          data.stabilizedType = typeOfValue(cellValue, value.numFmt);
+        }
+        if (value.numFmt) {
+          if (value.numFmt.includes('%')) {
+            cellValue *= 100;
+          }
+        }
+        data.stabilizedValue = cellValue;
+      }
+      if (headerTwo.value && headerTwo.value === EnumColumnNameOfFinancialSummary.STABILIZED) {
+        const valueOfSecond = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
+        // Condition for if the value is there then only proceed
+        if (valueOfSecond.value) {
+          // passing all the values in the function
+          data.stabilizedValue = formatMathFormulaFormValue({
+            val: valueOfSecond.value,
+            key: key.value,
+            tableName: EnumTableNameInUwSheet.FINANCIAL_SUMMARY,
+          });
+          if (valueOfSecond.numFmt) {
+            if (data.stabilizedValue) {
+              data.stabilizedType = typeOfValue(data.stabilizedValue, valueOfSecond.numFmt);
+            }
+            if (valueOfSecond.numFmt.includes('%')) {
+              data.stabilizedValue *= 100;
+            }
+          }
+        }
+      } else if (headerTwo.value && headerTwo.value === EnumColumnNameOfFinancialSummary.IN_PLACE) {
+        const valueOfSecond = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
+        if (valueOfSecond.value) {
+          data.inPlaceValue = formatMathFormulaFormValue({
+            val: valueOfSecond.value,
+            key: key.value,
+            tableName: EnumTableNameInUwSheet.FINANCIAL_SUMMARY,
+          });
+          if (valueOfSecond.numFmt) {
+            if (data.inPlaceValue) {
+              data.inPlaceType = typeOfValue(data.inPlaceValue, valueOfSecond.numFmt);
+            }
+            if (valueOfSecond.numFmt.includes('%')) {
+              data.inPlaceValue *= 100;
+            }
+          }
+        }
+      }
+      // adding condition for notes if it's in second header
+      else if (headerTwo.value && headerTwo.value === EnumColumnNameOfFinancialSummary.NOTES) {
+        const valueOfNotes = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
+        if (valueOfNotes.value) {
+          // check for the type , if type is string assign as it is, else convert to string
+          data.note = typeof valueOfNotes.value === 'string' ? valueOfNotes.value : `${valueOfNotes.value}`;
+        }
+      }
+      // adding condition for notes if it's in third header as notes can be either in 2nd or 3rd column only
+      if (headerThree.value && headerThree.value === EnumColumnNameOfFinancialSummary.NOTES) {
+        const valueOfNotes = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 3);
+        if (valueOfNotes.value) {
+          // check for the type , if type is string assign as it is, else convert to string
+          data.note = typeof valueOfNotes.value === 'string' ? valueOfNotes.value : `${valueOfNotes.value}`;
+        }
+      }
+    }
+    // eslint-disable-next-line no-param-reassign
+    currentCell = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
+
+    if (!key.value || key.value === null) {
+      break;
+    }
+    if (Object.keys(data).length) {
+      resultArray.push(data);
+    }
+  }
+  return { processedData: resultArray, currentCell };
+}
+
+/**
+ * Imports and processes an Excel file from a given URL.
+ * @param {string} url - URL of the Excel file.
+ * @returns {Object} - Processed data from the Excel file.
+ * @throws {ApiError} - Throws an error if there's an issue with file reading or processing.
+ */
 // eslint-disable-next-line import/prefer-default-export
 export const importExcelFile = async (url) => {
   try {
@@ -81,399 +294,127 @@ export const importExcelFile = async (url) => {
     const financialSummary = {};
 
     workbook.eachSheet((excelSheetData) => {
-      if (excelSheetData.name === 'Summary') {
+      if (excelSheetData.name === EnumSheetNameOfUw.SUMMARY) {
         const summaryData = Workbook.Sheets[excelSheetData.name];
 
-        // PropertySummary
-        const PropertySummaryValue = Object.entries(summaryData).find(([, value]) => value.v === 'Property Summary');
-        if (PropertySummaryValue) {
-          let currentCell = excelSheetData.getCell(PropertySummaryValue[0]);
-          while (true) {
-            const property = {};
-            const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            // eslint-disable-next-line no-shadow
-            const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            const result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Property Summary' });
-            if (result) {
-              property.type = typeOfValue(result, '', key.value);
-            }
-            if (key.value) {
-              property.key = key.value;
-              property.value = result;
-            }
+        // Property Summary
+        const processedPropertySummary = processSimpleTableData({
+          summaryData,
+          tableName: EnumTableNameInUwSheet.PROPERTY_SUMMARY,
+          excelSheetData,
+        });
+        propertySummary.push(...processedPropertySummary);
+        logger.info(`${propertySummary.length} rows imported for ${EnumTableNameInUwSheet.PROPERTY_SUMMARY}`);
 
-            currentCell = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            if (!key.value || !value.value || key.value === null || value.value === null) {
-              break;
-            }
-            propertySummary.push(property);
-          }
-        }
+        // Deal Metrics
+        const processedDealMetrics = processSimpleTableData({
+          summaryData,
+          tableName: EnumTableNameInUwSheet.DEAL_METRICS,
+          excelSheetData,
+        });
+        dealMetrics.push(...processedDealMetrics);
+        logger.info(`${dealMetrics.length} rows imported for ${EnumTableNameInUwSheet.DEAL_METRICS}`);
 
-        // dealMetrics
-        const dealMetricsValue = Object.entries(summaryData).find(([, value]) => value.v === 'Deal Metrics');
-        if (dealMetricsValue) {
-          let currentCell = excelSheetData.getCell(dealMetricsValue[0]);
-          while (true) {
-            const metrics = {};
-            const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            // eslint-disable-next-line no-shadow
-            const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Deal Metrics' });
-            if (result) {
-              metrics.type = typeOfValue(result, value.numFmt);
-            }
-            if (value.numFmt) {
-              if (value.numFmt.includes('%')) {
-                result *= 100;
-              }
-            }
-            if (key.value) {
-              metrics.key = key.value;
-              metrics.value = result;
-            }
-
-            currentCell = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            if (!key.value || !value.value || key.value === null || value.value === null) {
-              break;
-            }
-            dealMetrics.push(metrics);
-          }
-        }
-
-        // financingRequest
-        const financingRequestValue = Object.entries(summaryData).find(([, value]) => value.v === 'Financing Request');
-        if (financingRequestValue) {
-          let currentCell = excelSheetData.getCell(financingRequestValue[0]);
-          while (true) {
-            const financeRequest = {};
-            const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            // eslint-disable-next-line no-shadow
-            const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Financing Request' });
-            if (result) {
-              financeRequest.type = typeOfValue(result, value.numFmt);
-            }
-            if (value.numFmt) {
-              if (typeof result === 'number' && value.numFmt.includes('%')) {
-                result *= 100;
-              }
-            }
-            if (key.value) {
-              financeRequest.key = key.value;
-              financeRequest.value = result;
-            }
-
-            currentCell = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            if (!key.value || !value.value || key.value === null || value.value === null) {
-              break;
-            }
-            financingRequest.push(financeRequest);
-          }
-        }
+        // Financing Request
+        const processedFinancingRequest = processSimpleTableData({
+          summaryData,
+          tableName: EnumTableNameInUwSheet.FINANCING_REQUEST,
+          excelSheetData,
+        });
+        financingRequest.push(...processedFinancingRequest);
+        logger.info(`${financingRequest.length} rows imported for ${EnumTableNameInUwSheet.FINANCING_REQUEST}`);
 
         // Sources and Uses
-        const sourcesUsesValue = Object.entries(summaryData).find(([, value]) => value.v === 'Sources and Uses');
+        const sourcesUsesValue = Object.entries(summaryData).find(
+          ([, value]) => value.v === EnumTableNameInUwSheet.SOURCES_AND_USES
+        );
         const sources = [];
         const uses = [];
         if (sourcesUsesValue) {
-          let currentCell = excelSheetData.getCell(sourcesUsesValue[0]);
-          while (true) {
-            const sourceObj = {};
-            const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            let valueResult = formatMathFormulaFormValue({
-              val: value.value,
-              key: key.value,
-              tableName: 'Sources and Uses',
-            });
-
-            if (key.value) {
-              if (key.value !== 'Sources') {
-                sourceObj.key = key.value;
-                sourceObj.value = valueResult;
-                if (valueResult) {
-                  sourceObj.type = typeOfValue(valueResult, value.numFmt);
-                }
-                if (value.numFmt) {
-                  if (value.numFmt.includes('%')) {
-                    valueResult *= 100;
-                  }
-                }
-              }
-            }
-
-            if (Object.keys(sourceObj).length) {
-              sources.push(sourceObj);
-            }
-
-            currentCell = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            if (!key.value || !value.value || key.value === null || value.value === null) {
-              break;
-            }
-          }
-
+          const processedSources = processSimpleTableData({
+            summaryData,
+            tableName: EnumTableNameInUwSheet.SOURCES,
+            excelSheetData,
+            dataArray: sources,
+          });
+          sources.push(...processedSources);
           sourcesAndUses.sources = sources;
-
-          const UsesValue = Object.entries(summaryData).find(([, value]) => value.v === 'Uses');
-
-          if (UsesValue) {
-            let currentCellForUses = excelSheetData.getCell(UsesValue[0]);
-            while (true) {
-              const usesObj = {};
-              const key = excelSheetData.getCell(currentCellForUses.row + 1, currentCellForUses.col);
-
-              const value = excelSheetData.getCell(currentCellForUses.row + 1, currentCellForUses.col + 1);
-              let valueResult = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Uses' });
-
-              if (valueResult) {
-                usesObj.type = typeOfValue(valueResult, value.numFmt);
-              }
-              if (value.numFmt) {
-                if (value.numFmt.includes('%')) {
-                  valueResult *= 100;
-                }
-              }
-              if (key.value) {
-                if (key.value !== 'Sources') {
-                  usesObj.key = key.value;
-                  usesObj.value = valueResult;
-                }
-              }
-
-              if (Object.keys(usesObj).length) {
-                uses.push(usesObj);
-              }
-
-              currentCellForUses = excelSheetData.getCell(currentCellForUses.row + 1, currentCellForUses.col);
-              if (!key.value || !value.value || key.value === null || value.value === null) {
-                break;
-              }
-            }
-            sourcesAndUses.uses = uses;
-          }
+          logger.info(`${sources.length} rows imported for ${EnumTableNameInUwSheet.SOURCES}`);
+          const processedUses = processSimpleTableData({
+            summaryData,
+            tableName: EnumTableNameInUwSheet.USES,
+            excelSheetData,
+            dataArray: uses,
+          });
+          uses.push(...processedUses);
+          sourcesAndUses.uses = uses;
+          logger.info(`${uses.length} rows imported for ${EnumTableNameInUwSheet.USES}`);
         }
-      } else if (excelSheetData.name === 'NOI') {
+      } else if (excelSheetData.name === EnumSheetNameOfUw.NOI) {
         const noIData = Workbook.Sheets[excelSheetData.name];
-        const financialSummaryValue = Object.entries(noIData).find(([, value]) => value.v === 'Financial Summary');
+        const financialSummaryValue = Object.entries(noIData).find(
+          ([, value]) => value.v === EnumTableNameInUwSheet.FINANCIAL_SUMMARY
+        );
+        // Financial Summary
         if (financialSummaryValue) {
           let currentCell = excelSheetData.getCell(financialSummaryValue[0]);
-          const totalRevenue = [];
           // Getting cell for all the three headers In-Place, Stabilized and Notes
           const headerOne = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
           const headerTwo = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
           const headerThree = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 3);
 
           if (!headerOne.value) {
-            headerOne.value = 'In-Place';
+            headerOne.value = EnumColumnNameOfFinancialSummary.IN_PLACE;
           }
-
-          while (true) {
-            // eslint-disable-next-line no-shadow
-            const data = {};
-            const key = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-            const value = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 1);
-            let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Financial Summary' });
-
-            if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
-              data.key = key.value;
-              if (headerOne.value === 'In-Place') {
-                if (result) {
-                  data.inPlaceType = typeOfValue(result, value.numFmt);
-                }
-                if (value.numFmt) {
-                  if (value.numFmt.includes('%')) {
-                    result *= 100;
-                  }
-                }
-                data.inPlaceValue = result;
-              } else if (headerOne.value === 'Stabilized') {
-                if (result) {
-                  data.stabilizedType = typeOfValue(result, value.numFmt);
-                }
-                if (value.numFmt) {
-                  if (value.numFmt.includes('%')) {
-                    result *= 100;
-                  }
-                }
-                data.stabilizedValue = result;
-              }
-              if (headerTwo.value && headerTwo.value === 'Stabilized') {
-                const valueOfSecond = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
-                // Condition for if the value is there then only proceed
-                if (valueOfSecond.value) {
-                  // passing all the values in the function
-                  data.stabilizedValue = formatMathFormulaFormValue({
-                    val: valueOfSecond.value,
-                    key: key.value,
-                    tableName: 'Stabilized',
-                  });
-                  if (valueOfSecond.numFmt) {
-                    if (data.stabilizedValue) {
-                      data.stabilizedType = typeOfValue(data.stabilizedValue, valueOfSecond.numFmt);
-                    }
-                    if (valueOfSecond.numFmt.includes('%')) {
-                      data.stabilizedValue *= 100;
-                    }
-                  }
-                }
-              } else if (headerTwo.value && headerTwo.value === 'In-Place') {
-                const valueOfSecond = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
-                if (valueOfSecond.value) {
-                  data.inPlaceValue = formatMathFormulaFormValue({
-                    val: valueOfSecond.value,
-                    key: key.value,
-                    tableName: 'In-Place',
-                  });
-                  if (valueOfSecond.numFmt) {
-                    if (data.inPlaceValue) {
-                      data.inPlaceType = typeOfValue(data.inPlaceValue, valueOfSecond.numFmt);
-                    }
-                    if (valueOfSecond.numFmt.includes('%')) {
-                      data.inPlaceValue *= 100;
-                    }
-                  }
-                }
-              }
-              // adding condition for notes if it's in second header
-              else if (headerTwo.value && headerTwo.value === 'Notes') {
-                const valueOfNotes = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 2);
-                if (valueOfNotes.value) {
-                  data.note = valueOfNotes.value;
-                }
-              }
-              // adding condition for notes if it's in third header as notes can be either in 2nd or 3rd column only
-              if (headerThree.value && headerThree.value === 'Notes') {
-                const valueOfNotes = excelSheetData.getCell(currentCell.row + 1, currentCell.col + 3);
-                if (valueOfNotes.value) {
-                  data.note = valueOfNotes.value;
-                }
-              }
-            }
-            currentCell = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
-
-            if (!key.value || key.value === null) {
-              break;
-            }
-            if (Object.keys(data).length) {
-              totalRevenue.push(data);
-            }
-          }
+          const processedData = processFinancialSummaryData({
+            excelSheetData,
+            currentCell,
+            headerOne,
+            headerTwo,
+            headerThree,
+          });
+          const totalRevenue = processedData.processedData;
+          currentCell = processedData.currentCell;
           financialSummary.revenue = totalRevenue;
+          logger.info(
+            `${totalRevenue.length} rows imported for ${EnumTableNameInUwSheet.REVENUE} in ${EnumTableNameInUwSheet.FINANCIAL_SUMMARY}`
+          );
           const startingCell = excelSheetData.getCell(currentCell.row + 1, currentCell.col);
 
-          const expensesValue = Object.entries(noIData).find(([, value]) => value.v === 'Expenses');
+          const expensesValue = Object.entries(noIData).find(([, value]) => value.v === EnumTableNameInUwSheet.EXPENSES);
           if (expensesValue) {
-            const expenses = [];
             let currentCellForExpense = excelSheetData.getCell(expensesValue[0]);
 
             while (currentCellForExpense.address !== startingCell.address) {
               currentCellForExpense = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
             }
 
-            while (true) {
-              const expenseData = {};
-              const key = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
-              const value = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 1);
-              let result = formatMathFormulaFormValue({ val: value.value, key: key.value, tableName: 'Expenses' });
-
-              if (value.value !== 'In-Place' && value.value !== 'Stabilized') {
-                expenseData.key = key.value;
-                if (headerOne.value === 'In-Place') {
-                  if (result) {
-                    expenseData.inPlaceType = typeOfValue(result, value.numFmt);
-                  }
-                  if (value.numFmt) {
-                    if (value.numFmt.includes('%')) {
-                      result *= 100;
-                    }
-                  }
-                  expenseData.inPlaceValue = result;
-                } else if (headerOne.value === 'Stabilized') {
-                  if (result) {
-                    expenseData.stabilizedType = typeOfValue(result, value.numFmt);
-                  }
-                  if (value.numFmt) {
-                    if (value.numFmt.includes('%')) {
-                      result *= 100;
-                    }
-                  }
-                  expenseData.stabilizedValue = result;
-                }
-                if (headerTwo.value && headerTwo.value === 'Stabilized') {
-                  const valueOfSecond = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
-                  // Condition for if the value is there then only proceed
-                  if (valueOfSecond.value) {
-                    expenseData.stabilizedValue = formatMathFormulaFormValue({
-                      val: valueOfSecond.value,
-                      key: key.value,
-                      tableName: 'Stabilized',
-                    });
-                  }
-                  if (valueOfSecond.numFmt) {
-                    if (expenseData.stabilizedValue) {
-                      expenseData.stabilizedType = typeOfValue(expenseData.stabilizedValue, valueOfSecond.numFmt);
-                    }
-                    if (valueOfSecond.numFmt.includes('%')) {
-                      expenseData.stabilizedValue *= 100;
-                    }
-                  }
-                } else if (headerTwo.value && headerTwo.value === 'In-Place') {
-                  const valueOfSecond = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
-                  if (valueOfSecond.value) {
-                    expenseData.inPlaceValue = formatMathFormulaFormValue({
-                      val: valueOfSecond.value,
-                      key: key.value,
-                      tableName: 'In-Place',
-                    });
-                  }
-                  if (valueOfSecond.numFmt) {
-                    if (expenseData.inPlaceValue) {
-                      expenseData.inPlaceType = typeOfValue(expenseData.inPlaceValue, valueOfSecond.numFmt);
-                    }
-                    if (valueOfSecond.numFmt.includes('%')) {
-                      expenseData.inPlaceValue *= 100;
-                    }
-                  }
-                }
-                // adding condition for notes if it's in second header
-                else if (headerTwo.value && headerTwo.value === 'Notes') {
-                  const valueOfNotes = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 2);
-                  if (valueOfNotes.value) {
-                    expenseData.note = valueOfNotes.value;
-                  }
-                }
-                // adding condition for notes if it's in third header as notes can be either in 2nd or 3rd column only
-                if (headerThree.value && headerThree.value === 'Notes') {
-                  const valueOfNotes = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col + 3);
-                  if (valueOfNotes.value) {
-                    expenseData.note = valueOfNotes.value;
-                  }
-                }
-              }
-              currentCellForExpense = excelSheetData.getCell(currentCellForExpense.row + 1, currentCellForExpense.col);
-
-              if (!key.value || key.value === null) {
-                break;
-              }
-              if (Object.keys(expenseData).length) {
-                expenses.push(expenseData);
-              }
-            }
+            const processedExpenseData = processFinancialSummaryData({
+              excelSheetData,
+              currentCell: currentCellForExpense,
+              headerOne,
+              headerTwo,
+              headerThree,
+            });
+            const expenses = processedExpenseData.processedData;
+            currentCell = processedExpenseData.currentCell;
             financialSummary.expenses = expenses;
+            logger.info(
+              `${expenses.length} rows imported for ${EnumTableNameInUwSheet.EXPENSES} in ${EnumTableNameInUwSheet.FINANCIAL_SUMMARY}`
+            );
             const effectiveGrossIncomeInPlace = totalRevenue.find(
-              (revenue) => revenue.key === 'Effective Gross Income'
+              (revenue) => revenue.key === EnumColumnNameOfFinancialSummary.EFFECTIVE_GROSS_INCOME
             ).inPlaceValue;
             const effectiveGrossIncomeStabilized = totalRevenue.find(
-              (revenue) => revenue.key === 'Effective Gross Income'
+              (revenue) => revenue.key === EnumColumnNameOfFinancialSummary.EFFECTIVE_GROSS_INCOME
             ).stabilizedValue;
 
             const totalOperatingExpensesInPlace = expenses.find(
-              (expense) => expense.key === 'Total Operating Expneses'
+              (expense) => expense.key === EnumColumnNameOfFinancialSummary.TOTAL_OPERATING_EXPNESES
             ).inPlaceValue;
 
             const totalOperatingExpensesStabilized = expenses.find(
-              (expense) => expense.key === 'Total Operating Expneses'
+              (expense) => expense.key === EnumColumnNameOfFinancialSummary.TOTAL_OPERATING_EXPNESES
             ).stabilizedValue;
 
             // eslint-disable-next-line no-restricted-globals
@@ -491,23 +432,17 @@ export const importExcelFile = async (url) => {
             }
           }
         }
-      } else if (excelSheetData.name === 'Rent Roll') {
+      } else if (excelSheetData.name === EnumSheetNameOfUw.RENT_ROLL) {
         const rentRollSheetData = Workbook.Sheets[excelSheetData.name];
 
-        const rentRollSummaryValue = Object.entries(rentRollSheetData).find(([, value]) => value.v === 'Rent Roll Summary');
+        const rentRollSummaryValue = Object.entries(rentRollSheetData).find(
+          ([, value]) => value.v === EnumTableNameInUwSheet.RENT_ROLL_SUMMARY
+        );
+        // Rent Roll Summary
         if (rentRollSummaryValue) {
           let currentCell = excelSheetData.getCell(rentRollSummaryValue[0]);
-          const columnHeaders = [];
+          const columnHeaders = getHeadersOfTable(excelSheetData, currentCell);
           const columnHeaderRow = currentCell.row + 1;
-
-          // Retrieve column headers dynamically
-          while (true) {
-            const columnHeaderCell = excelSheetData.getCell(columnHeaderRow, currentCell.col);
-            if (!columnHeaderCell.value) break;
-            columnHeaders.push(columnHeaderCell.value);
-            currentCell = excelSheetData.getCell(currentCell.row, currentCell.col + 1);
-          }
-
           currentCell = excelSheetData.getCell(rentRollSummaryValue[0]);
           let dataRow = columnHeaderRow + 1;
 
@@ -523,8 +458,8 @@ export const importExcelFile = async (url) => {
               const columnValueCell = excelSheetData.getCell(dataRow, currentCell.col + i);
               let columnValue = formatMathFormulaFormValue({
                 val: columnValueCell.value,
-                key: 'Rent Roll',
-                tableName: 'Rent Roll',
+                key: columnHeaders[i],
+                tableName: EnumTableNameInUwSheet.RENT_ROLL_SUMMARY,
               });
               if (columnValue !== 'Type' && columnValue !== null) {
                 rowData[columnHeaders[i]] = columnValue;
@@ -555,6 +490,7 @@ export const importExcelFile = async (url) => {
               break;
             }
           }
+          logger.info(`${rentRollSummary.length} rows imported for ${EnumTableNameInUwSheet.RENT_ROLL_SUMMARY}`);
         }
       }
     });
@@ -569,10 +505,11 @@ export const importExcelFile = async (url) => {
     validateLoanAmount(data);
     return data;
   } catch (error) {
-    logger.error(error.message);
+    logger.error(error);
     throw new ApiError(httpStatus.BAD_REQUEST, `Failed to read XLSheet: ${error.message}`);
   }
 };
+
 export const importTableDataFromExcel = async (url, keyToMatch) => {
   try {
     const data = {};
@@ -606,21 +543,9 @@ export const importTableDataFromExcel = async (url, keyToMatch) => {
           throw new ApiError(httpStatus.BAD_REQUEST, `No data found below title.`);
         }
         const customTableTitle = currentCell.value; //  store the title of the customTable
-        const columnHeaders = [];
+        const columnHeaders = getHeadersOfTable(excelSheetData, currentCell);
         const columnHeaderRow = currentCell.row + 1;
-        // Retrieve column headers dynamically
-        while (true) {
-          // Get the cell for the current column header
-          const columnHeaderCell = excelSheetData.getCell(columnHeaderRow, currentCell.col);
-          // Break the loop if there are no more column headers
-          if (!columnHeaderCell.value) {
-            break;
-          }
-          // Add the column header to the array
-          columnHeaders.push(columnHeaderCell.value);
-          // Move to the next column
-          currentCell = excelSheetData.getCell(currentCell.row, currentCell.col + 1);
-        }
+
         // Reset the current cell to the starting point
         currentCell = excelSheetData.getCell(startingPoint[0]);
         // Start processing data rows below the column headers
@@ -682,6 +607,7 @@ export const importTableDataFromExcel = async (url, keyToMatch) => {
         if (customTableData.length < 1) {
           throw new ApiError(httpStatus.BAD_REQUEST, `Table has insufficient data`);
         }
+        logger.info(`${customTableData.length} rows imported for table ${customTableTitle}`);
         data.customTableTitle = customTableTitle;
         data.customTableData = customTableData;
       }

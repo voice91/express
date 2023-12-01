@@ -298,6 +298,33 @@ const EnumOfRatesName = {
   SOFR_SWAP_10_YEAR: 'SOFR Swap 10-Year',
 };
 
+const EnumSheetNameOfUw = {
+  SUMMARY: 'Summary',
+  RENT_ROLL: 'Rent Roll',
+  NOI: 'NOI',
+};
+
+const EnumTableNameInUwSheet = {
+  PROPERTY_SUMMARY: 'Property Summary',
+  DEAL_METRICS: 'Deal Metrics',
+  FINANCING_REQUEST: 'Financing Request',
+  SOURCES_AND_USES: 'Sources and Uses',
+  SOURCES: 'Sources',
+  USES: 'Uses',
+  FINANCIAL_SUMMARY: 'Financial Summary',
+  REVENUE: 'Revenue',
+  EXPENSES: 'Expenses',
+  RENT_ROLL_SUMMARY: 'Rent Roll Summary',
+};
+
+const EnumColumnNameOfFinancialSummary = {
+  IN_PLACE: 'In-Place',
+  STABILIZED: 'Stabilized',
+  NOTES: 'Notes',
+  EFFECTIVE_GROSS_INCOME: 'Effective Gross Income',
+  TOTAL_OPERATING_EXPNESES: 'Total Operating Expneses', // Expneses spelling is incorrect , but added because same used in UW sheet
+};
+
 module.exports = {
   EnumPrePaymentTypeOfTerms,
   EnumContentType,
@@ -330,4 +357,7 @@ module.exports = {
   EnumOfSectionName,
   EnumNextStepOfLenderPlacement,
   EnumOfRatesName,
+  EnumSheetNameOfUw,
+  EnumTableNameInUwSheet,
+  EnumColumnNameOfFinancialSummary,
 };
