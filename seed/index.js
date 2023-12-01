@@ -1,83 +1,71 @@
-import { User } from '../models';
+import enumModel from '../models/enum.model';
+import { lenderContactService, lenderProgramService, lendingInstitutionService, userService } from '../services';
 
 // eslint-disable-next-line import/prefer-default-export
 export async function seedDatabase() {
-  const filter = {
+  const filterForLender = {
     email: 'adamdavidson@gmail.com',
   };
-  const resutl = await User.findOne(filter);
-  if (resutl) {
-    await User.findOneAndUpdate(filter, {
-      password: '_6XNUVhw@zJ4*`z',
-      name: 'Adam Davidson',
-      firstName: 'Adam',
-      lastName: 'Davidson',
-      role: 'lender',
-      companyName: 'matlabinfotech',
-      emailVerified: true,
+  const lender = await userService.getOne(filterForLender);
+  if (!lender) {
+    // The lender contact is associated with the lender institute
+    const lenderInstitute = await lendingInstitutionService.createLendingInstitution({
+      lenderNameVisible: 'Test Lender',
+      lenderType: enumModel.EnumLenderTypeOfLendingInstitution.BANK,
     });
-  } else {
-    await User.create({
-      email: 'adamdavidson@gmail.com',
-      password: '_6XNUVhw@zJ4*`z',
-      name: 'Adam Davidson',
-      firstName: 'Adam',
-      lastName: 'Davidson',
-      role: 'lender',
-      companyName: 'matlabinfotech',
-      emailVerified: true,
-    });
+    await Promise.all([
+      userService.createUser({
+        email: 'adamdavidson@gmail.com',
+        password: '_6XNUVhw@zJ4*`z',
+        firstName: 'Adam',
+        lastName: 'Davidson',
+        role: enumModel.EnumRoleOfUser.LENDER,
+        companyName: 'Matlab Infotech',
+        emailVerified: true,
+      }),
+      // When we create lender it's necessary for it to have contact, else we'll get error in the placements
+      lenderContactService.createLenderContact({
+        firstName: 'Adam',
+        lastName: 'Davidson',
+        email: 'adamdavidson@gmail.com',
+        lenderInstitute: lenderInstitute._id,
+      }),
+      // A lender institute should at least have one program else we'll not able to edit programs
+      lenderProgramService.createLenderProgram({
+        lenderProgramType: 'Test Program',
+        statesArray: Object.values(enumModel.EnumStatesOfDeal),
+        propertyType: Object.values(enumModel.EnumAssetTypeOfDeal),
+        lenderInstitute: lenderInstitute._id,
+      }),
+    ]);
   }
-  const filterForTestUser = {
+  const filterForAdvisor = {
     email: 'mariaverona@gmail.com',
   };
-  const getTestUser = await User.findOne(filterForTestUser);
-  if (getTestUser) {
-    await User.findOneAndUpdate(filterForTestUser, {
-      password: 'IZqfQFXS9vjs3',
-      name: 'Maria Verona',
-      firstName: 'Maria',
-      lastName: 'Verona',
-      role: 'advisor',
-      companyName: 'matlabinfotech',
-      emailVerified: true,
-    });
-  } else {
-    await User.create({
+  const advisor = await userService.getOne(filterForAdvisor);
+  if (!advisor) {
+    await userService.createUser({
       email: 'mariaverona@gmail.com',
       password: 'IZqfQFXS9vjs3',
-      name: 'Maria Verona',
       firstName: 'Maria',
       lastName: 'Verona',
-      role: 'advisor',
-      companyName: 'matlabinfotech',
+      role: enumModel.EnumRoleOfUser.ADVISOR,
+      companyName: 'Matlab Infotech',
       emailVerified: true,
     });
   }
-
-  const demoUserFilter = {
+  const filterForUser = {
     email: 'veratopors@gmail.com',
   };
-  const demoUser = await User.findOne(demoUserFilter);
-  if (demoUser) {
-    await User.findOneAndUpdate(demoUserFilter, {
-      password: '_6XNUVhw@zJ4*`z',
-      name: 'Vera Topors',
-      firstName: 'Vera',
-      lastName: 'Topors',
-      role: 'user',
-      companyName: 'matlabinfotech',
-      emailVerified: true,
-    });
-  } else {
-    await User.create({
+  const user = await userService.getOne(filterForUser);
+  if (!user) {
+    await userService.createUser({
       email: 'veratopors@gmail.com',
       password: '_6XNUVhw@zJ4*`z',
-      name: 'Vera Topors',
       firstName: 'Vera',
       lastName: 'Topors',
-      role: 'user',
-      companyName: 'matlabinfotech',
+      role: enumModel.EnumRoleOfUser.USER,
+      companyName: 'Matlab Infotech',
       emailVerified: true,
     });
   }
