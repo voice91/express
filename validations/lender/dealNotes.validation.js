@@ -6,6 +6,7 @@ import Joi from 'joi';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
+// eslint-disable-next-line import/prefer-default-export
 export const paginatedDealNotes = {
   body: Joi.object().keys({}).unknown(true),
   query: Joi.object()

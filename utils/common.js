@@ -1,20 +1,20 @@
 import { Mongoose } from 'mongoose';
 import httpStatus from 'http-status';
-import {
+import enumModel, {
   EnumAssetTypeOfDeal,
   EnumLenderTypeOfLendingInstitution,
   EnumLoanTypeOfDeal,
   EnumOfTypeOfValue,
   EnumStatesOfDeal,
 } from 'models/enum.model';
-import _, { find, includes, isEmpty, isUndefined, round, sum } from "lodash";
+import _, { find, includes, isEmpty, isUndefined, round, sum, isNaN } from 'lodash';
+import moment from 'moment/moment';
 import ApiError from './ApiError';
 import contentType from './content-type.json';
 import { lenderPlacementStageToStageNumberMapping } from './enumStageOfLenderPlacement';
 import { dealStageToStageNumberMapping } from './enumStageForDeal';
-import { Deal, Invitation } from "../models";
-import enumModel from "../models/enum.model";
-import { dealService, emailService, notificationService } from "../services";
+import { Deal, Invitation } from '../models';
+import { dealService, emailService, notificationService } from '../services';
 /* eslint-disable */
 export const asyncForEach = async (array, callback) => {
   for (let index = 0; index < array.length; index += 1) {
@@ -348,49 +348,49 @@ function findValueFromSourcesForParticularKey(table, keys) {
  */
 export const validateLoanAmount = (data) => {
   const requestLoanAmountInFinancingRequest =
-      data.financingRequest && data.financingRequest.length
-          ? findValueFromGivenTableForPArticularKey(data.financingRequest, 'Requested Loan Amount')
-          : null;
+    data.financingRequest && data.financingRequest.length
+      ? findValueFromGivenTableForPArticularKey(data.financingRequest, 'Requested Loan Amount')
+      : null;
   const requestLoanAmountInDealMetrics =
-      data.dealMetrics && data.dealMetrics.length
-          ? findValueFromGivenTableForPArticularKey(data.dealMetrics, 'Requested Loan Amount')
-          : null;
+    data.dealMetrics && data.dealMetrics.length
+      ? findValueFromGivenTableForPArticularKey(data.dealMetrics, 'Requested Loan Amount')
+      : null;
   const requestLoanAmountInSources =
-      data.sourcesAndUses &&
-      Object.keys(data.sourcesAndUses).length &&
-      data.sourcesAndUses.sources &&
-      data.sourcesAndUses.sources.length
-          ? findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
-            'Senior Loan',
-            'Loan Amount',
-            'Requested Loan Amount',
-          ])
-          : null;
+    data.sourcesAndUses &&
+    Object.keys(data.sourcesAndUses).length &&
+    data.sourcesAndUses.sources &&
+    data.sourcesAndUses.sources.length
+      ? findValueFromSourcesForParticularKey(data.sourcesAndUses.sources, [
+          'Senior Loan',
+          'Loan Amount',
+          'Requested Loan Amount',
+        ])
+      : null;
 
   if (
-      // Check if requested loan amount in Financing Request and Deal Metrics do not match
-      (requestLoanAmountInFinancingRequest &&
-          requestLoanAmountInDealMetrics &&
-          requestLoanAmountInFinancingRequest !== requestLoanAmountInDealMetrics) ||
-      // Check if requested loan amount in Financing Request and Sources do not match
-      (requestLoanAmountInFinancingRequest &&
-          requestLoanAmountInSources &&
-          requestLoanAmountInFinancingRequest !== requestLoanAmountInSources) ||
-      // Check if requested loan amount in Deal Metrics and Sources do not match
-      (requestLoanAmountInDealMetrics &&
-          requestLoanAmountInSources &&
-          requestLoanAmountInDealMetrics !== requestLoanAmountInSources)
+    // Check if requested loan amount in Financing Request and Deal Metrics do not match
+    (requestLoanAmountInFinancingRequest &&
+      requestLoanAmountInDealMetrics &&
+      requestLoanAmountInFinancingRequest !== requestLoanAmountInDealMetrics) ||
+    // Check if requested loan amount in Financing Request and Sources do not match
+    (requestLoanAmountInFinancingRequest &&
+      requestLoanAmountInSources &&
+      requestLoanAmountInFinancingRequest !== requestLoanAmountInSources) ||
+    // Check if requested loan amount in Deal Metrics and Sources do not match
+    (requestLoanAmountInDealMetrics &&
+      requestLoanAmountInSources &&
+      requestLoanAmountInDealMetrics !== requestLoanAmountInSources)
   ) {
     // If any of the above conditions are true, throw an error with details
-    //getting the sectionNames to show dynamically in the error
+    // getting the sectionNames to show dynamically in the error
     const sectionNames = [
       requestLoanAmountInFinancingRequest ? `Financing Request` : null,
       requestLoanAmountInDealMetrics ? `Deal Metrics` : null,
       requestLoanAmountInSources ? `Sources` : null,
     ].filter(Boolean);
     throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `Mismatched Requested Loan Amount values found in ${sectionNames.join(' and ')}.`
+      httpStatus.BAD_REQUEST,
+      `Mismatched Requested Loan Amount values found in ${sectionNames.join(' and ')}.`
     );
   }
 };
@@ -694,34 +694,7 @@ export const getKeyFromUrl = (url) => {
  * Common function for the template of send deal test mail and send mail
  */
 export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorName, passLink, dealSummaryLink }) => {
-  //function for format currency (round of the value and to show in the form of 'k' if the value is less than 1 million)
-  const formatCurrency = (amount) => {
-    if (typeof amount === 'string') {
-      const floatValue = getAmountInFloat(amount);
-      if (isNaN(floatValue)) {
-
-        return 0;
-      }
-      amount = floatValue;
-
-    } else if (isUndefined(amount)) {
-      return 0;
-    }
-    if (amount >= 1000000) {
-      const lastDigit = round(amount / 1000000, 2)
-        .toString()
-        .slice(-1);
-      if (lastDigit === '5') {
-        return `$${round(amount / 1000000, 2)}m`;
-      } else {
-        return `$${round(amount / 1000000, 1)}m`;
-      }
-    } else {
-      return `$${round(amount / 1000, 0)}k`;
-    }
-  };
-
-// To convert the value into string
+  // To convert the value into string
   const getAmountFromString = (value) => {
     if (value) {
       return value.toString()?.replace(/[$,]/g, '');
@@ -729,7 +702,7 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
     return value;
   };
 
-// To convert the value into float
+  // To convert the value into float
   const getAmountInFloat = (value, removeDollarAndCommas = true) => {
     if (value) {
       if (removeDollarAndCommas) {
@@ -740,14 +713,40 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
     return value;
   };
 
-// To remove the sentence for unitCount, Occupancy and SF when we don't have its value
+  // function for format currency (round of the value and to show in the form of 'k' if the value is less than 1 million)
+  const formatCurrency = (amount) => {
+    if (typeof amount === 'string') {
+      const floatValue = getAmountInFloat(amount);
+      if (isNaN(floatValue)) {
+        return 0;
+      }
+      // eslint-disable-next-line no-param-reassign
+      amount = floatValue;
+    } else if (isUndefined(amount)) {
+      return 0;
+    }
+    if (amount >= 1000000) {
+      const lastDigit = round(amount / 1000000, 2)
+        .toString()
+        .slice(-1);
+      if (lastDigit === '5') {
+        return `$${round(amount / 1000000, 2)}m`;
+      }
+      return `$${round(amount / 1000000, 1)}m`;
+    }
+    return `$${round(amount / 1000, 0)}k`;
+  };
+
+  // To remove the sentence for unitCount, Occupancy and SF when we don't have its value
   const removeStringFromTemplate = (sentence = '', loanType = '') => {
     const updatedSentence = sentence
-        ?.replace(/\[unitCount\]-unit,/, '')
-        ?.replace(/\[Occupancy\] occupied/, '')
-        ?.replace(/\[Square Footage\] SF,/, '');
+      ?.replace(/\[unitCount\]-unit,/, '')
+      ?.replace(/\[Occupancy\] occupied/, '')
+      ?.replace(/\[Square Footage\] SF,/, '');
 
-    return includes(EnumLoanTypeOfDeal.CONSTRUCTION, loanType) ? updatedSentence : updatedSentence?.replace(/\[\[toBeBuilt\]\],/g, '');
+    return includes(EnumLoanTypeOfDeal.CONSTRUCTION, loanType)
+      ? updatedSentence
+      : updatedSentence?.replace(/\[\[toBeBuilt\]\],/g, '');
   };
 
   const dealSummaryUsesData = dealDetail.dealSummary?.sourcesAndUses?.uses || [];
@@ -783,7 +782,7 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
 
   const getText = _.template(emailContent)({
     lenderFirstName: _.startCase(firstName),
-    advisorName:_.startCase(advisorName),
+    advisorName: _.startCase(advisorName),
     sponsorName: dealDetail.sponsor?.name || '[[Sponsor Name]]',
     amount: formatCurrency(dealDetail.loanAmount) || 'NA',
     loanPurpose: dealDetail.loanPurpose || 'NA',
@@ -795,8 +794,10 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
     city: dealDetail.city || 'NA',
     state: getStateFullName(dealDetail.state) || 'NA',
     purchasePrice: formatCurrency(find(dealSummaryUsesData, (data) => data.key === 'Purchase Price')?.value) || 'NA',
-    inPlaceNOI: formatCurrency(find(dealDetail.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
-    stabilizedNOI: formatCurrency(find(dealDetail.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
+    inPlaceNOI:
+      formatCurrency(find(dealDetail.dealSummary?.dealMetrics, (data) => data.key === 'In-Place NOI')?.value) || 'NA',
+    stabilizedNOI:
+      formatCurrency(find(dealDetail.dealSummary?.dealMetrics, (data) => data.key === 'Stabilized NOI')?.value) || 'NA',
     squareFootage: dealDetail.squareFootage || '[Square Footage]',
     occupancy: dealDetail.occupancy || '[Occupancy]',
     totalUsesValue: !isEmpty(dealSummaryUsesData) ? formatCurrency(totalUses) : 'NA',
@@ -809,11 +810,11 @@ export const sendDealTemplate = ({ emailContent, dealDetail, firstName, advisorN
     // we only need first line of sponsor bio so splitting it with (.).
     sponsorBioName: dealDetail.sponsor?.description?.split('.')[0] || '[[Sponsor bio from Sponsor bio page]]',
     loanTypeValue: dealDetail.loanType || 'NA',
-    dealSummaryLink: dealSummaryLink,
-    passLink: passLink,
+    dealSummaryLink,
+    passLink,
   });
 
-  return removeStringFromTemplate(getText,dealDetail.loanType)
+  return removeStringFromTemplate(getText, dealDetail.loanType);
 };
 
 /**
@@ -837,80 +838,219 @@ export const removeNullFields = (obj) => {
  * Common function for inviting borrowers and default advisors to the deal
  */
 
-export const invitationToDeal = async ({existingUsers, fromEmail, pass, userName, dealName, deal, body, isDefaultAdvisor, isDealCreated }) => {
+export const invitationToDeal = async ({
+  existingUsers,
+  fromEmail,
+  pass,
+  userName,
+  dealName,
+  deal,
+  body,
+  isDefaultAdvisor,
+  isDealCreated,
+}) => {
   // Here,we will get the emails that are not in our system, as we can't add them we are throwing error for it.
   const userEmailNotExists = _.differenceBy(
-      isDealCreated ? body.dealMembers : body.email,
-      existingUsers.map((item) => item.email)
+    isDealCreated ? body.dealMembers : body.email,
+    existingUsers.map((item) => item.email)
   );
   if (userEmailNotExists && userEmailNotExists.length) {
     throw new ApiError(httpStatus.BAD_REQUEST, `The borrowers : ${userEmailNotExists.join(', ')} doesn't exists`);
   }
   // If default advisors are not getting added then we are checking whether the role is user or not
   if (!isDefaultAdvisor && existingUsers.some((user) => user.role !== enumModel.EnumRoleOfUser.USER)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "You can only add borrowers to the deal");
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You can only add borrowers to the deal');
   }
   // If default advisors are added then we are adding it in "involvedUsers advisors" of the deal
-  if(isDefaultAdvisor){
-      await Deal.findByIdAndUpdate(deal, {
-      $addToSet: { 'involvedUsers.advisors' : existingUsers.map((item) => item._id) },
+  if (isDefaultAdvisor) {
+    await Deal.findByIdAndUpdate(deal, {
+      $addToSet: { 'involvedUsers.advisors': existingUsers.map((item) => item._id) },
     });
-  }
-  else{
-      const filter = {
-        _id: deal,
-        'involvedUsers.borrowers': { $in: existingUsers.map((item) => item._id) },
+  } else {
+    const filter = {
+      _id: deal,
+      'involvedUsers.borrowers': { $in: existingUsers.map((item) => item._id) },
+    };
+    // here we are checking whether the user is already in the deal
+    const userAlreadyIncluded = await dealService.getOne(filter);
+    if (userAlreadyIncluded) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'The borrower is already part of the deal');
+    }
+    // if not already in the deal but is an existing user then adding it to the "involvedUsers borrowers" of the deal
+    else {
+      const update = {
+        $addToSet: { 'involvedUsers.borrowers': existingUsers.map((item) => item._id) },
       };
-      // here we are checking whether the user is already in the deal
-      const userAlreadyIncluded = await dealService.getOne(filter);
-      if(userAlreadyIncluded){
-        throw new ApiError(httpStatus.BAD_REQUEST, "The borrower is already part of the deal");
-      }
-      // if not already in the deal but is an existing user then adding it to the "involvedUsers borrowers" of the deal
-      else{
-        const update = {
-          $addToSet: { 'involvedUsers.borrowers': existingUsers.map((item) => item._id) },
-        }
-        await Deal.findByIdAndUpdate( deal, update );
-      }
+      await Deal.findByIdAndUpdate(deal, update);
+    }
   }
-    if (existingUsers.length) {
-      // here we are sending invitation email to user and default advisors
-      existingUsers.map(async (item) => {
-        const {firstName, email: user} = item;
-        await emailService.sendInvitationEmail({
-          fromEmail,
-          pass,
-          user,
-          userName,
-          dealName: dealName,
-          isDealCreated: false,
-          link: 'login',
-          firstName,
-        });
+  if (existingUsers.length) {
+    // here we are sending invitation email to user and default advisors
+    existingUsers.map(async (item) => {
+      const { firstName, email: user } = item;
+      await emailService.sendInvitationEmail({
+        fromEmail,
+        pass,
+        user,
+        userName,
+        dealName,
+        isDealCreated: false,
+        link: 'login',
+        firstName,
       });
-      // here we are creating the notification after we send the invitation email to the users
-      existingUsers.map(async (user) => {
-        const notification = {
-          createdBy: body.createdBy,
-          updatedBy: body.createdBy,
-          message: `${user.email} Requested to be added to ${dealName}`,
-          deal,
-        };
-        await notificationService.createNotification(notification);
-      });
+    });
+    // here we are creating the notification after we send the invitation email to the users
+    existingUsers.map(async (user) => {
+      const notification = {
+        createdBy: body.createdBy,
+        updatedBy: body.createdBy,
+        message: `${user.email} Requested to be added to ${dealName}`,
+        deal,
+      };
+      await notificationService.createNotification(notification);
+    });
 
-      // as our existingUsers is array we are using map on it. below line will help us to insert many document in our db at once, and we have passed the object in the map we have to enter in our db,
-      // so we will get deal id, the user from which we log in or who is creating deal their id will go in invitedBy and in emailExists we get the whole document, and we just want id of the person which we are inviting the deal, so we did emailExists._id
-      // here we are adding invitations to the invitation model, if the default advisors are also getting added then we are setting role to "advisor" else "user"
-      await Invitation.insertMany(
-          existingUsers.map((emailExists) => ({
-            deal: deal,
-            status: 'accepted',
-            invitedBy: body.user,
-            invitee: emailExists._id,
-            role: isDefaultAdvisor? enumModel.EnumRoleOfUser.ADVISOR : enumModel.EnumRoleOfUser.USER,
-          }))
+    // as our existingUsers is array we are using map on it. below line will help us to insert many document in our db at once, and we have passed the object in the map we have to enter in our db,
+    // so we will get deal id, the user from which we log in or who is creating deal their id will go in invitedBy and in emailExists we get the whole document, and we just want id of the person which we are inviting the deal, so we did emailExists._id
+    // here we are adding invitations to the invitation model, if the default advisors are also getting added then we are setting role to "advisor" else "user"
+    await Invitation.insertMany(
+      existingUsers.map((emailExists) => ({
+        deal,
+        status: 'accepted',
+        invitedBy: body.user,
+        invitee: emailExists._id,
+        role: isDefaultAdvisor ? enumModel.EnumRoleOfUser.ADVISOR : enumModel.EnumRoleOfUser.USER,
+      }))
+    );
+  }
+};
+
+/**
+ * Function of email template of threading
+ */
+export const threadingTemplate = ({ emailContent }) => {
+  // This is to extract style tag and body tag from the email content
+  const extractContent = ({ email, isBody }) => {
+    const styleRegex = /<style>([\s\S]*?)<\/style>/g;
+    const bodyRegex = /<body>([\s\S]*?)<\/body>/g;
+    const matches = email?.match(isBody ? bodyRegex : styleRegex);
+
+    if (matches) {
+      return matches.map((match) =>
+        match.replace(isBody ? '<body>' : '<style>', '').replace(isBody ? '</body>' : '</style>', '')
       );
     }
-}
+    return [];
+  };
+  // need to split the mail content as we need vertical line after the line that describes the time and by whom the message we got
+  const heading = emailContent.map((item) => {
+    const head = item.split('wrote:');
+    return head[0].concat('wrote:');
+  });
+
+  const styleContent = emailContent.map((email) => extractContent({ email, isBody: false })).flat();
+  const bodyContent = emailContent.map((email) => extractContent({ email, isBody: true })).flat();
+
+  // desired body that we need to pass in the html template
+  const body = `${bodyContent
+    .map((data, index) => {
+      if (index === 0) {
+        // For the first message, wrap it with one outer div
+        return `<div class="space_between_line"/><div>${heading[index]}</div><div class="email-inner-content">${data}`;
+      }
+      // For subsequent messages, nest them inside the previous div
+      return `<div class="space_between_line"/><div>${heading[index]}</div><div class="email-inner-content">${data}`;
+    })
+    .join('')}</div>`;
+
+  const template = `<!DOCTYPE html>
+ <html>
+   <head>
+    <style id="custom-styles">
+      .email-container {
+        color: #600060;
+        font-size: 0.75rem;
+        font-weight: 400;
+      }
+    
+    .space_between_line{
+    padding-top : 12px
+    }
+      .email-content {
+        flex: 1;
+      }
+
+      .vertical-line {
+        border-left: 1px solid #D3D3D3;
+        /* Adjust the line style and color as needed */
+        height: 100%;
+        margin-left: 5px;
+        /* Adjust the margin as needed */
+      }
+
+      .email-inner-content {
+        padding-left: 7px;
+        border-left: 1px solid #d3d3d3;
+        height: auto;
+        margin-left: 5px;
+      }
+
+      .email-thread {
+        padding-top: 15px;
+      }
+
+      .a {
+        color: blue;
+        text-decoration: underline;
+      }
+    </style>
+    <script>
+      window.addEventListener('DOMContentLoaded', (event) => {
+        const styleTag = document.getElementById('custom-styles');
+        ${styleContent}.forEach((style) => {
+          styleTag.appendChild(document.createTextNode(style));
+        });
+      });
+    </script>
+   </head>
+   <body>
+    <div class="email-container">
+      ${body}
+    </div>
+   </body>
+ </html>`;
+
+  return template;
+};
+/**
+ * Common function for threading send deal mail, follow-up mail and messages in the mail
+ */
+export const constructEmailContent = ({ lenderPlacement, sender }) => {
+  const followUpEmails = lenderPlacement.followUpMail.map((mail) => mail);
+  const messages = lenderPlacement.messages.map((message) => message);
+
+  // common function to create desired email content
+  const formatEmailContent = (item) => {
+    const isFollowUp = item.mailContent;
+    const time = moment(item.sentAt || item.updatedAt).format('ddd, DD MMM YYYY hh:mm A [GMT]');
+    const content = `On ${time} ${isFollowUp ? sender : item.senderEmail || item.sender.email} wrote:\n${
+      isFollowUp ? item.mailContent : item.message
+    }`;
+    return content;
+  };
+
+  // array of send deal mail, followup mail and messages
+  const emailContentArray = [lenderPlacement.sendDealMail, ...followUpEmails, ...messages];
+
+  // function to sort the mails as per the time they are sent in ascending order.
+  function sortedItems(a, b) {
+    const aTime = a.sentAt || a.updatedAt || 0;
+    const bTime = b.sentAt || b.updatedAt || 0;
+    return bTime - aTime;
+  }
+  // sort the emailContent array using the above function, calling the function to format the email and joining it by <br> as we need space after every mail.
+  const emailContent = emailContentArray.sort(sortedItems).map((item) => formatEmailContent(item));
+
+  // return the html format template that we need for threading
+  return threadingTemplate({ emailContent });
+};

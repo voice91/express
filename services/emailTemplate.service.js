@@ -24,7 +24,7 @@ export async function getEmailTemplateListWithPagination(filter, options = {}) {
   return emailTemplate;
 }
 
-export async function createEmailTemplate(body, options = {}) {
+export async function createEmailTemplate(body) {
   const emailTemplate = await EmailTemplate.create(body);
   return emailTemplate;
 }

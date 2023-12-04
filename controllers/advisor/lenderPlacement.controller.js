@@ -13,7 +13,6 @@ import {
   dealService,
   userService,
   invitationService,
-  taskService,
   tokenService,
 } from 'services';
 import { catchAsync } from 'utils/catchAsync';
@@ -28,9 +27,11 @@ import {
   getStateFullName,
   getTextFromTemplate,
   manageDealStageTimeline,
-  manageLenderPlacementStageTimeline, sendDealTemplate
-} from "utils/common";
-import _, {find, includes, isEmpty, isUndefined, round, sum} from 'lodash';
+  manageLenderPlacementStageTimeline,
+  sendDealTemplate,
+  constructEmailContent,
+} from 'utils/common';
+import _ from 'lodash';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import { Deal, EmailTemplate, LenderPlacement, User } from '../../models';
@@ -45,12 +46,9 @@ import config from '../../config/config';
 import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
 import { detailsInDeal } from '../../utils/detailsInDeal';
 import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
-import {
-  removeLenderPlacementAssociatedThings,
-} from "../../services/lenderPlacement.service";
-import { logger } from "../../config/logger";
-import {decrypt} from "../../utils/encrypt-decrypt-text";
-const moment = require('moment');
+import { removeLenderPlacementAssociatedThings } from '../../services/lenderPlacement.service';
+import { logger } from '../../config/logger';
+import { decrypt } from '../../utils/encrypt-decrypt-text';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -101,12 +99,13 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
 export const getEmailDataV3 = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.query;
   const filter = {
-    _id: {$in:lenderPlacementId},
+    _id: { $in: lenderPlacementId },
   };
   const options = {
     populate: [
       { path: 'lenderContact' },
-      { path: 'deal',
+      {
+        path: 'deal',
         populate: {
           path: 'dealSummary',
         },
@@ -114,15 +113,18 @@ export const getEmailDataV3 = catchAsync(async (req, res) => {
     ],
   };
   const lenderPlacements = await lenderPlacementService.getLenderPlacementList(filter, options);
-  if(lenderPlacementId.length !== lenderPlacements.length) {
+  if (lenderPlacementId.length !== lenderPlacements.length) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Some lender placement is not available');
   }
   const hasSameDealId = lenderPlacements.every(
-      (placement) => placement.deal.id === lenderPlacements[0].deal.id && placement.lenderContact
+    (placement) => placement.deal.id === lenderPlacements[0].deal.id && placement.lenderContact
   );
 
-  if(!hasSameDealId) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Contact should be selected to send the deal & deal should be same for all the placements');
+  if (!hasSameDealId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Contact should be selected to send the deal & deal should be same for all the placements'
+    );
   }
   const dealSummaryDocs = [];
   if (lenderPlacements[0].deal.dealSummary.documents && lenderPlacements[0].deal.dealSummary.documents.length) {
@@ -140,19 +142,20 @@ export const getEmailDataV3 = catchAsync(async (req, res) => {
     };
   });
 
-  const subject = getEmailSubjectForDeal(lenderPlacements[0].deal.dealSummary._doc)
+  const subject = getEmailSubjectForDeal(lenderPlacements[0].deal.dealSummary._doc);
   const response = {
     subject,
     emailAttachments,
     deal: lenderPlacements[0].deal,
-    sendTo: lenderPlacements.map((lenderPlacement)=> {
+    sendTo: lenderPlacements.map((lenderPlacement) => {
       return {
         name: lenderPlacement.lenderContact.firstName,
-        email: lenderPlacement.lenderContact.email
-      }}),
+        email: lenderPlacement.lenderContact.email,
+      };
+    }),
     advisorName: req.user.firstName,
-    signature: req.user.signature
-  }
+    signature: req.user.signature,
+  };
   return res.status(httpStatus.OK).send({ results: response });
 });
 
@@ -164,35 +167,42 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
   const { sendToAdvisor, isFollowUp, ccList } = req.body;
 
   // const { emailPresentingPostmark } = req.user;
-  //a function call that decodes HTML-encoded text. It's commonly used to decode HTML entities like &lt; (represents <), &gt; (represents >), &amp; (represents &), and so on.
+  // a function call that decodes HTML-encoded text. It's commonly used to decode HTML entities like &lt; (represents <), &gt; (represents >), &amp; (represents &), and so on.
   req.body.emailContent = req.body.emailContent && he.decode(req.body.emailContent);
   req.body.followUpContent = req.body.followUpContent && he.decode(req.body.followUpContent);
 
   _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
   // we need to populate the deal summary as for the email's subject we need heading field of the deal summary
   // populating sponsor as we need its details in send deal and send test mail
-  const dealDetail = await dealService.getOne({_id: req.body.deal},{populate: [{ path: 'dealSummary' },{ path: 'sponsor' }]})
+  const dealDetail = await dealService.getOne(
+    { _id: req.body.deal },
+    { populate: [{ path: 'dealSummary' }, { path: 'sponsor' }] }
+  );
   const dealId = dealDetail._id;
   if (sendToAdvisor) {
-    let firstName = 'lenderName'
+    let firstName = 'lenderName';
     // if we send to multiple placement than send generic lender name else selected lender name
-    if(req.body.lenderPlacementIds.length === 1){
+    if (req.body.lenderPlacementIds.length === 1) {
       const options = {
         populate: [
           {
-            path: 'lenderContact'
+            path: 'lenderContact',
           },
-        ]
-      }
+        ],
+      };
       const lenderPlacement = await lenderPlacementService.getOne({ _id: req.body.lenderPlacementIds[0] }, options);
-      firstName = lenderPlacement.lenderContact.firstName
+      firstName = lenderPlacement.lenderContact.firstName;
     }
     const emailAttachments = req.body.emailAttachments.map((item) => {
+      let path;
+      if (config.aws.enablePrivateAccess) {
+        path = item.url ? decodeURI(item.url) : decodeURI(item.path);
+      } else {
+        path = item.url ? item.url : item.path;
+      }
       return {
         fileName: item.fileName,
-        path: config.aws.enablePrivateAccess
-            ? item.url ? decodeURI(item.url) : decodeURI(item.path)
-            : item.url ? item.url : item.path,
+        path,
         fileType: item.fileType,
       };
     });
@@ -201,10 +211,17 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       to: req.user.email,
       from: req.user.sendEmailFrom,
       pass: decrypt(req.user.appPassword, config.encryptionPassword),
-      subject: `TEST - ${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling common function for setting subject
+      subject: `TEST - ${getEmailSubjectForDeal(dealDetail.dealSummary)}`, // calling common function for setting subject
       // ...(emailPresentingPostmark && { from: req.user.email }),
       // calling the common function for send deal template
-      text: sendDealTemplate({ emailContent: req.body.emailContent, dealDetail: dealDetail, firstName: firstName, advisorName: req.user.firstName, passLink: `<a href='#'>Pass</a>`, dealSummaryLink: `<a href='#'>Deal Summary</a>` }),
+      text: sendDealTemplate({
+        emailContent: req.body.emailContent,
+        dealDetail,
+        firstName,
+        advisorName: req.user.firstName,
+        passLink: `<a href='#'>Pass</a>`,
+        dealSummaryLink: `<a href='#'>Deal Summary</a>`,
+      }),
       attachments: emailAttachments,
       isHtml: true,
       // headers - if you want the functionality like advisor can also reply its own email then we can pass the headers
@@ -213,134 +230,162 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
     return res.status(httpStatus.OK).send({ results: 'Test-mail sent..' });
   }
   // for adding lender's userid in the deal when we send deal to them
-  const lenderUserIdsToAddInDeal= []
+  const lenderUserIdsToAddInDeal = [];
   // we send email to all selected placement & if we have one than also we are taking in the array
   // '+messages' will explicitly include the message field along with other fields as in model we have set "select: false"
   // also populating sender in the messages array
   await Promise.all(
-      req.body.lenderPlacementIds.map(async (lenderPlacementId) => {
-        const options = {
-          populate: [
-          { path: 'lenderContact' },
-          {path: 'messages.sender'},
-          ],
-          select: '+messages'
+    req.body.lenderPlacementIds.map(async (lenderPlacementId) => {
+      const options = {
+        populate: [{ path: 'lenderContact' }, { path: 'messages.sender' }],
+        select: '+messages',
+      };
+      const lenderPlacement = await lenderPlacementService.getOne({ _id: lenderPlacementId }, options);
+      const frontEndUrl = config.front.url || 'http://54.196.81.18';
+
+      const user = await userService.getOne({
+        email: lenderPlacement.lenderContact.email,
+        role: enumModel.EnumRoleOfUser.LENDER,
+      });
+      // we are now creating the user at the time of creating contact
+      lenderUserIdsToAddInDeal.push(user._id);
+      const tokens = await tokenService.generateAuthTokens(user);
+      const dealSummaryLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&token=${tokens.access.token}`;
+      const passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true&token=${tokens.access.token}`;
+      const headers = [
+        {
+          Value: `${lenderPlacementId}`,
+        },
+      ];
+
+      // It generates email text with placeholders replaced by actual parameter values for follow-up mail
+      const getFollowUpContent = () => {
+        return _.template(req.body.followUpContent)({
+          lenderFirstName: _.startCase(lenderPlacement.lenderContact.firstName) || 'Lender',
+          dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
+          advisorName: _.startCase(req.user.firstName) || 'Advisor',
+          passLink: `<a href=${passLink}>Pass</a>`,
+        });
+      };
+
+      // we have to send followup email in thread so need to add this header
+      if (isFollowUp) {
+        headers.push({ Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] });
       }
-        const lenderPlacement = await lenderPlacementService.getOne({ _id: lenderPlacementId }, options);
-        const frontEndUrl = config.front.url || 'http://54.196.81.18';
-
-        const user = await userService.getOne({ email: lenderPlacement.lenderContact.email, role: enumModel.EnumRoleOfUser.LENDER });
-        // we are now creating the user at the time of creating contact
-        lenderUserIdsToAddInDeal.push(user._id)
-        const tokens = await tokenService.generateAuthTokens(user);
-        const dealSummaryLink =`${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&token=${tokens.access.token}`
-        const passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true&token=${tokens.access.token}`;
-        const headers = [
-          {
-            Value: `${lenderPlacementId}`,
-          },
-        ];
-
-        // It generates email text with placeholders replaced by actual parameter values for follow-up mail
-        const getFollowUpContent = () => {
-          return _.template(req.body.followUpContent)({
-            lenderFirstName: _.startCase(lenderPlacement.lenderContact.firstName) || 'Lender',
-            dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
-            advisorName: _.startCase(req.user.firstName) || 'Advisor',
-            passLink: `<a href=${passLink}>Pass</a>`,
-          });
-        };
-
-        // we have to send followup email in thread so need to add this header
-        if (isFollowUp) {
-          headers.push({ Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] });
-        }
-        const response = await emailService.sendEmailUsingGmail({
-          to: lenderPlacement.lenderContact.email,
-          cc: ccList,
-          subject: isFollowUp ? `RE: ${getEmailSubjectForDeal(dealDetail.dealSummary)}` : `${getEmailSubjectForDeal(dealDetail.dealSummary)}`, //calling common function for setting subject
-          // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
-          from: req.user.sendEmailFrom,
-          pass: decrypt(req.user.appPassword, config.encryptionPassword),
-          // for followup, we use this template
-          // we want send deal mail, followup mails and other messages as reply so calling common function for it along with followup content
-          text: isFollowUp ? `${getFollowUpContent()}${constructEmailContent({lenderPlacement: lenderPlacement, sender: req.user.sendEmailFrom})}` :
-            // calling the common function for send deal template
-          sendDealTemplate({ emailContent: req.body.emailContent, dealDetail: dealDetail, firstName: lenderPlacement.lenderContact.firstName, advisorName: req.user.firstName, dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`, passLink: `<a href=${passLink}>Pass</a>` }),
-          attachments: req.body.emailAttachments && req.body.emailAttachments.map((item) => {
+      const response = await emailService.sendEmailUsingGmail({
+        to: lenderPlacement.lenderContact.email,
+        cc: ccList,
+        subject: isFollowUp
+          ? `RE: ${getEmailSubjectForDeal(dealDetail.dealSummary)}`
+          : `${getEmailSubjectForDeal(dealDetail.dealSummary)}`, // calling common function for setting subject
+        // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
+        from: req.user.sendEmailFrom,
+        pass: decrypt(req.user.appPassword, config.encryptionPassword),
+        // for followup, we use this template
+        // we want send deal mail, followup mails and other messages as reply so calling common function for it along with followup content
+        text: isFollowUp
+          ? `${getFollowUpContent()}${constructEmailContent({
+              lenderPlacement,
+              sender: req.user.sendEmailFrom,
+            })}`
+          : // calling the common function for send deal template
+            sendDealTemplate({
+              emailContent: req.body.emailContent,
+              dealDetail,
+              firstName: lenderPlacement.lenderContact.firstName,
+              advisorName: req.user.firstName,
+              dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
+              passLink: `<a href=${passLink}>Pass</a>`,
+            }),
+        attachments:
+          req.body.emailAttachments &&
+          req.body.emailAttachments.map((item) => {
+            let path;
+            if (config.aws.enablePrivateAccess) {
+              path = item.url ? decodeURI(item.url) : decodeURI(item.path);
+            } else {
+              path = item.url ? item.url : item.path;
+            }
             return {
               fileName: item.fileName,
-              path: config.aws.enablePrivateAccess
-                      ? item.url ? decodeURI(item.url) : decodeURI(item.path)
-                      : item.url ? item.url : item.path,
+              path,
               fileType: item.fileType,
             };
           }),
-          isHtml: true,
-          headers,
-          // when we reply than it should go to sender also & sender is sendEmailFrom
-          replyTo: req.user.sendEmailFrom,
+        isHtml: true,
+        headers,
+        // when we reply than it should go to sender also & sender is sendEmailFrom
+        replyTo: req.user.sendEmailFrom,
+      });
+      if (isFollowUp) {
+        logger.info(
+          `Follow up mail sent successfully to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom}`
+        );
+      } else {
+        logger.info(
+          `Email for deal sent successfully to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom}`
+        );
+      }
+      // Adding postmark message id in placement while updating lender placement when deal is sent
+      const postmarkMessageId = response.MessageID || response.messageId;
+      if (lenderPlacement.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
+        const stage = EnumStageOfLenderPlacement.SENT;
+        await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
+          followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
+          isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
+          isEmailSentFirstTime: true,
+          $addToSet: {
+            postmarkMessageId,
+            sendEmailPostmarkMessageId: postmarkMessageId,
+          },
+          stage,
+          stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
+          nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
+          timeLine: manageLenderPlacementStageTimeline(lenderPlacement.stage, stage, lenderPlacement.timeLine),
+          // also adding send deal's mail once the mail is sent
+          sendDealMail: {
+            mailContent: sendDealTemplate({
+              emailContent: req.body.emailContent,
+              dealDetail,
+              firstName: lenderPlacement.lenderContact.firstName,
+              advisorName: req.user.firstName,
+              dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
+            }),
+            sentAt: new Date(),
+          },
         });
-        if(isFollowUp){
-          logger.info(`Follow up mail sent successfully to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom}`);
-        }
-        else{
-          logger.info(`Email for deal sent successfully to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom}`);
-        }
-        //Adding postmark message id in placement while updating lender placement when deal is sent
-        const postmarkMessageId = response.MessageID || response.messageId;
-        if (lenderPlacement.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
-          const stage = EnumStageOfLenderPlacement.SENT;
-          await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
-            followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
-            isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
-            isEmailSentFirstTime: true,
-            $addToSet: {
-              postmarkMessageId,
-              sendEmailPostmarkMessageId: postmarkMessageId
+      } else {
+        // Adding postmark message id in placement while updating lender placement when we follow up for deal
+        await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
+          followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
+          isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
+          isEmailSentFirstTime: false,
+          $addToSet: {
+            postmarkMessageId,
+            sendEmailPostmarkMessageId: postmarkMessageId,
+            // adding follow-up mails whenever the user send follow up
+            followUpMail: {
+              mailContent: getFollowUpContent(),
+              sentAt: new Date(),
             },
-            stage,
-            stageEnumWiseNumber: stageOfLenderPlacementWithNumber(stage),
-            nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
-            timeLine: manageLenderPlacementStageTimeline(lenderPlacement.stage, stage, lenderPlacement.timeLine),
-            // also adding send deal's mail once the mail is sent
-            sendDealMail: {
-              mailContent:  sendDealTemplate({ emailContent: req.body.emailContent, dealDetail: dealDetail, firstName: lenderPlacement.lenderContact.firstName, advisorName: req.user.firstName, dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>` }),
-              sentAt: new Date()
-            }
-          });
-        } else {
-          //Adding postmark message id in placement while updating lender placement when we follow up for deal
-          await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
-            followOnDate: new Date(Date.now() + config.followUpTimeForSendEmail),
-            isEmailSent: EnumOfEmailStatus.EMAIL_SENT,
-            isEmailSentFirstTime: false,
-            $addToSet: {
-              postmarkMessageId,
-              sendEmailPostmarkMessageId: postmarkMessageId,
-              // adding follow-up mails whenever the user send follow up
-              followUpMail: {
-                mailContent: getFollowUpContent(),
-                sentAt: new Date()
-              }
-            },
-          });
-        }
-      })
+          },
+        });
+      }
+    })
   );
 
   const stage = EnumStageOfDeal.OUT_IN_MARKET;
-  const deal = await Deal.findByIdAndUpdate(dealId, {
-    stage,
-    $addToSet: { 'involvedUsers.lenders': { $each: lenderUserIdsToAddInDeal } },
-    orderOfStage: stageOfDealWithNumber(stage),
-    timeLine: manageDealStageTimeline(
-        dealDetail.stage,
-        stage,
-        dealDetail.timeLine
-    ),
-    details: await detailsInDeal(stage, dealId),
-  }, {new: true});
+  const deal = await Deal.findByIdAndUpdate(
+    dealId,
+    {
+      stage,
+      $addToSet: { 'involvedUsers.lenders': { $each: lenderUserIdsToAddInDeal } },
+      orderOfStage: stageOfDealWithNumber(stage),
+      timeLine: manageDealStageTimeline(dealDetail.stage, stage, dealDetail.timeLine),
+      details: await detailsInDeal(stage, dealId),
+    },
+    { new: true }
+  );
   // commenting user in case we need it again in future
   const createActivityLogBody = {
     createdBy: req.user._id,
@@ -405,7 +450,7 @@ export const list = catchAsync(async (req, res) => {
         path: 'task',
         match: {
           deal: query.deal,
-          isCompleted: false
+          isCompleted: false,
         },
       },
       {
@@ -427,9 +472,9 @@ export const list = catchAsync(async (req, res) => {
         match: { notesType: enumModel.EnumOfNotesTypeOfLenderNotes.INTERNAL_NOTE },
       },
     ],
-    //by default messages field is set as select false in the model.
-    //we required messages field along with the other field so added + with the messages.
-    select: '+messages'
+    // by default messages field is set as select false in the model.
+    // we required messages field along with the other field so added + with the messages.
+    select: '+messages',
   };
   if (sortingObj.sort) {
     options.sort = sortObj;
@@ -441,18 +486,20 @@ export const list = catchAsync(async (req, res) => {
   if (query.outstandingTask) {
     lenderPlacement = lenderPlacement.filter((placement) => placement.outstandingTaskCount > 0);
   }
-  //checking for the new messages is available or not .
-  //if current logged-in user's id is not available in messageReadBy array , then it is considered as this message is new, not read by user previously & hasNewMessagesAvailable marked as true.
-  //based on the hasNewMessagesAvailable , set the blue dot mark on the placement in FE.
-  lenderPlacement = lenderPlacement.map((placement)=> {
-    const hasNewMessage = placement.messages.some(message => !message.messageReadBy.includes(user._id))
-    if (hasNewMessage){
-      placement._doc.hasNewMessagesAvailable = true
+  // checking for the new messages is available or not .
+  // if current logged-in user's id is not available in messageReadBy array , then it is considered as this message is new, not read by user previously & hasNewMessagesAvailable marked as true.
+  // based on the hasNewMessagesAvailable , set the blue dot mark on the placement in FE.
+  lenderPlacement = lenderPlacement.map((placement) => {
+    const hasNewMessage = placement.messages.some((message) => !message.messageReadBy.includes(user._id));
+    if (hasNewMessage) {
+      // eslint-disable-next-line no-param-reassign
+      placement._doc.hasNewMessagesAvailable = true;
     } else {
-      placement._doc.hasNewMessagesAvailable = false
+      // eslint-disable-next-line no-param-reassign
+      placement._doc.hasNewMessagesAvailable = false;
     }
-    return placement
-  })
+    return placement;
+  });
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 
@@ -565,18 +612,24 @@ export const update = catchAsync(async (req, res) => {
   const optionForGetPlacement = {
     populate: [
       {
-        path: 'lenderContact'
-      }
-    ]
-  }
-  const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(lenderPlacementId, optionForGetPlacement);
+        path: 'lenderContact',
+      },
+    ],
+  };
+  const beforeLenderPlacementResult = await lenderPlacementService.getLenderPlacementById(
+    lenderPlacementId,
+    optionForGetPlacement
+  );
   if (body.terms) {
     const futureFunding = body.terms.futureFunding ? body.terms.futureFunding : 0;
     body.terms.totalLoanAmount = body.terms.initialFunding + futureFunding;
     // checking for placement we are adding terms into already has orderOfTerms or not
-    if(!beforeLenderPlacementResult.orderOfTerms){
+    if (!beforeLenderPlacementResult.orderOfTerms) {
       // if not then we are counting all the placements of that particular deal in which orderOfTerms exists
-      const placementsInDeal = await lenderPlacementService.getLenderPlacementListCount({deal: beforeLenderPlacementResult.deal, orderOfTerms: { $exists: true }})
+      const placementsInDeal = await lenderPlacementService.getLenderPlacementListCount({
+        deal: beforeLenderPlacementResult.deal,
+        orderOfTerms: { $exists: true },
+      });
       body.orderOfTerms = placementsInDeal;
     }
   }
@@ -594,13 +647,13 @@ export const update = catchAsync(async (req, res) => {
     if (body.stage === enumModel.EnumStageOfDeal.NEW) {
       body.isEmailSent = enumModel.EnumOfEmailStatus.SEND_DEAL;
       // When we change the status from sent to new then all the messages , contact, task, postmarkMessageId, sendEmailPostmarkMessageId, terms, followOnDate, sendDealMail and orderOfTerms should get removed
-      body.isEmailSentFirstTime = false
+      body.isEmailSentFirstTime = false;
       body.messages = [];
       body.$unset = { lenderContact: '', terms: '', termSheet: '', followOnDate: '', sendDealMail: '', orderOfTerms: '' };
       body.postmarkMessageId = [];
       body.sendEmailPostmarkMessageId = [];
-      body.followUpMail = []
-      await removeLenderPlacementAssociatedThings(beforeLenderPlacementResult)
+      body.followUpMail = [];
+      await removeLenderPlacementAssociatedThings(beforeLenderPlacementResult);
     }
     body.stageEnumWiseNumber = stageOfLenderPlacementWithNumber(body.stage);
     body.nextStep = body.nextStep ? body.nextStep : enumModel.EnumNextStepOfLenderPlacement[body.stage];
@@ -1043,7 +1096,7 @@ export const sendEmail = catchAsync(async (req, res) => {
   if (sendToIsEmpty.length === 0) {
     return res.status(httpStatus.OK).send({ results: 'No email addresses to send to.' });
   }
-  const dealDetail = emailTemplate.deal
+  const dealDetail = emailTemplate.deal;
   if (sendToAdvisor) {
     const isAdvisor = _.template(getEmailTemplate.emailContent)({
       // userFirstName: req.user.firstName,
@@ -1061,16 +1114,19 @@ export const sendEmail = catchAsync(async (req, res) => {
       city: dealDetail.city || '[city]',
       state: getStateFullName(dealDetail.state) || '[state]',
       purchasePrice:
-          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx purchasePrice]',
+        (parseFloat(
+          String(_.find(dealDetail.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')
+        ) || 0) / 1000000 || '[x.xx purchasePrice]',
       inPlaceNOI:
-          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
+        (parseFloat(
+          String(_.find(dealDetail.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')
+        ) || 0) / 1000000 || '[x.xx]',
       stabilizedNOI:
-          (parseFloat(String(_.find(dealDetail.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
-      passLink:"",
-      dealSummaryLink: "",
+        (parseFloat(
+          String(_.find(dealDetail.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')
+        ) || 0) / 1000000 || '[x.xx]',
+      passLink: '',
+      dealSummaryLink: '',
     });
     const emailAttachments = getEmailTemplate.emailAttachments.map((item) => {
       return {
@@ -1109,16 +1165,28 @@ export const sendEmail = catchAsync(async (req, res) => {
       city: dealDetail?.city || '[city]',
       state: getStateFullName(dealDetail.state) || '[state]',
       purchasePrice:
-          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
+        (parseFloat(
+          // eslint-disable-next-line no-shadow
+          String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'purchasePrice')?.value)?.replaceAll(
+            /[$,]/g,
+            ''
+          )
+        ) || 0) / 1000000 || '[x.xx]',
       inPlaceNOI:
-          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
+        (parseFloat(
+          // eslint-disable-next-line no-shadow
+          String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'inPlaceNOI')?.value)?.replaceAll(/[$,]/g, '')
+        ) || 0) / 1000000 || '[x.xx]',
       stabilizedNOI:
-          (parseFloat(String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(/[$,]/g, '')) || 0) /
-          1000000 || '[x.xx]',
+        (parseFloat(
+          // eslint-disable-next-line no-shadow
+          String(_.find(dealDetail?.loanInformation, (data) => data?.key === 'stabilizedNOI')?.value)?.replaceAll(
+            /[$,]/g,
+            ''
+          )
+        ) || 0) / 1000000 || '[x.xx]',
       dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
-      passLink:`<a href=${passLink}>Pass</a>`,
+      passLink: `<a href=${passLink}>Pass</a>`,
     });
     return data;
   };
@@ -1140,21 +1208,21 @@ export const sendEmail = catchAsync(async (req, res) => {
           enforcePassword: true,
           email: item.sendTo,
           emailVerified: true,
-          password: Math.random().toString(36).slice(-10)
-        }
+          password: Math.random().toString(36).slice(-10),
+        };
         user = await userService.createUser(userBody);
       }
       const tokens = await tokenService.generateAuthTokens(user);
-      const dealSummaryLink =`${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&token=${tokens.access.token}`
+      const dealSummaryLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&token=${tokens.access.token}`;
       const passLink = `${frontEndUrl}/dealDetail/${dealId}?tab=dealSummary&pass=true&token=${tokens.access.token}`;
       return emailService.sendEmail({
         to: item.sendTo,
         // bcs we want that email to cc & bcc will go to only once
-        ...(index === 0 && {cc: ccList, bcc: bccList}),
+        ...(index === 0 && { cc: ccList, bcc: bccList }),
         subject: getEmailTemplate.subject,
         // ...(emailPresentingPostmark && { from: req.user.sendEmailFrom }),
         // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
-         from: req.user.sendEmailFrom,
+        from: req.user.sendEmailFrom,
         // text: getText(item.name, getEmailTemplate.totalLoanAmount, getEmailTemplate.advisorName, getEmailTemplate.from, passLink, dealSummaryLink),
         text: getText(passLink, dealSummaryLink),
         // eslint-disable-next-line no-shadow
@@ -1223,7 +1291,6 @@ export const sendDealV2 = catchAsync(async (req, res) => {
   const frontEndUrl = config.front.url || 'http://54.196.81.18';
   const admin = req.user;
   const { isFollowUp } = req.query;
-  const { emailPresentingPostmark } = admin;
   const advisorEmail = admin.email;
   const promises = await deals.map(async (body) => {
     const { lenderInstitute, deal, lenderPlacement, followUpContent, lender } = body;
@@ -1358,7 +1425,7 @@ export const sendDealV2 = catchAsync(async (req, res) => {
       const user = await userService.getOne({ email: item.sendTo, role: enumModel.EnumRoleOfUser.LENDER });
       // TODO: for now done changes here & it will work bcs everytime we got user bcs in send deal if not user than we create the user so no need to create user here but need to move this in the new api of send deal /v3
       const tokens = await tokenService.generateAuthTokens(user);
-      dealSummaryLink =`${frontEndUrl}/dealDetail/${deal}?tab=dealSummary&token=${tokens.access.token}`
+      dealSummaryLink = `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary&token=${tokens.access.token}`;
       passLink = `${frontEndUrl}/dealDetail/${deal}?tab=dealSummary&pass=true&token=${tokens.access.token}`;
       if (!user) {
         dealSummaryLink = `${frontEndUrl}/register?isRedirectedFromSendDeal=true&id=${item._id}`;
@@ -1466,138 +1533,12 @@ export const sendDealV2 = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: 'Email sent....' });
 });
 
-// function of email template of threading
-export const threadingTemplate = ({emailContent}) => {
-  // This is to extract style tag and body tag from the email content
-  const extractContent = ({ email, isBody }) => {
-    const styleRegex = /<style>([\s\S]*?)<\/style>/g;
-    const bodyRegex = /<body>([\s\S]*?)<\/body>/g;
-    const matches = email?.match(isBody ? bodyRegex : styleRegex);
-
-    if (matches) {
-      return matches.map((match) =>
-          match.replace(isBody ? '<body>' : '<style>', '').replace(isBody ? '</body>' : '</style>', '')
-      );
-    } else {
-      return [];
-    }
-  };
-  // need to split the mail content as we need vertical line after the line that describes the time and by whom the message we got
-  const heading = emailContent.map((item) => {
-    const head = item.split('wrote:');
-    return head[0].concat('wrote:')
-  })
-
-  const styleContent = emailContent.map((email) => extractContent({ email, isBody: false })).flat();
-  const bodyContent = emailContent.map((email) => extractContent({ email, isBody: true })).flat();
-
-  // desired body that we need to pass in the html template
-  const body = bodyContent
-      .map((data, index) => {
-        if (index === 0) {
-          // For the first message, wrap it with one outer div
-          return `<div class="space_between_line"/><div>${heading[index]}</div><div class="email-inner-content">${data}`;
-        } else {
-          // For subsequent messages, nest them inside the previous div
-          return `<div class="space_between_line"/><div>${heading[index]}</div><div class="email-inner-content">${data}`;
-        }
-      })
-      .join('') + '</div>';
-
-  const template = `<!DOCTYPE html>
- <html>
-   <head>
-    <style id="custom-styles">
-      .email-container {
-        color: #600060;
-        font-size: 0.75rem;
-        font-weight: 400;
-      }
-    
-    .space_between_line{
-    padding-top : 12px
-    }
-      .email-content {
-        flex: 1;
-      }
-
-      .vertical-line {
-        border-left: 1px solid #D3D3D3;
-        /* Adjust the line style and color as needed */
-        height: 100%;
-        margin-left: 5px;
-        /* Adjust the margin as needed */
-      }
-
-      .email-inner-content {
-        padding-left: 7px;
-        border-left: 1px solid #d3d3d3;
-        height: auto;
-        margin-left: 5px;
-      }
-
-      .email-thread {
-        padding-top: 15px;
-      }
-
-      .a {
-        color: blue;
-        text-decoration: underline;
-      }
-    </style>
-    <script>
-      window.addEventListener('DOMContentLoaded', (event) => {
-        const styleTag = document.getElementById('custom-styles');
-        ${styleContent}.forEach((style) => {
-          styleTag.appendChild(document.createTextNode(style));
-        });
-      });
-    </script>
-   </head>
-   <body>
-    <div class="email-container">
-      ${body}
-    </div>
-   </body>
- </html>`
-
-  return template;
-}
-// common function for threading send deal mail, follow-up mail and messages in the mail
-export const constructEmailContent = ({lenderPlacement, sender }) => {
-  const followUpEmails = lenderPlacement.followUpMail.map((mail) => mail)
-  const messages = lenderPlacement.messages.map((message) => message)
-
-  // common function to create desired email content
-  const formatEmailContent = (item) => {
-    const isFollowUp = item.mailContent;
-    const time = moment(item.sentAt || item.updatedAt).format('ddd, DD MMM YYYY hh:mm A [GMT]');
-    const content = `On ${time} ${isFollowUp ? sender : (item.senderEmail || item.sender.email )} wrote:\n${isFollowUp ? item.mailContent : item.message}`;
-    return content;
-  };
-
-  // array of send deal mail, followup mail and messages
-  let emailContentArray = [lenderPlacement.sendDealMail, ...followUpEmails, ...messages ] ;
-
-  //function to sort the mails as per the time they are sent in ascending order.
-  function sortedItems(a, b) {
-    const aTime = a.sentAt || a.updatedAt || 0;
-    const bTime = b.sentAt || b.updatedAt || 0;
-    return bTime - aTime;
-  }
-  // sort the emailContent array using the above function, calling the function to format the email and joining it by <br> as we need space after every mail.
-  const emailContent = ((emailContentArray.sort(sortedItems)).map((item) => formatEmailContent(item)))
-
-  // return the html format template that we need for threading
-  return threadingTemplate({ emailContent });
-}
 export const sendMessage = catchAsync(async (req, res) => {
   const { lenderPlacementId } = req.params;
   const advisor = req.user;
-  const { emailPresentingPostmark } = advisor;
   const { body } = req;
-  //a function call that decodes HTML-encoded text. It's commonly used to decode HTML entities like &lt; (represents <), &gt; (represents >), &amp; (represents &), and so on.
-  body.message = body.message && he.decode(body.message)
+  // a function call that decodes HTML-encoded text. It's commonly used to decode HTML entities like &lt; (represents <), &gt; (represents >), &amp; (represents &), and so on.
+  body.message = body.message && he.decode(body.message);
   const { to = [], cc = [] } = body;
   const filter = {
     _id: lenderPlacementId,
@@ -1609,13 +1550,13 @@ export const sendMessage = catchAsync(async (req, res) => {
       {
         path: 'deal',
         populate: {
-          path: 'dealSummary'
-        }
+          path: 'dealSummary',
+        },
       },
       { path: 'lenderContact' },
-      {path: 'messages.sender'}
+      { path: 'messages.sender' },
     ],
-    select: '+messages'
+    select: '+messages',
   };
   const lenderPlacement = await lenderPlacementService.getOne(filter, options);
 
@@ -1629,7 +1570,7 @@ export const sendMessage = catchAsync(async (req, res) => {
   ];
 
   // now we are not storing email template in the code
-  const subject = getEmailSubjectForDeal(lenderPlacement.deal.dealSummary._doc)
+  const subject = getEmailSubjectForDeal(lenderPlacement.deal.dealSummary._doc);
 
   const response = await emailService.sendEmailUsingGmail({
     to: [lenderPlacement.lenderContact.email, ...to],
@@ -1640,14 +1581,17 @@ export const sendMessage = catchAsync(async (req, res) => {
     from: req.user.sendEmailFrom,
     pass: decrypt(req.user.appPassword, config.encryptionPassword),
     // we want send deal mail, followup mails and other messages as reply so calling common function for it along with message
-    text: `${body.message}${constructEmailContent({lenderPlacement: lenderPlacement, sender: req.user.sendEmailFrom })}`,
+    text: `${body.message}${constructEmailContent({ lenderPlacement, sender: req.user.sendEmailFrom })}`,
     attachments: emailAttachments.map((item) => {
+      let path;
+      if (config.aws.enablePrivateAccess) {
+        path = item.url ? decodeURI(item.url) : decodeURI(item.path);
+      } else {
+        path = item.url ? item.url : item.path;
+      }
       return {
         fileName: item.fileName,
-        path:
-            config.aws.enablePrivateAccess
-                ? item.url ? decodeURI(item.url) : decodeURI(item.path)
-                : item.url ? item.url : item.path ,
+        path,
         fileType: item.fileType,
       };
     }),
@@ -1659,7 +1603,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     replyTo: req.user.sendEmailFrom,
   });
   const postmarkMessageId = response.MessageID || response.messageId;
-  //Adding postmark message id in placement while updating lender placement when we send message to the lender
+  // Adding postmark message id in placement while updating lender placement when we send message to the lender
   await lenderPlacementService.updateLenderPlacement(
     { _id: lenderPlacementId },
     {
@@ -1673,12 +1617,14 @@ export const sendMessage = catchAsync(async (req, res) => {
   );
   const recipientEmails = response.accepted;
   const recipients = recipientEmails.join(' ,');
-  logger.info(`Message successfully sent to ${recipients} from ${req.user.sendEmailFrom} when advisor sent message from manage lender page`);
+  logger.info(
+    `Message successfully sent to ${recipients} from ${req.user.sendEmailFrom} when advisor sent message from manage lender page`
+  );
   return res.status(httpStatus.OK).send({ results: 'Message sent...' });
 });
 
 export const getMessages = catchAsync(async (req, res) => {
-  const { user } = req
+  const { user } = req;
   const { lenderPlacementId } = req.params;
   const filter = {
     _id: lenderPlacementId,
@@ -1692,7 +1638,11 @@ export const getMessages = catchAsync(async (req, res) => {
   // const lenderPlacement = await lenderPlacementService.getOne(filter, options);
 
   // here updating the message is read by user, adding current userId to messageReadBy array so this message is marked as read by the current logged-in user.
-  const lenderPlacement = await lenderPlacementService.updateLenderPlacement(filter,  { $addToSet: { 'messages.$[].messageReadBy': user._id }}, options)
+  const lenderPlacement = await lenderPlacementService.updateLenderPlacement(
+    filter,
+    { $addToSet: { 'messages.$[].messageReadBy': user._id } },
+    options
+  );
   return res.status(httpStatus.OK).send({ results: lenderPlacement });
 });
 

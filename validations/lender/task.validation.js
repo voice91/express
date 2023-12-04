@@ -3,7 +3,6 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import Joi from 'joi';
-import config from 'config/config';
 
 Joi.objectId = require('joi-objectid')(Joi);
 

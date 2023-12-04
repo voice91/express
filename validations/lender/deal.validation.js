@@ -6,10 +6,6 @@ import Joi from 'joi';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
-const locationSchema = Joi.object().keys({
-  type: Joi.string().equal('Point').required(),
-  coordinates: Joi.array().required(),
-});
 export const getDealById = {
   params: Joi.object().keys({
     dealId: Joi.objectId().required(),

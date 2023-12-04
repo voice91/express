@@ -26,7 +26,7 @@ export async function getDealNotesListWithPagination(filter, options = {}) {
   return dealNotes;
 }
 
-export async function createDealNotes(body, options = {}) {
+export async function createDealNotes(body) {
   const deal = await Deal.findOne({ _id: body.deal });
   if (!deal) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'field deal is not valid');

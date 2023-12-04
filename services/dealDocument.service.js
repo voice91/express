@@ -24,7 +24,7 @@ export async function getDealDocumentListWithPagination(filter, options = {}) {
   return dealDocument;
 }
 
-export async function createDealDocument(body, options = {}) {
+export async function createDealDocument(body) {
   const dealDocument = await DealDocument.create(body);
   return dealDocument;
 }
