@@ -27,6 +27,8 @@ function formatMathFormulaFormValue({ val, key, tableName }) {
       if (typeof val.result === 'string') {
         return val.result;
       }
+      // We are doing this because of the math.evaluate function takes a string as input, interprets it as a mathematical expression, and returns the result as a number.
+      // E.g.: The requested loan amount at financing request and deal matrices is of type number, while in sources it's of type string, and we are comparing them later as we need requested loan amount to be equal everywhere
       const expression = val.formula.replace(val.formula, val.result);
       return math.evaluate(expression);
     }
