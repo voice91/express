@@ -15,7 +15,10 @@ export const processEmailMessage = catchAsync(async (req, res) => {
   // Change in regex as it was taking the content only upto first </div> and not the other part, but we need all the div till <br><div class="gmail_quote">
   const messageContent = /<div dir="ltr">(.*?)<br><div class="gmail_quote">/.exec(he.decode(req.body.HtmlBody));
   // need to set the message content in body tag as we have seperated the content for the threading on the basis of body tag.
-  const message = req.body.StrippedTextReply ? `<body>${messageContent[1]}</body>` : 'This file is coming from email';
+  // getting extra </div> at the end of messageContent[1] so removing it .
+  const message = req.body.StrippedTextReply
+    ? `<body>${messageContent[1].replace(/<\/div>$/, '')}</body>`
+    : 'This file is coming from email';
 
   let msgId;
   if (req.body.Headers) {
