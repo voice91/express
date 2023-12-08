@@ -26,6 +26,10 @@ export const loginUserWithEmailAndPassword = async (email, password) => {
   if (!user.emailVerified) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Please check your email and verify it to continue login in to app');
   }
+  // Throwing error for inactive users, the users which didn't have lender contact were made inactive
+  if (!user.active) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Your account is not active');
+  }
   return user;
 };
 

@@ -5,6 +5,7 @@
 import httpStatus from 'http-status';
 import { lenderContactService, lendingInstitutionService, userService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import mongoose from 'mongoose';
 import { pick } from '../../utils/pick';
 import ApiError from '../../utils/ApiError';
 import enumModel from '../../models/enum.model';
@@ -77,9 +78,13 @@ export const create = catchAsync(async (req, res) => {
   if (user && (user.role === enumModel.EnumRoleOfUser.USER || user.role === enumModel.EnumRoleOfUser.ADVISOR)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Advisor or Borrower can not be added as Lender Contact');
   }
+  const userId = mongoose.Types.ObjectId();
+  // assigning the user id in the lender contact to which the contact is associated with
+  Object.assign(body, { user: userId });
   const lenderContact = await lenderContactService.createLenderContact(body, options);
   const lenderInstitute = await lendingInstitutionService.getLendingInstitutionById(lenderContact.lenderInstitute);
   const userBody = {
+    _id: userId,
     firstName: lenderContact.firstName,
     companyName: lenderInstitute.lenderNameVisible,
     lastName: lenderContact.lastName,
@@ -109,6 +114,11 @@ export const update = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, ' Can not Update Lender Contact with this Email Id ');
   }
   const lenderContact = await lenderContactService.updateLenderContact(filter, body, options);
+  // updating the user details associated with the lender contact
+  const updateUser = {
+    email: lenderContact.email,
+  };
+  await userService.updateUser({ _id: lenderContact.user }, updateUser);
   return res.status(httpStatus.OK).send({ results: lenderContact });
 });
 

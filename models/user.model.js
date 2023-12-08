@@ -218,6 +218,13 @@ const UserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Sponsor',
     },
+    /**
+     * Indicates whether the user account is active or not
+     * */
+    active: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

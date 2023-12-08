@@ -127,6 +127,13 @@ const LenderContactSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LendingInstitution',
     },
+    /**
+     * User id for the reference to which the lender contact is associated with
+     * */
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true }, autoCreate: true }
 );
