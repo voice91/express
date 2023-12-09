@@ -330,20 +330,12 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook, user) => {
       program.doesNotLandOn = actualArray.filter((item) => !propArray.includes(item));
     }
 
-    const doesNotTag = lenderWorksheet.getCell(
+    program.doesNotLandOnArrTag = getColumnValueNumber(
       currentRowNo,
-      currentCell.col + LenderWorkBookKeyColMappingForInstitute.DOES_NOT_LAND_ON_TAGS
+      currentCell.col + LenderWorkBookKeyColMappingForInstitute.DOES_NOT_LAND_ON_TAGS,
+      'doesNotLandOnArrTag must be an array containing numbers from 1 to 5',
+      lenderWorksheet
     );
-    if (doesNotTag.value) {
-      if (doesNotTag.value < 1 || doesNotTag.value > 5) {
-        throw new Error(
-          `doesNotTag must be an array containing numbers from 1 to 5 row:${currentRowNo} col: ${
-            currentCell.col + LenderWorkBookKeyColMappingForInstitute.DOES_NOT_LAND_ON_TAGS
-          }`
-        );
-      }
-    }
-    program.doesNotLandOnArrTag = doesNotTag.value;
 
     const loanType = lenderWorksheet.getCell(
       currentRowNo,
@@ -432,9 +424,17 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook, user) => {
     // If lenderId exists, update the existing record; otherwise, create a new record
     if (lenderId.value) {
       // eslint-disable-next-line no-await-in-loop
-      await LendingInstitution.findByIdAndUpdate(lenderId.value, obj);
-      logger.info(`LendingInstitution updated for Id: ${lenderId.value}, Name : ${lenderName.value}`);
-      program.lenderInstitute = lenderId.value;
+      const updatedLender = await LendingInstitution.findByIdAndUpdate(lenderId.value, obj, { new: true });
+      if (!updatedLender) {
+        Object.assign(obj, { _id: lenderId.value });
+        // eslint-disable-next-line no-await-in-loop
+        const lenderInstitute = await LendingInstitution.create(obj);
+        program.lenderInstitute = lenderInstitute._id;
+        logger.info(`LendingInstitution created for Id: ${lenderId.value}, Name : ${lenderName.value}`);
+      } else {
+        logger.info(`LendingInstitution updated for Id: ${lenderId.value}, Name : ${lenderName.value}`);
+        program.lenderInstitute = lenderId.value;
+      }
     } else {
       // eslint-disable-next-line no-await-in-loop
       const findInstitute = await LendingInstitution.findOneAndUpdate({ lenderNameVisible: lenderName.value }, obj);

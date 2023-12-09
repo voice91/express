@@ -19,7 +19,12 @@ const path = require('path');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const excel = require('exceljs');
 
-// This function takes an index and returns the corresponding column reference in Excel-style letters.
+/**
+ * Converts a 0-based index to an Excel-style column reference.
+ *
+ * @param {number} index - 0-based index representing the column position.
+ * @returns {string} - String representing the Excel-style column reference (A,B,...,Z,AA,AB,..).
+ */
 function getColumnReference(index) {
   let dividend = index + 1;
   let columnName = '';
@@ -31,6 +36,17 @@ function getColumnReference(index) {
   }
 
   return columnName;
+}
+
+/**
+ * Converts a column name to its corresponding Excel-style column reference.
+ *
+ * @param {string[]} columnsArray - Array of column names (strings).
+ * @param {string} columnName - Specific column name for which to find the reference.
+ * @returns {string} - String representing the Excel-style column reference.
+ */
+function getColumnReferenceFromColumnName(columnsArray, columnName) {
+  return getColumnReference(columnsArray.indexOf(columnName));
 }
 
 // eslint-disable-next-line import/prefer-default-export
@@ -69,7 +85,7 @@ export const exportToExcel = catchAsync(async (req, res) => {
   const lenderNotes = await LenderInstituteNotes.find({}, {}, { populate: 'createdBy' }).lean();
 
   const lenderContact = await LenderContact.find().lean();
-
+  const contactDataRows = [];
   lenderContact.forEach((item) => {
     const lender = lenderInstitution.find((lenderItem) => lenderItem._id.toString() === item.lenderInstitute.toString());
 
@@ -90,7 +106,13 @@ export const exportToExcel = catchAsync(async (req, res) => {
     rowValues[14] = item.emailTag;
     rowValues[15] = `${item._id}`;
     rowValues[16] = `${lender._id}`;
-    LenderContactsheet.addRow(rowValues);
+    contactDataRows.push(rowValues);
+  });
+  // sort the data in the asc order of Lender Name
+  contactDataRows.sort((a, b) => a[1].localeCompare(b[1]));
+  // add rows to sheet one by one
+  contactDataRows.forEach((row) => {
+    LenderContactsheet.addRow(row);
   });
 
   const LenderProgramsheet = workbook.addWorksheet('CLEAN_LENDERS');
@@ -152,7 +174,7 @@ export const exportToExcel = catchAsync(async (req, res) => {
   });
 
   const lenderProgram = await LenderProgram.find().lean();
-
+  const programDataRows = [];
   lenderProgram.forEach((item) => {
     const lender = lenderInstitution.find((lenderItem) => lenderItem._id.toString() === item.lenderInstitute.toString());
     // eslint-disable-next-line no-shadow
@@ -237,15 +259,26 @@ export const exportToExcel = catchAsync(async (req, res) => {
         rowValues[42 + i] = `${notes[i]._id}`;
       }
     }
-    LenderProgramsheet.addRow(rowValues);
+    programDataRows.push(rowValues);
   });
 
-  const lastRow = LenderProgramsheet.getColumn('D').worksheet.actualRowCount || 999;
+  // sort the data in the asc order of Lender Name
+  programDataRows.sort((a, b) => a[1].localeCompare(b[1]));
+  // add rows to sheet one by one
+  programDataRows.forEach((row) => {
+    LenderProgramsheet.addRow(row);
+  });
+
+  const lastRow = LenderProgramsheet.getColumn('A').worksheet.rowCount || 999;
   // set the format of cell
   for (let i = 2; i <= lastRow; i += 1) {
-    LenderProgramsheet.getCell(`D${i}`).numFmt = '_("$"* #,##0_);_("$"* (#,##0);_("$"* "-"??_);_(@_)'; // format cell of min amount as number with $
-    LenderProgramsheet.getCell(`F${i}`).numFmt = '_("$"* #,##0_);_("$"* (#,##0);_("$"* "-"??_);_(@_)'; //  format cell of max amount as number with $
-    LenderProgramsheet.getCell(`T${i}`).numFmt = '0%'; //  format cell of nonRecourseLTV as percentage
+    LenderProgramsheet.getCell(`${getColumnReferenceFromColumnName(fieldNamesofLenderProgram, 'Min')}${i}`).numFmt =
+      '_("$"* #,##0_);_("$"* (#,##0);_("$"* "-"??_);_(@_)'; // format cell of min amount as number with $
+    LenderProgramsheet.getCell(`${getColumnReferenceFromColumnName(fieldNamesofLenderProgram, 'Max')}${i}`).numFmt =
+      '_("$"* #,##0_);_("$"* (#,##0);_("$"* "-"??_);_(@_)'; //  format cell of max amount as number with $
+    LenderProgramsheet.getCell(
+      `${getColumnReferenceFromColumnName(fieldNamesofLenderProgram, 'Non-Recourse LTV')}${i}`
+    ).numFmt = '0%'; //  format cell of nonRecourseLTV as percentage
   }
 
   // Save the workbook as an Excel file when all rows have been processed
