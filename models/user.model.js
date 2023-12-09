@@ -72,7 +72,7 @@ const UserSchema = new mongoose.Schema(
     email: {
       type: String,
       // eslint-disable-next-line security/detect-unsafe-regex
-      match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,4})+$/,
       required: true,
     },
     /**

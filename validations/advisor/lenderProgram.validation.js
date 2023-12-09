@@ -88,7 +88,7 @@ export const editLender = {
         loanTypeArrTag: Joi.array().items(Joi.number().integer()).allow('').default(1),
         indexUsed: Joi.string().allow('').allow(null),
         spreadEstimate: Joi.number().allow('').allow(null),
-        counties: Joi.array().items(Joi.string()).allow(null),
+        counties: Joi.array().items(Joi.string().allow(null)).allow(null),
         recourseRequired: Joi.string().default('No').allow('').allow(null),
         nonRecourseLTV: Joi.string().allow('').allow(null),
         lenderInstitute: Joi.objectId(),

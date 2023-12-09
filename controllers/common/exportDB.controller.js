@@ -198,9 +198,9 @@ export const exportToExcel = catchAsync(async (req, res) => {
     rowValues[1] = lender.lenderNameVisible;
     rowValues[2] = CsvReverseLenderTypeMapping[lender.lenderType];
     rowValues[3] = item.lenderProgramType;
-    rowValues[4] = item.minLoanSize ? `$${item.minLoanSize}` : '';
+    rowValues[4] = item.minLoanSize ? item.minLoanSize : '';
     rowValues[5] = item.minLoanTag;
-    rowValues[6] = item.maxLoanSize ? `$${item.maxLoanSize}` : '';
+    rowValues[6] = item.maxLoanSize ? item.maxLoanSize : '';
     rowValues[7] = item.maxLoanTag;
     rowValues[8] = statesArray.join(', ');
     rowValues[9] = item.statesArrTag.join(', ');
@@ -214,7 +214,7 @@ export const exportToExcel = catchAsync(async (req, res) => {
     rowValues[17] = item.spreadEstimate;
     rowValues[18] = item.counties ? item.counties.join(', ') : '';
     rowValues[19] = item.recourseRequired;
-    rowValues[20] = item.nonRecourseLTV;
+    rowValues[20] = item.nonRecourseLTV ? parseFloat(item.nonRecourseLTV) : ''; // we formatted cell as percentage so need the value as number
     rowValues[21] = lender.description;
     rowValues[22] = lender.headquarter;
     rowValues[23] = lender.website;
@@ -239,6 +239,14 @@ export const exportToExcel = catchAsync(async (req, res) => {
     }
     LenderProgramsheet.addRow(rowValues);
   });
+
+  const lastRow = LenderProgramsheet.getColumn('D').worksheet.actualRowCount || 999;
+  // set the format of cell
+  for (let i = 2; i <= lastRow; i += 1) {
+    LenderProgramsheet.getCell(`D${i}`).numFmt = '_("$"* #,##0_);_("$"* (#,##0);_("$"* "-"??_);_(@_)'; // format cell of min amount as number with $
+    LenderProgramsheet.getCell(`F${i}`).numFmt = '_("$"* #,##0_);_("$"* (#,##0);_("$"* "-"??_);_(@_)'; //  format cell of max amount as number with $
+    LenderProgramsheet.getCell(`T${i}`).numFmt = '0%'; //  format cell of nonRecourseLTV as percentage
+  }
 
   // Save the workbook as an Excel file when all rows have been processed
   // Get the user's home directory path

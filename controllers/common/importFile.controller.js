@@ -10,10 +10,11 @@ import {
   isObjectId,
 } from 'utils/common';
 import { catchAsync } from 'utils/catchAsync';
-import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution, User } from 'models';
+import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution } from 'models';
 import enumModel, { EnumAssetTypeOfDeal } from 'models/enum.model';
 import ApiError from '../../utils/ApiError';
 import { logger } from '../../config/logger';
+import { lenderContactService, userService } from '../../services';
 
 const mongoose = require('mongoose');
 
@@ -180,12 +181,14 @@ const getColumnValueNumber = (row, col, validationMessage, lenderWorksheet) => {
   const tag = lenderWorksheet.getCell(row, col);
   if (typeof tag.value !== 'number') {
     if (tag.value) {
-      return tag.value.split(', ').map((item) => {
+      const statesTagArray = [];
+      tag.value.split(',').forEach((item) => {
         if (item < 1 || item > 5) {
           throw new Error(`${validationMessage} row: ${row} col: ${col}`);
         }
-        return parseInt(item, 10);
+        statesTagArray.push(parseInt(item.trim(), 10));
       });
+      return statesTagArray;
     }
   } else {
     if (tag.value < 1 || tag.value > 5) {
@@ -377,7 +380,9 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook, user) => {
       currentRowNo,
       currentCell.col + LenderWorkBookKeyColMappingForInstitute.COUNTIES
     );
-    program.counties = counties.value;
+    if (counties.value) {
+      program.counties = counties.value.split(',').map((item) => item.trim());
+    }
 
     const recourse = lenderWorksheet.getCell(
       currentRowNo,
@@ -587,10 +592,10 @@ const processLenderContactData = async (lenderWorkbook) => {
       );
       if (email.value) {
         if (typeof email.value === 'string') {
-          contact.email = email.value;
+          contact.email = email.value.trim();
         } else if (typeof email.value === 'object') {
           if (email.value.text) {
-            contact.email = email.value.text;
+            contact.email = email.value.text.trim();
           }
         } else {
           throw new Error(
@@ -638,7 +643,9 @@ const processLenderContactData = async (lenderWorkbook) => {
         currentRowNo,
         currentCell.col + LenderWorkBookKeyColMappingForContact.STATE
       );
-      contact.state = state.value;
+      if (state.value) {
+        contact.state = state.value;
+      }
 
       const contactTag = lenderContactWorksheet.getCell(
         currentRowNo,
@@ -706,32 +713,63 @@ const processLenderContactData = async (lenderWorkbook) => {
       contact.contactTag = contact.contactTag ? contact.contactTag : 1;
       contact.emailTag = contact.emailTag ? contact.emailTag : 1;
       // eslint-disable-next-line no-await-in-loop
-      await LenderContact.findByIdAndUpdate(contact.contactId, contact);
+      const updatedLender = await LenderContact.findByIdAndUpdate(contact.contactId, contact);
+      if (updatedLender && updatedLender.user) {
+        // eslint-disable-next-line no-await-in-loop
+        await userService.updateUser(
+          { _id: updatedLender.user },
+          {
+            firstName: contact.firstName,
+            companyName: lender.value,
+            lastName: contact.lastName,
+            city: contact.city,
+            state: contact.state,
+            phoneNumber: contact.phoneNumberCell,
+          }
+        );
+      }
       logger.info(`LenderContact updated for email ${contact.email}`);
-    } else {
+    } else if (contact.email && contact.lenderInstitute) {
       contact.contactTag = contact.contactTag ? contact.contactTag : 1;
       contact.emailTag = contact.emailTag ? contact.emailTag : 1;
       // eslint-disable-next-line no-await-in-loop
-      const updatedContact = await LenderContact.findOneAndUpdate({ email: contact.email }, contact, { new: true });
-      if (updatedContact) {
-        logger.info(`LenderContact updated for email ${updatedContact.email}`);
-      }
-      if (!updatedContact && contact.email && contact.lenderInstitute) {
-        // eslint-disable-next-line no-await-in-loop
-        await LenderContact.findOneAndUpdate({ email: contact.email }, contact, { upsert: true });
+      const registeredLender = await userService.getOne({ email: contact.email });
+      if (!registeredLender) {
         const userBody = {
           firstName: contact.firstName,
           companyName: lender.value,
           lastName: contact.lastName,
-          role: enumModel.EnumRoleOfUser.LENDER,
-          enforcePassword: true,
           email: contact.email,
-          emailVerified: true,
           password: Math.random().toString(36).slice(-10),
+          emailVerified: true,
+          enforcePassword: true,
+          role: enumModel.EnumRoleOfUser.LENDER,
         };
-        // Creating the user at the time of creating contact
         // eslint-disable-next-line no-await-in-loop
-        await User.findOneAndUpdate({ email: contact.email }, userBody, { upsert: true });
+        const newLender = await userService.createUser(userBody);
+        contact.user = newLender._id;
+      } else {
+        contact.user = registeredLender._id;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      const updatedContact = await LenderContact.findOneAndUpdate({ email: contact.email }, contact, { new: true });
+      if (updatedContact) {
+        logger.info(`LenderContact updated for email ${updatedContact.email}`);
+      } else {
+        // eslint-disable-next-line no-await-in-loop
+        await lenderContactService.createLenderContact(contact);
+        // eslint-disable-next-line no-await-in-loop
+        await userService.updateUser(
+          { _id: contact.user },
+          {
+            firstName: contact.firstName,
+            companyName: lender.value,
+            lastName: contact.lastName,
+            city: contact.city,
+            state: contact.state,
+            phoneNumber: contact.phoneNumberCell,
+          }
+        );
       }
     }
   }
