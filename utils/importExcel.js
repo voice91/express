@@ -525,8 +525,12 @@ export const importTableDataFromExcel = async (url, keyToMatch) => {
       const customBlockTableData = Workbook.Sheets[excelSheetData.name];
       // Find the starting point in the sheet (skip the first entry which is usually "!" in Excel)
       let startingPoint = Object.entries(customBlockTableData)[1];
-
-      const matchingPair = Object.keys(customBlockTableData).filter((key) => customBlockTableData[key].v === keyToMatch);
+      const matchingPair = Object.keys(customBlockTableData).filter((key) => {
+        const importedKeyToMatch =
+          // if the  title is numeric type (e.g, 555) then getting number type value so getting issue in compare so converted to string
+          typeof customBlockTableData[key].v === 'string' ? customBlockTableData[key].v : `${customBlockTableData[key].v}`;
+        return importedKeyToMatch === keyToMatch;
+      });
       if (matchingPair && matchingPair.length === 1) {
         const titleIndex = matchingPair[0];
         const matchingKeyValuePair = { [titleIndex]: customBlockTableData[titleIndex] };
