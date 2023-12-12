@@ -46,7 +46,9 @@ export const updateLenderContact = {
     city: Joi.string().allow(null),
     emailTag: Joi.number().default(1),
     contactTag: Joi.number().default(1),
-    state: Joi.string().valid(...Object.values(enumFields.EnumStatesOfDeal)),
+    state: Joi.string()
+      .allow(null)
+      .valid(...Object.values(enumFields.EnumStatesOfDeal)),
     zipcode: Joi.string().allow(null).pattern(new RegExp('^[0-9]{5}$')).messages({
       'string.pattern.base': 'zipcode must be 5 digits number',
     }),
