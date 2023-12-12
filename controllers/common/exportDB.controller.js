@@ -48,7 +48,16 @@ function getColumnReference(index) {
 function getColumnReferenceFromColumnName(columnsArray, columnName) {
   return getColumnReference(columnsArray.indexOf(columnName));
 }
-
+// Function for old values that are saved in the form of %
+// As now as we set the format for this field and multiplying the value by 100 to show it in % format, the already % value stored in db also getting multiply by 100
+function processNonRecursiveLTV(value) {
+  if (typeof value === 'string' && value.includes('%')) {
+    if (parseFloat(value) > 1) {
+      return parseFloat(value) / 100;
+    }
+  }
+  return parseFloat(value);
+}
 // eslint-disable-next-line import/prefer-default-export
 export const exportToExcel = catchAsync(async (req, res) => {
   // Create a new workbook
@@ -236,7 +245,8 @@ export const exportToExcel = catchAsync(async (req, res) => {
     rowValues[17] = item.spreadEstimate;
     rowValues[18] = item.counties ? item.counties.join(', ') : '';
     rowValues[19] = item.recourseRequired;
-    rowValues[20] = item.nonRecourseLTV ? parseFloat(item.nonRecourseLTV) : ''; // we formatted cell as percentage so need the value as number
+    rowValues[20] = item.nonRecourseLTV ? processNonRecursiveLTV(item.nonRecourseLTV) : ''; // we formatted cell as percentage so need the value as number
+    // rowValues[20] = item.nonRecourseLTV ? parseFloat(item.nonRecourseLTV) : ''; // we formatted cell as percentage so need the value as number
     rowValues[21] = lender.description;
     rowValues[22] = lender.headquarter;
     rowValues[23] = lender.website;
