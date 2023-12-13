@@ -1054,3 +1054,35 @@ export const constructEmailContent = ({ lenderPlacement, sender }) => {
   // return the html format template that we need for threading
   return threadingTemplate({ emailContent });
 };
+
+/**
+ * Converts an Excel serial number to a JavaScript Date object.
+ * @param {number} serialNumber - The Excel serial number representing the number of days since the Excel epoch (1900-01-01).
+ * @returns {Date} - A JavaScript Date object representing the corresponding date.
+ */
+function excelSerialNumberToDate(serialNumber) {
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  const daysSinceExcelEpoch = serialNumber;
+  const millisecondsSinceExcelEpoch = daysSinceExcelEpoch * millisecondsPerDay;
+  const excelEpoch = new Date('1899-12-30'); // JavaScript epoch is 1970-01-01
+  return new Date(excelEpoch.getTime() + millisecondsSinceExcelEpoch);
+}
+
+/**
+ * Processes a date value to ensure it is in a valid Date object format.
+ * If the input is already a Date object, it is returned as is.
+ * If the input is a valid number (Excel serial number), it is converted to a Date object.
+ * If the input is neither a Date object nor a valid number, the current date is returned.
+ *
+ * @param {Date|number|any} date - The date value to be processed.
+ * @returns {Date} - A processed Date object.
+ */
+export const processDateForExcel = (date) => {
+  if (moment.isDate(date)) {
+    return date;
+  }
+  if (typeof date === 'number' && !isNaN(date)) {
+    return excelSerialNumberToDate(date);
+  }
+  return new Date();
+};

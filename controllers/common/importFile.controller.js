@@ -8,6 +8,7 @@ import {
   CsvLenderTypeMapping,
   CsvStatesArrayMapping,
   isObjectId,
+  processDateForExcel,
 } from 'utils/common';
 import { catchAsync } from 'utils/catchAsync';
 import { LenderContact, LenderInstituteNotes, LenderProgram, LendingInstitution } from 'models';
@@ -460,13 +461,23 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook, user) => {
         currentRowNo,
         currentCell.col + LenderWorkBookKeyColMappingForInstitute[`NOTE_${i}_ID`]
       );
+      const noteDate = lenderWorksheet.getCell(
+        currentRowNo,
+        currentCell.col + LenderWorkBookKeyColMappingForInstitute[`NOTE_${i}_DATE`]
+      );
 
       if (noteId.value) {
         // If note ID exists, update the corresponding note
         // eslint-disable-next-line no-await-in-loop
-        const updatedNote = await LenderInstituteNotes.findByIdAndUpdate(noteId.value, {
-          content: noteContent.value,
-        });
+        const updatedNote = await LenderInstituteNotes.findByIdAndUpdate(
+          noteId.value,
+          {
+            content: noteContent.value,
+            updatedBy: user._id,
+            updatedAt: noteDate.value ? processDateForExcel(noteDate.value) : new Date(),
+          },
+          { new: true, timestamps: false } // timestamps: false passed because need to update manually
+        );
 
         // Prepare data for creating a new note if the update operation did not find a matching note
         const noteData = {
@@ -474,6 +485,8 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook, user) => {
           lenderInstitute: program.lenderInstitute,
           createdBy: user._id,
           updatedBy: user._id,
+          createdAt: noteDate.value ? processDateForExcel(noteDate.value) : new Date(),
+          updatedAt: noteDate.value ? processDateForExcel(noteDate.value) : new Date(),
         };
 
         if (!updatedNote) {
@@ -495,6 +508,8 @@ const processLenderProgramAndInstitutionData = async (lenderWorkbook, user) => {
           lenderInstitute: program.lenderInstitute,
           createdBy: user._id,
           updatedBy: user._id,
+          createdAt: noteDate.value ? processDateForExcel(noteDate.value) : new Date(),
+          updatedAt: noteDate.value ? processDateForExcel(noteDate.value) : new Date(),
         });
         logger.info(`Lender Note created with id ${note._id} for lender : ${lenderName.value}`);
       }

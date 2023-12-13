@@ -254,7 +254,7 @@ export const exportToExcel = catchAsync(async (req, res) => {
     if (notes.length) {
       let refCellNumber = 25;
       for (let i = 0; i < notes.length && i <= 4; i += 1) {
-        rowValues[refCellNumber] = notes[i].createdAt;
+        rowValues[refCellNumber] = notes[i].updatedAt;
         refCellNumber += 1;
         rowValues[refCellNumber] = notes[i].content;
         refCellNumber += 1;

@@ -17,7 +17,7 @@
 > - Always add new LenderPrograms.
 > - Update the lendingInstitution data if found with names; otherwise, add new.
 > - Add new lenderNotes.
-> - Update lenderContacts if found with email; otherwise, add new.
+> - Update lenderContacts if found with email, also update the user(lender role); otherwise, add new lenderContact and also create a user(lender role).
 
 ## With IDs
 
@@ -26,7 +26,7 @@
 > - Update LenderPrograms; if not found with ID, add new.
 > - Update lendingInstitution data if found with ID; if not found, find with name and update; otherwise, add new.
 > - Update lenderNotes; if not found with ID, add new.
-> - Update lenderContacts if found with ID; if not found, find with email and update; otherwise, add new.
+> - Update lenderContacts and user(lender role) if found with ID; if not found, find with email and update; otherwise, add new.
 
 ---
 
@@ -61,54 +61,54 @@ The workbook should contain two worksheets, each organized with specific columns
 
 #### **Worksheet 2: Lenders, Notes & Lending Programs Details (CLEAN_LENDERS)**
 
-| #   | ColumnReference   | Field               | Description                                                      | Values/Constraints                                         |
-|-----|-------------------|---------------------|------------------------------------------------------------------|------------------------------------------------------------|
-| 1   | A                 | Lender Name         | Name of the lending institution or lender                        | String                                                     |
-| 2   | B                 | Lender Type         | Type or category of the lender                                   | String                                                     |
-| 3   | C                 | Program Name        | Name or identifier of the lending program                        | String                                                     |
-| 4   | D                 | Min                 | Minimum value or threshold associated with the program           | Greater than 100000                                        |
-| 5   | E                 | Min Tag             | Values between 1 and 5 (Number)                                  | Number                                                     |
-| 6   | F                 | Max                 | Maximum value or threshold associated with the program           | Greater than Min and less than 1000000000                  |
-| 7   | G                 | Max Tag             | Values between 1 and 5 (Number)                                  | Number                                                     |
-| 8   | H                 | States Array        | Array or list of applicable states                               | Nationwide, AL, AK, AZ, ... (List of state abbreviations)  |
-| 9   | I                 | States Tag          | Values between 1 and 5 (Number)                                  | Number                                                     |
-| 10  | J                 | Property Type Array | Array or list of eligible property types                         | Default, Multifamily, Office, ... (List of property types) |
-| 11  | K                 | Property Type Tag   | Values between 1 and 5 (Number)                                  | Number                                                     |
-| 12  | L                 | Does Not Do         | Restrictions or limitations associated with the program          | String                                                     |
-| 13  | M                 | Does Not Do Tag     | Values between 1 and 5 (Number)                                  | Number                                                     |
-| 14  | N                 | Loan Type Array     | Array or list of available loan types                            | String                                                     |
-| 15  | O                 | Loan Type Tag       | Values between 1 and 5 (Number)                                  | Number                                                     |
-| 16  | P                 | Index Used          | String                                                           | String                                                     |
-| 17  | Q                 | Spread Estimate     | Number                                                           | Number                                                     |
-| 18  | R                 | Counties            | Counties or geographic areas where the program is offered        | String                                                     |
-| 19  | S                 | Recourse Required   | Indicates whether recourse is required for loans , default 'no'  | String                                                     |
-| 20  | T                 | Non-Recourse LTV    | Loan-to-value ratio for non-recourse loans                       | String                                                     |
-| 21  | U                 | Description         | Description for the lending institution                          | String                                                     |
-| 22  | V                 | Headquarters        | Headquarters of the lending institution                          | String                                                     |
-| 23  | W                 | Website             | Website of the lending institution                               | String                                                     |
-| 24  | X                 | Ranking             | Rank for the lending institution                                 | Number                                                     |
-| 25  | Y                 | Note 1 Date         | Date for Note 1                                                  | String                                                     |
-| 26  | Z                 | Note 1 Content      | Content for Note 1                                               | String                                                     |
-| 27  | AA                | Note 1 Person       | Person associated with Note 1                                    | String                                                     |
-| 28  | AB                | Note 2 Date         | Date for Note 2                                                  | String                                                     |
-| 29  | AC                | Note 2 Content      | Content for Note 2                                               | String                                                     |
-| 30  | AD                | Note 2 Person       | Person associated with Note 2                                    | String                                                     |
-| 31  | AE                | Note 3 Date         | Date for Note 3                                                  | String                                                     |
-| 32  | AF                | Note 3 Content      | Content for Note 3                                               | String                                                     |
-| 33  | AG                | Note 3 Person       | Person associated with Note 3                                    | String                                                     |
-| 34  | AH                | Note 4 Date         | Date for Note 4                                                  | String                                                     |
-| 35  | AI                | Note 4 Content      | Content for Note 4                                               | String                                                     |
-| 36  | AJ                | Note 4 Person       | Person associated with Note 4                                    | String                                                     |
-| 37  | AK                | Note 5 Date         | Date for Note 5                                                  | String                                                     |
-| 38  | AL                | Note 5 Content      | Content for Note 5                                               | String                                                     |
-| 39  | AM                | Note 5 Person       | Person associated with Note 5                                    | String                                                     |
-| 40  | AN                | Program ID          | Unique identifier for the lending program                        | ObjectId                                                   |
-| 41  | AO                | Lender Institute ID | Unique identifier for the lending institution                    | ObjectId                                                   |
-| 42  | AP                | Note 1 Id           | Unique identifier for Note 1                                     | ObjectId                                                   |
-| 43  | AQ                | Note 2 Id           | Unique identifier for Note 2                                     | ObjectId                                                   |
-| 44  | AR                | Note 3 Id           | Unique identifier for Note 3                                     | ObjectId                                                   |
-| 45  | AS                | Note 4 Id           | Unique identifier for Note 4                                     | ObjectId                                                   |
-| 46  | AT                | Note 5 Id           | Unique identifier for Note 5                                     | ObjectId                                                   |
+| #   | ColumnReference   | Field               | Description                                                     | Values/Constraints                                         |
+|-----|-------------------|---------------------|-----------------------------------------------------------------|------------------------------------------------------------|
+| 1   | A                 | Lender Name         | Name of the lending institution or lender                       | String                                                     |
+| 2   | B                 | Lender Type         | Type or category of the lender                                  | String                                                     |
+| 3   | C                 | Program Name        | Name or identifier of the lending program                       | String                                                     |
+| 4   | D                 | Min                 | Minimum value or threshold associated with the program          | Greater than 100000                                        |
+| 5   | E                 | Min Tag             | Values between 1 and 5 (Number), default 1                      | Number                                                     |
+| 6   | F                 | Max                 | Maximum value or threshold associated with the program          | Greater than Min and less than 1000000000                  |
+| 7   | G                 | Max Tag             | Values between 1 and 5 (Number), default 1                      | Number                                                     |
+| 8   | H                 | States Array        | Array or list of applicable states                              | Nationwide, AL, AK, AZ, ... (List of state abbreviations)  |
+| 9   | I                 | States Tag          | Values between 1 and 5 (Number), default 1                      | single Number value OR Numbers separated by comma          |
+| 10  | J                 | Property Type Array | Array or list of eligible property types                        | Default, Multifamily, Office, ... (List of property types) |
+| 11  | K                 | Property Type Tag   | Values between 1 and 5 (Number), default 1                      | single Number value OR Numbers separated by comma          |
+| 12  | L                 | Does Not Do         | Restrictions or limitations associated with the program         | String                                                     |
+| 13  | M                 | Does Not Do Tag     | Values between 1 and 5 (Number), default 1                      | single Number value OR Numbers separated by comma          |
+| 14  | N                 | Loan Type Array     | Array or list of available loan types                           | String                                                     |
+| 15  | O                 | Loan Type Tag       | Values between 1 and 5 (Number), default 1                      | single Number value OR Numbers separated by comma          |
+| 16  | P                 | Index Used          | String                                                          | String                                                     |
+| 17  | Q                 | Spread Estimate     | Number                                                          | Number                                                     |
+| 18  | R                 | Counties            | Counties or geographic areas where the program is offered       | single String OR Strings separated by comma                |
+| 19  | S                 | Recourse Required   | Indicates whether recourse is required for loans , default 'no' | String                                                     |
+| 20  | T                 | Non-Recourse LTV    | Loan-to-value ratio for non-recourse loans                      | Cell should be formatted as percentage                     |
+| 21  | U                 | Description         | Description for the lending institution                         | String                                                     |
+| 22  | V                 | Headquarters        | Headquarters of the lending institution                         | String                                                     |
+| 23  | W                 | Website             | Website of the lending institution                              | String                                                     |
+| 24  | X                 | Ranking             | Rank for the lending institution                                | Number                                                     |
+| 25  | Y                 | Note 1 Date         | Date for Note 1                                                 | Cell should be formatted as date                           |
+| 26  | Z                 | Note 1 Content      | Content for Note 1                                              | String                                                     |
+| 27  | AA                | Note 1 Person       | Person associated with Note 1                                   | String                                                     |
+| 28  | AB                | Note 2 Date         | Date for Note 2                                                 | Cell should be formatted as date                           |
+| 29  | AC                | Note 2 Content      | Content for Note 2                                              | String                                                     |
+| 30  | AD                | Note 2 Person       | Person associated with Note 2                                   | String                                                     |
+| 31  | AE                | Note 3 Date         | Date for Note 3                                                 | Cell should be formatted as date                           |
+| 32  | AF                | Note 3 Content      | Content for Note 3                                              | String                                                     |
+| 33  | AG                | Note 3 Person       | Person associated with Note 3                                   | String                                                     |
+| 34  | AH                | Note 4 Date         | Date for Note 4                                                 | Cell should be formatted as date                           |
+| 35  | AI                | Note 4 Content      | Content for Note 4                                              | String                                                     |
+| 36  | AJ                | Note 4 Person       | Person associated with Note 4                                   | String                                                     |
+| 37  | AK                | Note 5 Date         | Date for Note 5                                                 | Cell should be formatted as date                           |
+| 38  | AL                | Note 5 Content      | Content for Note 5                                              | String                                                     |
+| 39  | AM                | Note 5 Person       | Person associated with Note 5                                   | String                                                     |
+| 40  | AN                | Program ID          | Unique identifier for the lending program                       | ObjectId                                                   |
+| 41  | AO                | Lender Institute ID | Unique identifier for the lending institution                   | ObjectId                                                   |
+| 42  | AP                | Note 1 Id           | Unique identifier for Note 1                                    | ObjectId                                                   |
+| 43  | AQ                | Note 2 Id           | Unique identifier for Note 2                                    | ObjectId                                                   |
+| 44  | AR                | Note 3 Id           | Unique identifier for Note 3                                    | ObjectId                                                   |
+| 45  | AS                | Note 4 Id           | Unique identifier for Note 4                                    | ObjectId                                                   |
+| 46  | AT                | Note 5 Id           | Unique identifier for Note 5                                    | ObjectId                                                   |
 
 
 
