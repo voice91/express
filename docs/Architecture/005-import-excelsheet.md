@@ -116,11 +116,11 @@ The workbook should contain two worksheets, each organized with specific columns
 
 ### Notes
 
-1. If Sheet Contains Id Columns:
+1. If Sheet Contains Id Columns :
     - Update existing data for the specified ProgramId, LenderInstituteId and LenderContact.
     - If no matching documents are found, add new entries and also update the respective data.
     - Ensure no empty row between the column names and the data rows.
-2. If Sheet Does Not Contain Id Columns:
+2. If Sheet Does Not Contain Id Columns :
    - Always add new data from the provided sheet (CLEAN_LENDERS) for the lenderProgrammes.
    - If a matching LenderName is found, update the data for the corresponding lenderInstitution; otherwise, add a new entry.
    - If a matching email is found, update the data for the corresponding lenderContact; otherwise, add a new entry.
