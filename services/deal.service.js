@@ -9,7 +9,11 @@ import mongoose from 'mongoose';
 import _ from 'lodash';
 import { userService } from './index';
 import config from '../config/config';
-import { invitationToDeal } from '../utils/common';
+import { invitationToDeal, manageDealStageTimeline } from '../utils/common';
+import { lenderPlacementStageToStageNumberMapping } from '../utils/enumStageOfLenderPlacement';
+import { stageOfDealWithNumber } from '../utils/enumStageForDeal';
+import { detailsInDeal } from '../utils/detailsInDeal';
+import { logger } from '../config/logger';
 
 /**
  * Validates the list of involved users for a specific role in a given request body.
@@ -129,4 +133,42 @@ export async function removeDeal(filter) {
 export async function removeManyDeal(filter) {
   const deal = await Deal.deleteMany(filter);
   return deal;
+}
+
+/**
+ * Updates the deal stage along with the placement stage based on certain conditions.
+ *
+ * @param {Object} params - The parameters object.
+ * @param {string} params.dealId - The ID of the deal to be updated.
+ * @param {string} params.dealStage - The current stage of the deal.
+ * @param {string} params.placementStage - The target placement stage to compare.
+ * @param {Array} params.lenderPlacementsAssociatedWithDeal - Array of lender placements associated with the deal.
+ * @param {Object} params.lenderPlacementResult - Result of updated lender placement.
+ */
+export async function updateDealStageWithPlacementStage({
+  dealId,
+  dealStage,
+  placementStage,
+  lenderPlacementsAssociatedWithDeal,
+  lenderPlacementResult,
+}) {
+  // Filter placements with a stage lower than the target placement stage
+  const placementWithTargetStage = lenderPlacementsAssociatedWithDeal.filter(
+    (placement) =>
+      lenderPlacementStageToStageNumberMapping.get(placement.stage) <
+      lenderPlacementStageToStageNumberMapping.get(placementStage)
+  );
+  // If there are no placements with the target stage, update the deal stage
+  if (!placementWithTargetStage.length) {
+    await updateDeal(
+      { _id: dealId },
+      {
+        stage: dealStage,
+        orderOfStage: stageOfDealWithNumber(dealStage),
+        timeLine: manageDealStageTimeline(lenderPlacementResult.deal.stage, dealStage, lenderPlacementResult.deal.timeLine),
+        details: await detailsInDeal(dealStage, dealId),
+      }
+    );
+    logger.info(`Deal stage updated to ${dealStage}`);
+  }
 }

@@ -43,12 +43,16 @@ import enumModel, {
   EnumStageOfLenderPlacement,
 } from '../../models/enum.model';
 import config from '../../config/config';
-import { stageOfLenderPlacementWithNumber } from '../../utils/enumStageOfLenderPlacement';
+import {
+  stageOfLenderPlacementWithNumber,
+  lenderPlacementStageToStageNumberMapping,
+} from '../../utils/enumStageOfLenderPlacement';
 import { detailsInDeal } from '../../utils/detailsInDeal';
 import { stageOfDealWithNumber } from '../../utils/enumStageForDeal';
 import { removeLenderPlacementAssociatedThings } from '../../services/lenderPlacement.service';
 import { logger } from '../../config/logger';
 import { decrypt } from '../../utils/encrypt-decrypt-text';
+import { updateDealStageWithPlacementStage } from '../../services/deal.service';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const he = require('he');
@@ -374,18 +378,27 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
     })
   );
 
-  const stage = EnumStageOfDeal.OUT_IN_MARKET;
-  const deal = await Deal.findByIdAndUpdate(
-    dealId,
-    {
-      stage,
-      $addToSet: { 'involvedUsers.lenders': { $each: lenderUserIdsToAddInDeal } },
-      orderOfStage: stageOfDealWithNumber(stage),
-      timeLine: manageDealStageTimeline(dealDetail.stage, stage, dealDetail.timeLine),
-      details: await detailsInDeal(stage, dealId),
-    },
-    { new: true }
+  const dealDataToUpdate = { $addToSet: { 'involvedUsers.lenders': { $each: lenderUserIdsToAddInDeal } } };
+  const lenderPlacementsAssociatedWithDeal = await lenderPlacementService.getLenderPlacementList({ deal: dealId });
+
+  // Filter placements with a stage lower than the target placement stage
+  const placementWithTargetStage = lenderPlacementsAssociatedWithDeal.filter(
+    (placement) =>
+      lenderPlacementStageToStageNumberMapping.get(placement.stage) <
+      lenderPlacementStageToStageNumberMapping.get(EnumStageOfLenderPlacement.SENT)
   );
+  const dealStage = EnumStageOfDeal.OUT_IN_MARKET;
+  // If there are no placements with the target stage, update stage details in the dealDataToUpdate
+  if (!placementWithTargetStage.length) {
+    Object.assign(dealDataToUpdate, {
+      stage: dealStage,
+      orderOfStage: stageOfDealWithNumber(dealStage),
+      timeLine: manageDealStageTimeline(dealDetail.stage, dealStage, dealDetail.timeLine),
+      details: await detailsInDeal(dealStage, dealId),
+    });
+  }
+
+  const deal = await Deal.findByIdAndUpdate(dealId, dealDataToUpdate, { new: true });
   // commenting user in case we need it again in future
   const createActivityLogBody = {
     createdBy: req.user._id,
@@ -641,7 +654,6 @@ export const update = catchAsync(async (req, res) => {
   }
 
   const oldStage = beforeLenderPlacementResult.stage;
-
   if (body.stage) {
     // we change the isEmailSent to same as what we have when we add lender bcs if we don't change than it will not chane stage of deal & timeline when we send the deal after changing stage
     if (body.stage === enumModel.EnumStageOfDeal.NEW) {
@@ -668,28 +680,56 @@ export const update = catchAsync(async (req, res) => {
     });
   }
   const lenderPlacementResult = await lenderPlacementService.updateLenderPlacement(filter, body, options);
-  const dealId = lenderPlacementResult.deal;
-  if (lenderPlacementResult.stage === enumModel.EnumStageOfLenderPlacement.CLOSING) {
-    const stage = enumModel.EnumStageOfDeal.CLOSING;
-    await Deal.findByIdAndUpdate(dealId, {
-      stage,
-      orderOfStage: stageOfDealWithNumber(stage),
-      timeLine: manageDealStageTimeline(lenderPlacementResult.deal.stage, stage, lenderPlacementResult.deal.timeLine),
-      details: await detailsInDeal(stage, dealId),
-      nextStep: enumModel.EnumNextStepOfLenderPlacement[stage],
+  const dealId = lenderPlacementResult.deal._id ? lenderPlacementResult.deal._id : lenderPlacementResult.deal;
+  const lenderPlacementsAssociatedWithDeal = await lenderPlacementService.getLenderPlacementList({ deal: dealId });
+  // Check if the current lender placement stage is either CLOSING or CLOSED
+  if (
+    [enumModel.EnumStageOfLenderPlacement.CLOSING, enumModel.EnumStageOfLenderPlacement.CLOSED].includes(
+      lenderPlacementResult.stage
+    )
+  ) {
+    const { stage } = lenderPlacementResult;
+    // Update the deal stage according to the current lender placement stage
+    await updateDealStageWithPlacementStage({
+      dealId,
+      dealStage: stage,
+      placementStage: stage,
+      lenderPlacementsAssociatedWithDeal,
+      lenderPlacementResult,
     });
     // commenting user in case we need it again in future
     const createActivityLogBody = {
       createdBy: req.user._id,
       updatedBy: req.user._id,
-      update: `${lenderPlacementResult.deal.dealName} moved into closing with ${lenderPlacementResult.lendingInstitution.lenderNameVisible}`,
+      update: `${lenderPlacementResult.deal.dealName} moved into ${stage} with ${lenderPlacementResult.lendingInstitution.lenderNameVisible}`,
       deal: dealId,
       type: EnumOfActivityType.ACTIVITY,
       // user: config.activitySystemUser || 'system',
     };
-    if (createActivityLogBody.update) {
-      await activityLogService.createActivityLog(createActivityLogBody);
-    }
+    await activityLogService.createActivityLog(createActivityLogBody);
+  }
+
+  // Check if the current lender placement stage is new
+  if (body.stage === enumModel.EnumStageOfLenderPlacement.NEW) {
+    const { stage } = lenderPlacementResult;
+    await updateDealStageWithPlacementStage({
+      dealId,
+      dealStage: stage,
+      placementStage: stage,
+      lenderPlacementsAssociatedWithDeal,
+      lenderPlacementResult,
+    });
+  }
+
+  // Check if the current lender placement stage is sent, if true then update the deal
+  if (body.stage === enumModel.EnumStageOfLenderPlacement.SENT) {
+    await updateDealStageWithPlacementStage({
+      dealId,
+      dealStage: EnumStageOfDeal.OUT_IN_MARKET,
+      placementStage: EnumStageOfLenderPlacement.SENT,
+      lenderPlacementsAssociatedWithDeal,
+      lenderPlacementResult,
+    });
   }
   // tempS3
   if (lenderPlacementResult.termSheet) {
