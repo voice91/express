@@ -567,28 +567,31 @@ function addCommaSeparators(value) {
  * @param {string} keyToAssign - The key used to assign value.
  * @returns {Object} - The modified data object.
  */
+
 export function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
-  if (typeof data[keyToAssign] === 'number') {
+  const isNumber = (value) => typeof value === 'number';
+  const isString = (value) => typeof value === 'string';
+  // Formatting numeric values
+  if (isNumber(data[keyToAssign])) {
     if (data[keyToAssign]) {
-      // eslint-disable-next-line no-param-reassign
-      data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
+      Object.assign(data, { [keyToAssign]: (data[keyToAssign] * 1).toFixed(decimalPoint) });
     }
   }
+  // Formatting data for currency type
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.CURRENCY) {
-    if (typeof data[keyToAssign] === 'string' && data[keyToAssign].includes(',')) {
-      // eslint-disable-next-line no-param-reassign
-      data[keyToAssign] = data[keyToAssign].replace(/,/g, '');
+    // Removing commas from string values
+    if (isString(data[keyToAssign]) && data[keyToAssign].includes(',')) {
+      Object.assign(data, { [keyToAssign]: data[keyToAssign].replace(/,/g, '') });
     }
     // if data is in string and data not include $ than we have to convert it in num and fixed decimal point
-    // todo: fix below condition in more efficient way in future
-    if (typeof data[keyToAssign] === 'string' && !/[,()]/.test(data[keyToAssign])) {
-      // eslint-disable-next-line no-param-reassign
+    // Handle string values without commas
+    if (isString(data[keyToAssign]) && !/[,()]/.test(data[keyToAssign])) {
+      // Remove '$' if present
       if (data[keyToAssign].includes('$')) {
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = data[keyToAssign].split('$').pop();
+        Object.assign(data, { [keyToAssign]: data[keyToAssign].split('$').pop() });
       }
-      // eslint-disable-next-line no-param-reassign
-      data[keyToAssign] = (data[keyToAssign] * 1).toFixed(decimalPoint);
+      // Convert string to number and format with fixed decimal points
+      Object.assign(data, { [keyToAssign]: (data[keyToAssign] * 1).toFixed(decimalPoint) });
     }
     // Check if the value of data[keyToAssign] is not a string
     // OR
@@ -596,75 +599,73 @@ export function changeData(data, decimalPoint, keyToCheckType, keyToAssign) {
     // AND
     // Check if the value of data[keyToAssign] is not one of the following: '(', ',', '('
     if (
-      typeof data[keyToAssign] !== 'string' ||
-      (typeof data[keyToAssign] === 'string' && !data[keyToAssign].includes('$') && !/[%,$()]/.test(data[keyToAssign]))
+      !isString(data[keyToAssign]) ||
+      (isString(data[keyToAssign]) && !data[keyToAssign].includes('$') && !/[%,$()]/.test(data[keyToAssign]))
     ) {
-      // eslint-disable-next-line no-param-reassign,operator-assignment
-      data[keyToAssign] = data[keyToAssign] * 1;
-      if (typeof data[keyToAssign] === 'number' && data[keyToAssign] < 0) {
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = `$(${Math.abs(data[keyToAssign])})`;
+      // Convert to number and format as currency string
+      Object.assign(data, { [keyToAssign]: data[keyToAssign] * 1 });
+
+      if (isNumber(data[keyToAssign]) && data[keyToAssign] < 0) {
+        Object.assign(data, { [keyToAssign]: `$(${Math.abs(data[keyToAssign])})` });
       } else {
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = `$${data[keyToAssign]}`;
+        Object.assign(data, { [keyToAssign]: `$${data[keyToAssign]}` });
       }
     }
   }
+  // Formatting for percentage type
   if (data[keyToCheckType] && data[keyToCheckType] === EnumOfTypeOfValue.PERCENTAGE) {
-    if (typeof data[keyToAssign] === 'string' && data[keyToAssign].includes(',')) {
-      // eslint-disable-next-line no-param-reassign
-      data[keyToAssign] = data[keyToAssign].replace(/,/g, '');
+    // Removing commas from string values
+    if (isString(data[keyToAssign]) && data[keyToAssign].includes(',')) {
+      Object.assign(data, { [keyToAssign]: data[keyToAssign].replace(/,/g, '') });
     }
-    if (typeof data[keyToAssign] === 'string' && !/[,()]/.test(data[keyToAssign])) {
+    // Handle string values without commas
+    if (isString(data[keyToAssign]) && !/[,()]/.test(data[keyToAssign])) {
+      // Remove '%' if present
       if (data[keyToAssign].includes('%')) {
-        // eslint-disable-next-line no-param-reassign,prefer-destructuring
-        data[keyToAssign] = data[keyToAssign].split('%')[0];
+        const [valueWithoutPercentage] = data[keyToAssign].split('%');
+        Object.assign(data, { [keyToAssign]: valueWithoutPercentage });
       }
-      // eslint-disable-next-line no-param-reassign
-      data[keyToAssign] = `${(data[keyToAssign] * 1).toFixed(decimalPoint)}%`;
+      // Convert string to number and format with fixed decimal points, append '%'
+      Object.assign(data, { [keyToAssign]: `${(data[keyToAssign] * 1).toFixed(decimalPoint)}%` });
     }
-    if (data[keyToAssign] && typeof data[keyToAssign] !== 'string') {
-      // eslint-disable-next-line no-param-reassign
-      data[keyToAssign] = `${data[keyToAssign].toFixed(decimalPoint)}%`;
+    // Check if the value is not a string and format as percentage string
+    if (data[keyToAssign] && !isString(data[keyToAssign])) {
+      Object.assign(data, { [keyToAssign]: `${data[keyToAssign].toFixed(decimalPoint)}%` });
     }
   }
 
   // Adding a comma separator at the end to format the numeric values in all sections that are neither of type string nor represent a year.
   if (![EnumOfTypeOfValue.STRING, EnumOfTypeOfValue.YEAR].includes(data[keyToCheckType])) {
-    if (typeof data[keyToAssign] === 'string') {
+    if (isString(data[keyToAssign])) {
       if (data[keyToAssign].includes('$') && !/[,()%]/.test(data[keyToAssign])) {
         // Removing the dollar sign, if present
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = data[keyToAssign].replace('$', '');
+        Object.assign(data, { [keyToAssign]: data[keyToAssign].replace('$', '') });
+
         // Parsing the value as a number
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = parseFloat(data[keyToAssign]).toFixed(decimalPoint);
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+        Object.assign(data, { [keyToAssign]: parseFloat(data[keyToAssign]).toFixed(decimalPoint) });
+
+        // adding commas
+        Object.assign(data, { [keyToAssign]: addCommaSeparators(data[keyToAssign]) });
 
         // Adding the dollar sign back
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = `$${data[keyToAssign]}`;
+        Object.assign(data, { [keyToAssign]: `$${data[keyToAssign]}` });
       } else if (data[keyToAssign].includes('%') && !/[,()%]/.test(data[keyToAssign])) {
         // Removing the dollar sign, if present
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = data[keyToAssign].replace('%', '');
-        // Parsing the value as a number
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = parseFloat(data[keyToAssign]).toFixed(decimalPoint);
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+        Object.assign(data, { [keyToAssign]: data[keyToAssign].replace('%', '') });
 
-        // Adding the dollar sign back
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = `${data[keyToAssign]}%`;
+        // Parsing the value as a number
+        Object.assign(data, { [keyToAssign]: parseFloat(data[keyToAssign]).toFixed(decimalPoint) });
+
+        Object.assign(data, { [keyToAssign]: addCommaSeparators(data[keyToAssign]) });
+        // Adding the percentage sign back
+        Object.assign(data, { [keyToAssign]: `${data[keyToAssign]}%` });
+        // data[keyToAssign] = `${data[keyToAssign]}%`;
       } else {
-        // eslint-disable-next-line no-param-reassign
-        data[keyToAssign] = addCommaSeparators(data[keyToAssign]);
+        // Add commas for numeric values
+        Object.assign(data, { [keyToAssign]: addCommaSeparators(data[keyToAssign]) });
       }
     }
   }
-
   return data;
 }
 

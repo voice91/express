@@ -325,6 +325,22 @@ const EnumColumnNameOfFinancialSummary = {
   TOTAL_OPERATING_EXPNESES: 'Total Operating Expneses', // Expneses spelling is incorrect , but added because same used in UW sheet
 };
 
+const EnumKeyNameInDealSummary = {
+  TYPE: 'type',
+  VALUE: 'value',
+  STABILIZED_DY: 'Stabilized DY',
+  ESTIMATED_LTV: 'Estimated LTV',
+  IN_PLACE_DY: 'In-Place DY',
+  STABILIZED_DSCR: 'Stabilized DSCR',
+  IN_PLACE_DSCR: 'In-Place DSCR',
+  TOTAL_SOURCES: 'Total Sources',
+  TOTAL_USES: 'Total Uses',
+  IN_PLACE_TYPE: 'inPlaceType',
+  IN_PLACE_VALUE: 'inPlaceValue',
+  STABILIZED_TYPE: 'stabilizedType',
+  STABILIZED_VALUE: 'stabilizedValue',
+};
+
 module.exports = {
   EnumPrePaymentTypeOfTerms,
   EnumContentType,
@@ -360,4 +376,5 @@ module.exports = {
   EnumSheetNameOfUw,
   EnumTableNameInUwSheet,
   EnumColumnNameOfFinancialSummary,
+  EnumKeyNameInDealSummary,
 };

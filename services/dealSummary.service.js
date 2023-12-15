@@ -5,71 +5,97 @@ import { importExcelFile } from '../utils/importExcel';
 import ApiError from '../utils/ApiError';
 import { updateExcelFromDealSummeryServices } from '../utils/updateExcelFromDealSummeryServices';
 import { changeData } from '../utils/common';
+import { EnumColumnNameOfFinancialSummary, EnumKeyNameInDealSummary } from '../models/enum.model';
 
 export function dealSummeryDto(dealSummary) {
   if (dealSummary.dealMetrics) {
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.dealMetrics = dealSummary.dealMetrics.map((item) => {
-      if (['Stabilized DY', 'Estimated LTV', 'In-Place DY'].includes(item.key)) {
-        return changeData(item, 1, 'type', 'value');
-      }
-      // In-Place DSCR also need to send in the 2 decimal with x
-      if (['Stabilized DSCR', 'In-Place DSCR'].includes(item.key)) {
-        if (typeof item.value === 'string' && item.value.includes('x')) {
-          return item;
+    Object.assign(dealSummary, {
+      dealMetrics: dealSummary.dealMetrics.map((item) => {
+        if (
+          [
+            EnumKeyNameInDealSummary.STABILIZED_DY,
+            EnumKeyNameInDealSummary.ESTIMATED_LTV,
+            EnumKeyNameInDealSummary.IN_PLACE_DY,
+          ].includes(item.key)
+        ) {
+          return changeData(item, 1, EnumKeyNameInDealSummary.TYPE, EnumKeyNameInDealSummary.VALUE);
         }
-        const convertedData = changeData(item, 2, 'type', 'value');
-        convertedData.value = `${convertedData.value}x`;
-        return convertedData;
-      }
-      return changeData(item, 0, 'type', 'value');
+        // In-Place DSCR also need to send in the 2 decimal with x
+        if ([EnumKeyNameInDealSummary.STABILIZED_DSCR, EnumKeyNameInDealSummary.IN_PLACE_DSCR].includes(item.key)) {
+          if (typeof item.value === 'string' && item.value.includes('x')) {
+            return item;
+          }
+          const convertedData = changeData(item, 2, EnumKeyNameInDealSummary.TYPE, EnumKeyNameInDealSummary.VALUE);
+          convertedData.value = `${convertedData.value}x`;
+          return convertedData;
+        }
+        return changeData(item, 0, EnumKeyNameInDealSummary.TYPE, EnumKeyNameInDealSummary.VALUE);
+      }),
     });
   }
   if (!_.isEmpty(dealSummary.financingRequest)) {
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.financingRequest = dealSummary.financingRequest.map((item) => changeData(item, 0, 'type', 'value'));
+    Object.assign(dealSummary, {
+      financingRequest: dealSummary.financingRequest.map((item) =>
+        changeData(item, 0, EnumKeyNameInDealSummary.TYPE, EnumKeyNameInDealSummary.VALUE)
+      ),
+    });
   }
   if (!_.isEmpty(dealSummary.propertySummary)) {
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.propertySummary = dealSummary.propertySummary.map((item) => changeData(item, 0, 'type', 'value'));
+    Object.assign(dealSummary, {
+      propertySummary: dealSummary.propertySummary.map((item) =>
+        changeData(item, 0, EnumKeyNameInDealSummary.TYPE, EnumKeyNameInDealSummary.VALUE)
+      ),
+    });
   }
   if (dealSummary.sourcesAndUses && !_.isEmpty(dealSummary.sourcesAndUses.sources)) {
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.sourcesAndUses.sources = dealSummary.sourcesAndUses.sources
-      .map((item) => changeData(item, 0, 'type', 'value'))
-      .filter((item) => item.key !== 'Total Sources');
+    Object.assign(dealSummary.sourcesAndUses, {
+      sources: dealSummary.sourcesAndUses.sources
+        .map((item) => changeData(item, 0, EnumKeyNameInDealSummary.TYPE, EnumKeyNameInDealSummary.VALUE))
+        .filter((item) => item.key !== EnumKeyNameInDealSummary.TOTAL_SOURCES),
+    });
   }
   if (dealSummary.sourcesAndUses && !_.isEmpty(dealSummary.sourcesAndUses.uses)) {
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.sourcesAndUses.uses = dealSummary.sourcesAndUses.uses
-      .map((item) => changeData(item, 0, 'type', 'value'))
-      .filter((item) => item.key !== 'Total Uses');
+    Object.assign(dealSummary.sourcesAndUses, {
+      uses: dealSummary.sourcesAndUses.uses
+        .map((item) => changeData(item, 0, EnumKeyNameInDealSummary.TYPE, EnumKeyNameInDealSummary.VALUE))
+        .filter((item) => item.key !== EnumKeyNameInDealSummary.TOTAL_USES),
+    });
   }
   if (!_.isEmpty(dealSummary.rentRollSummary)) {
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.rentRollSummary = dealSummary.rentRollSummary.map((item) =>
-      item.map((data) => changeData(data, 0, 'type', 'value'))
-    );
+    Object.assign(dealSummary, {
+      rentRollSummary: dealSummary.rentRollSummary.map((item) =>
+        item.map((data) => changeData(data, 0, EnumKeyNameInDealSummary.TYPE, EnumKeyNameInDealSummary.VALUE))
+      ),
+    });
   }
   if (dealSummary.financialSummary && !_.isEmpty(dealSummary.financialSummary.revenue)) {
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue
-      .map((item) => changeData(item, 0, 'inPlaceType', 'inPlaceValue'))
-      .filter((data) => data.key !== 'Effective Gross Income');
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.financialSummary.revenue = dealSummary.financialSummary.revenue
-      .map((item) => changeData(item, 0, 'stabilizedType', 'stabilizedValue'))
-      .filter((data) => data.key !== 'Effective Gross Income');
+    Object.assign(dealSummary.financialSummary, {
+      revenue: dealSummary.financialSummary.revenue
+        .map((item) => changeData(item, 0, EnumKeyNameInDealSummary.IN_PLACE_TYPE, EnumKeyNameInDealSummary.IN_PLACE_VALUE))
+        .filter((data) => data.key !== EnumColumnNameOfFinancialSummary.EFFECTIVE_GROSS_INCOME),
+    });
+
+    Object.assign(dealSummary.financialSummary, {
+      revenue: dealSummary.financialSummary.revenue
+        .map((item) =>
+          changeData(item, 0, EnumKeyNameInDealSummary.STABILIZED_TYPE, EnumKeyNameInDealSummary.STABILIZED_VALUE)
+        )
+        .filter((data) => data.key !== EnumColumnNameOfFinancialSummary.EFFECTIVE_GROSS_INCOME),
+    });
   }
   if (dealSummary.financialSummary && !_.isEmpty(dealSummary.financialSummary.expenses)) {
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses
-      .map((item) => changeData(item, 0, 'inPlaceType', 'inPlaceValue'))
-      .filter((data) => data.key !== 'Total Operating Expneses');
-    // eslint-disable-next-line no-param-reassign
-    dealSummary.financialSummary.expenses = dealSummary.financialSummary.expenses
-      .map((item) => changeData(item, 0, 'stabilizedType', 'stabilizedValue'))
-      .filter((data) => data.key !== 'Total Operating Expneses');
+    Object.assign(dealSummary.financialSummary, {
+      expenses: dealSummary.financialSummary.expenses
+        .map((item) => changeData(item, 0, EnumKeyNameInDealSummary.IN_PLACE_TYPE, EnumKeyNameInDealSummary.IN_PLACE_VALUE))
+        .filter((data) => data.key !== EnumColumnNameOfFinancialSummary.TOTAL_OPERATING_EXPNESES),
+    });
+    Object.assign(dealSummary.financialSummary, {
+      expenses: dealSummary.financialSummary.expenses
+        .map((item) =>
+          changeData(item, 0, EnumKeyNameInDealSummary.STABILIZED_TYPE, EnumKeyNameInDealSummary.STABILIZED_VALUE)
+        )
+        .filter((data) => data.key !== EnumColumnNameOfFinancialSummary.TOTAL_OPERATING_EXPNESES),
+    });
   }
 
   return dealSummary;
