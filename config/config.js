@@ -55,6 +55,8 @@ const envVarsSchema = Joi.object()
       .default(60)
       .description('minutes after which password reset tokens expires'),
     EMAIL_ACCESS_TO_DELETE_DEAL: Joi.string().required().default('richard@parallelcre.com'),
+    NEW_RELIC_APP_NAME: Joi.string(),
+    NEW_RELIC_LICENSE_KEY: Joi.string(),
   })
   .unknown();
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -126,5 +128,9 @@ export default {
     bucket: envVars.AWS_BUCKET_NAME,
     enablePrivateAccess: envVars.ENABLE_PRIVATE_ACCESS,
     urlExpirationSeconds: envVars.URL_EXPIRATION_SECONDS,
+  },
+  newRelic: {
+    newRelicAppName: envVars.NEW_RELIC_APP_NAME,
+    newRelicLicenseKey: envVars.NEW_RELIC_LICENSE_KEY,
   },
 };
