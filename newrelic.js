@@ -5,7 +5,10 @@ const config = require('./config/config').default;
  * See lib/config/default.js in the agent distribution for a more complete
  * description of configuration variables and their potential values.
  */
-
+console.log('==config=> ', config);
+console.log('==config.newRelic=> ', config.newRelic);
+console.log('==config.newRelic.newRelicAppName=> ', config.newRelic.newRelicAppName);
+console.log('==config.newRelic.newRelicLicenseKey=> ', config.newRelic.newRelicLicenseKey);
 exports.config = {
   /**
    * Array of application names.
