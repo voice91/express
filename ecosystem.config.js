@@ -4,6 +4,8 @@ module.exports = {
       name: 'app',
       script: './build/../build/index.js',
       instances: 1,
+      exec_interpreter: 'babel-node',
+      exec_mode: 'fork',
       env: {
         NODE_ENV: 'development',
       },

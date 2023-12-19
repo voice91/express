@@ -23,7 +23,7 @@ import { successHandler, errorHandler as morganErrorHandler } from 'config/morga
 import { decryptRequestData } from 'utils/encrypt-decrypt-text';
 import { isEmpty } from 'lodash';
 
-require('newrelic');
+// require('newrelic');
 const actuator = require('express-actuator');
 require('./utils/rates-cronJob');
 
