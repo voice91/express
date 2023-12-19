@@ -22,6 +22,7 @@ exports.config = {
      * production applications.
      */
     level: 'info',
+    enabled: false,
   },
   /**
    * When true, all request headers except for those listed in attributes.exclude
