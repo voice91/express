@@ -4,6 +4,25 @@
 
 This GitHub Actions workflow automates the deployment of the Lender API to the production server using AWS CodeDeploy. The workflow is triggered when changes are pushed to the `production` branch for production server , `main` branch for staging server.
 
+## Steps to follow for deployment
+
+- **Staging server**
+    1. Merge PR or Push Changes to Main:
+       - Ensure that all changes intended for staging have been merged into the `main` branch. If not using pull requests, push changes directly to the main branch.
+- **Production Server**
+    1. Merge PR or Push Changes to Production:
+       - Ensure that all changes intended for production have been merged into the `production` branch. If not using pull requests, push changes directly to the production branch.
+    2. If you want to push the latest changes run on staging to the production then follow steps like
+       1. Checkout to Main Branch and Pull:
+          - Before deploying changes to the production server, ensure you are on the main branch and have the latest changes.
+          ```bash
+          git checkout main
+          git pull
+       2. Push Changes to Production Branch:
+          - Push the changes from the main branch to the production branch.
+          ```bash
+          git push origin main:production
+
 ## Workflow Configuration
 
 The workflow is defined in the `.github/workflows/deploy_main.yml` file for staging server and `.github/workflows/deploy_production.yml` file for the production server . It consists of a job named "Deploy Lender API Production Server" for production server and "Deploy Lender API Staging Server" for staging server with a single step:
