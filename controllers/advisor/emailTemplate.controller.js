@@ -24,12 +24,12 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
     if (Array.isArray(moveFileObj[key])) {
       const newUrlsArray = [];
       moveFileObj[key].map(async (ele) => {
-        const filePath = `${mongoose.Types.ObjectId()}_${ele.split('/').pop()}`;
+        const filePath = `${ele.split('/').pop()}`;
         newUrlsArray.push(await moveFileAndUpdateTempS3({ url: ele, newFilePath: basePath + filePath }));
       });
       Object.assign(body, { ...body, [key]: await Promise.all(newUrlsArray) });
     } else {
-      const filePath = `${mongoose.Types.ObjectId()}_${moveFileObj[key].split('/').pop()}`;
+      const filePath = `${moveFileObj[key].split('/').pop()}`;
       Object.assign(body, {
         ...body,
         [key]: await moveFileAndUpdateTempS3({

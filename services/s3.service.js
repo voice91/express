@@ -211,6 +211,10 @@ export const moveFile = async ({ key, newFilePath, isPrivate }) => {
     Key: newFilePath, // new destination path where file will be moved
     ACL: isPrivate ? 'private' : 'public-read',
   };
+  // getting error for KeyTooLongError if key length more than 2024, so provided proper error message
+  if (params.Key.length > 1024) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'File URL length must be less than 1024 bytes');
+  }
   try {
     await s3.copyObject(params).promise();
     await deleteObjects([{ Key: params.CopySource }]);

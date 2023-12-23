@@ -30,12 +30,12 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
     if (Array.isArray(moveFileObj[key])) {
       const newUrlsArray = [];
       moveFileObj[key].map(async (ele) => {
-        const filePath = `${mongoose.Types.ObjectId()}_${ele.split('/').pop()}`;
+        const filePath = `${ele.split('/').pop()}`;
         newUrlsArray.push(moveFileAndUpdateTempS3({ url: ele, newFilePath: basePath + filePath }));
       });
       Object.assign(body, { ...body, [key]: await Promise.all(newUrlsArray) });
     } else {
-      const filePath = `${mongoose.Types.ObjectId()}_${moveFileObj[key].split('/').pop()}`;
+      const filePath = `${moveFileObj[key].split('/').pop()}`;
       Object.assign(body, {
         ...body,
         [key]: await moveFileAndUpdateTempS3({
@@ -43,7 +43,7 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
           newFilePath: basePath + filePath,
         }),
       });
-      if (fieldValidation.generateThumbnails) {
+      if (fieldValidation && fieldValidation.generateThumbnails) {
         Object.assign(body, {
           ...body,
           [`thumbOf${key}`]: await s3Service.createThumbnails({
@@ -116,7 +116,7 @@ export const update = catchAsync(async (req, res) => {
   let { body } = req;
   // this for unsetting the field whose value is null in the body and also for the object that's in the body's object
   removeNullFields(body);
-  const { otherPhotos, sponsor, sponsorOverview } = body;
+  const { otherPhotos, sponsor, sponsorOverview, mainPhoto } = body;
   body.updatedBy = req.user.id;
   const { dealSummaryId } = req.params;
   const { user } = req;
@@ -124,6 +124,7 @@ export const update = catchAsync(async (req, res) => {
   validateLoanAmount(body);
   const moveFileObj = {
     ...(body.otherPhotos && { otherPhotos: body.otherPhotos.map((item) => item.url) }),
+    ...(body.mainPhoto && { mainPhoto: body.mainPhoto.url }),
   };
   await moveFiles({ body, user, moveFileObj });
   const filter = {
@@ -135,6 +136,11 @@ export const update = catchAsync(async (req, res) => {
     body.otherPhotos = body.otherPhotos.map((item, index) => {
       return { url: encodeUrl(item), fileName: fileName[index] };
     });
+  }
+  if (body.mainPhoto) {
+    const url = body.mainPhoto;
+    delete body.mainPhoto;
+    Object.assign(body, { mainPhoto: { url: encodeUrl(url), fileName: mainPhoto.fileName } });
   }
 
   // if we have not value inside body fields than no need to create that field in db.
