@@ -39,6 +39,7 @@ import { borrowerSendDealEmailContent, followUpEmailContent, sendDealTemplate1Te
 import enumModel, {
   EnumOfActivityType,
   EnumOfEmailStatus,
+  EnumOfNodeEnv,
   EnumStageOfDeal,
   EnumStageOfLenderPlacement,
 } from '../../models/enum.model';
@@ -276,51 +277,56 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
       if (isFollowUp) {
         headers.push({ Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] });
       }
-      const response = await emailService.sendEmailUsingGmail({
-        to: lenderPlacement.lenderContact.email,
-        cc: ccList,
-        subject: isFollowUp
-          ? `RE: ${getEmailSubjectForDeal(dealDetail.dealSummary)}`
-          : `${getEmailSubjectForDeal(dealDetail.dealSummary)}`, // calling common function for setting subject
-        // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
-        from: req.user.sendEmailFrom,
-        pass: decrypt(req.user.appPassword, config.encryptionPassword),
-        // for followup, we use this template
-        // we want send deal mail, followup mails and other messages as reply so calling common function for it along with followup content
-        text: isFollowUp
-          ? `${getFollowUpContent()}${constructEmailContent({
-              lenderPlacement,
-              sender: req.user.sendEmailFrom,
-            })}`
-          : // calling the common function for send deal template
-            sendDealTemplate({
-              emailContent: req.body.emailContent,
-              dealDetail,
-              firstName: lenderPlacement.lenderContact.firstName,
-              advisorName: req.user.firstName,
-              dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
-              passLink: `<a href=${passLink}>Pass</a>`,
+      let postmarkMessageId;
+      if (config.env !== EnumOfNodeEnv.SANDBOX) {
+        const response = await emailService.sendEmailUsingGmail({
+          to: lenderPlacement.lenderContact.email,
+          cc: ccList,
+          subject: isFollowUp
+            ? `RE: ${getEmailSubjectForDeal(dealDetail.dealSummary)}`
+            : `${getEmailSubjectForDeal(dealDetail.dealSummary)}`, // calling common function for setting subject
+          // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
+          from: req.user.sendEmailFrom,
+          pass: decrypt(req.user.appPassword, config.encryptionPassword),
+          // for followup, we use this template
+          // we want send deal mail, followup mails and other messages as reply so calling common function for it along with followup content
+          text: isFollowUp
+            ? `${getFollowUpContent()}${constructEmailContent({
+                lenderPlacement,
+                sender: req.user.sendEmailFrom,
+              })}`
+            : // calling the common function for send deal template
+              sendDealTemplate({
+                emailContent: req.body.emailContent,
+                dealDetail,
+                firstName: lenderPlacement.lenderContact.firstName,
+                advisorName: req.user.firstName,
+                dealSummaryLink: `<a href=${dealSummaryLink}>Deal Summary</a>`,
+                passLink: `<a href=${passLink}>Pass</a>`,
+              }),
+          attachments:
+            req.body.emailAttachments &&
+            req.body.emailAttachments.map((item) => {
+              let path;
+              if (config.aws.enablePrivateAccess) {
+                path = item.url ? decodeURI(item.url) : decodeURI(item.path);
+              } else {
+                path = item.url ? item.url : item.path;
+              }
+              return {
+                fileName: item.fileName,
+                path,
+                fileType: item.fileType,
+              };
             }),
-        attachments:
-          req.body.emailAttachments &&
-          req.body.emailAttachments.map((item) => {
-            let path;
-            if (config.aws.enablePrivateAccess) {
-              path = item.url ? decodeURI(item.url) : decodeURI(item.path);
-            } else {
-              path = item.url ? item.url : item.path;
-            }
-            return {
-              fileName: item.fileName,
-              path,
-              fileType: item.fileType,
-            };
-          }),
-        isHtml: true,
-        headers,
-        // when we reply than it should go to sender also & sender is sendEmailFrom
-        replyTo: req.user.sendEmailFrom,
-      });
+          isHtml: true,
+          headers,
+          // when we reply than it should go to sender also & sender is sendEmailFrom
+          replyTo: req.user.sendEmailFrom,
+        });
+        postmarkMessageId = response.MessageID || response.messageId;
+      }
+
       if (isFollowUp) {
         logger.info(
           `Follow up mail sent successfully to ${lenderPlacement.lenderContact.email} from ${req.user.sendEmailFrom}`
@@ -331,7 +337,6 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
         );
       }
       // Adding postmark message id in placement while updating lender placement when deal is sent
-      const postmarkMessageId = response.MessageID || response.messageId;
       if (lenderPlacement.isEmailSent === EnumOfEmailStatus.SEND_DEAL) {
         const stage = EnumStageOfLenderPlacement.SENT;
         await LenderPlacement.findByIdAndUpdate(lenderPlacementId, {
@@ -1612,54 +1617,67 @@ export const sendMessage = catchAsync(async (req, res) => {
   // now we are not storing email template in the code
   const subject = getEmailSubjectForDeal(lenderPlacement.deal.dealSummary._doc);
 
-  const response = await emailService.sendEmailUsingGmail({
-    to: [lenderPlacement.lenderContact.email, ...to],
-    // for sending email in the thread we need to change subject like this
-    subject: `Re: ${subject}`,
-    // ...(emailPresentingPostmark && { from: req.user.email }),
-    // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
-    from: req.user.sendEmailFrom,
-    pass: decrypt(req.user.appPassword, config.encryptionPassword),
-    // we want send deal mail, followup mails and other messages as reply so calling common function for it along with message
-    text: `${body.message}${constructEmailContent({ lenderPlacement, sender: req.user.sendEmailFrom })}`,
-    attachments: emailAttachments.map((item) => {
-      let path;
-      if (config.aws.enablePrivateAccess) {
-        path = item.url ? decodeURI(item.url) : decodeURI(item.path);
-      } else {
-        path = item.url ? item.url : item.path;
-      }
-      return {
-        fileName: item.fileName,
-        path,
-        fileType: item.fileType,
-      };
-    }),
-    isHtml: true,
-    // Headers: [{ Name: 'In-Reply-To', Value: 'originalMessageId@example.com' }],
-    headers,
-    cc,
-    // when we reply than it should go to sender also & sender is sendEmailFrom
-    replyTo: req.user.sendEmailFrom,
-  });
-  const postmarkMessageId = response.MessageID || response.messageId;
+  let response;
+  if (config.env !== EnumOfNodeEnv.SANDBOX) {
+    response = await emailService.sendEmailUsingGmail({
+      to: [lenderPlacement.lenderContact.email, ...to],
+      // for sending email in the thread we need to change subject like this
+      subject: `Re: ${subject}`,
+      // ...(emailPresentingPostmark && { from: req.user.email }),
+      // we will need to send email from this email if not present than it will take default email we have that condition in the sendEmail function
+      from: req.user.sendEmailFrom,
+      pass: decrypt(req.user.appPassword, config.encryptionPassword),
+      // we want send deal mail, followup mails and other messages as reply so calling common function for it along with message
+      text: `${body.message}${constructEmailContent({ lenderPlacement, sender: req.user.sendEmailFrom })}`,
+      attachments: emailAttachments.map((item) => {
+        let path;
+        if (config.aws.enablePrivateAccess) {
+          path = item.url ? decodeURI(item.url) : decodeURI(item.path);
+        } else {
+          path = item.url ? item.url : item.path;
+        }
+        return {
+          fileName: item.fileName,
+          path,
+          fileType: item.fileType,
+        };
+      }),
+      isHtml: true,
+      // Headers: [{ Name: 'In-Reply-To', Value: 'originalMessageId@example.com' }],
+      headers,
+      cc,
+      // when we reply than it should go to sender also & sender is sendEmailFrom
+      replyTo: req.user.sendEmailFrom,
+    });
+  }
+
   // Adding postmark message id in placement while updating lender placement when we send message to the lender
+  const postmarkMessageId = response?.MessageID || response?.messageId;
   await lenderPlacementService.updateLenderPlacement(
     { _id: lenderPlacementId },
     {
       $push: {
-        messages: { sender: advisor._id, updatedAt: new Date(), message: body.message, documents: body.documents, to, cc },
+        messages: {
+          sender: advisor._id,
+          updatedAt: new Date(),
+          message: body.message,
+          documents: body.documents,
+          to,
+          cc,
+        },
       },
       $addToSet: {
         postmarkMessageId,
       },
     }
   );
-  const recipientEmails = response.accepted;
-  const recipients = recipientEmails.join(' ,');
-  logger.info(
-    `Message successfully sent to ${recipients} from ${req.user.sendEmailFrom} when advisor sent message from manage lender page`
-  );
+  if (config.env !== EnumOfNodeEnv.SANDBOX) {
+    const recipientEmails = response.accepted;
+    const recipients = recipientEmails.join(' ,');
+    logger.info(
+      `Message successfully sent to ${recipients} from ${req.user.sendEmailFrom} when advisor sent message from manage lender page`
+    );
+  }
   return res.status(httpStatus.OK).send({ results: 'Message sent...' });
 });
 
