@@ -12,6 +12,8 @@ if [ "$APPLICATION_NAME" == "lender-staging" ]; then
     SECRET_ID="lender-staging"
 elif [ "$APPLICATION_NAME" == "lender-production" ]; then
     SECRET_ID="lender-production"
+elif [ "$APPLICATION_NAME" == "lender-sandbox" ]; then
+    SECRET_ID="lender-sandbox"
 else
     echo "Error: Unknown environment '$APPLICATION_NAME'. Exiting."
     exit 1
