@@ -13,14 +13,14 @@ import winstonInstance from 'config/winston';
 import passport from 'passport';
 import jwtStrategy from './config/passport';
 // eslint-disable-next-line import/named
-import { globalLimiter } from 'middlewares/rateLimiter';
-import routes from 'routes';
-import ApiError from 'utils/ApiError';
-import { errorConverter, errorHandler } from 'middlewares/error';
-import sendResponse from 'middlewares/sendResponse';
-import config from 'config/config';
+import { globalLimiter } from './middlewares/rateLimiter';
+import routes from './routes';
+import ApiError from './utils/ApiError';
+import { errorConverter, errorHandler } from './middlewares/error';
+import sendResponse from './middlewares/sendResponse';
+import config from './config/config';
 import { successHandler, errorHandler as morganErrorHandler } from 'config/morgan';
-import { decryptRequestData } from 'utils/encrypt-decrypt-text';
+import { decryptRequestData } from './utils/encrypt-decrypt-text';
 import { isEmpty } from 'lodash';
 
 // require('newrelic');
