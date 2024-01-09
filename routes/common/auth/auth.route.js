@@ -4,7 +4,9 @@ import { authValidation } from '../../../validations/common';
 import { authController } from '../../../controllers/common';
 import auth from '../../../middlewares/auth';
 
+console.log('auth vadi file ma');
 const router = express.Router();
+
 /**
  * Register API
  */
