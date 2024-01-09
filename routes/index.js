@@ -27,11 +27,12 @@ const advisorRoutes = require('./advisor');
 const lenderRoutes = require('./lender');
 
 const router = express.Router();
+router.use('/auth', authRoutes);
 router.use('/user', userRoutes);
 router.use('/advisor', advisorRoutes);
 router.use('/lender', lenderRoutes);
 router.use('/s3', s3Routes);
-router.use('/docs', docsRoutes);
+// router.use('/docs', docsRoutes);
 router.use('/search', searchRoutes);
 router.use('/rates', ratesRoutes);
 router.use('/importFile', importFileRoutes);
