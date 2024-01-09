@@ -6,7 +6,8 @@ import { EnumOfNodeEnv } from '../models/enum.model';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 const envVarsSchema = Joi.object()
   .keys({
-    NODE_ENV: Joi.string()
+    NODE_ENV: Joi.string().valid('production', 'development', 'test').required(),
+    APPLICATION_ENV: Joi.string()
       .valid(...Object.values(EnumOfNodeEnv))
       .required(),
     PORT: Joi.number().default(3000),
@@ -68,6 +69,7 @@ if (error) {
 }
 export default {
   env: envVars.NODE_ENV,
+  application_env: envVars.APPLICATION_ENV,
   port: envVars.PORT,
   activitySystemUser: envVars.ACTIVITY_SYSTEM_USER,
   disabledTimeForNotes: envVars.DISABLED_TIME_FOR_NOTES,

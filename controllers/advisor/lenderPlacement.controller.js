@@ -278,7 +278,7 @@ export const sendEmailV3 = catchAsync(async (req, res) => {
         headers.push({ Name: 'In-Reply-To', Value: lenderPlacement.postmarkMessageId[0] });
       }
       let postmarkMessageId;
-      if (config.env !== EnumOfNodeEnv.SANDBOX) {
+      if (config.application_env !== EnumOfNodeEnv.SANDBOX) {
         const response = await emailService.sendEmailUsingGmail({
           to: lenderPlacement.lenderContact.email,
           cc: ccList,
@@ -666,7 +666,14 @@ export const update = catchAsync(async (req, res) => {
       // When we change the status from sent to new then all the messages , contact, task, postmarkMessageId, sendEmailPostmarkMessageId, terms, followOnDate, sendDealMail and orderOfTerms should get removed
       body.isEmailSentFirstTime = false;
       body.messages = [];
-      body.$unset = { lenderContact: '', terms: '', termSheet: '', followOnDate: '', sendDealMail: '', orderOfTerms: '' };
+      body.$unset = {
+        lenderContact: '',
+        terms: '',
+        termSheet: '',
+        followOnDate: '',
+        sendDealMail: '',
+        orderOfTerms: '',
+      };
       body.postmarkMessageId = [];
       body.sendEmailPostmarkMessageId = [];
       body.followUpMail = [];
@@ -1618,7 +1625,7 @@ export const sendMessage = catchAsync(async (req, res) => {
   const subject = getEmailSubjectForDeal(lenderPlacement.deal.dealSummary._doc);
 
   let response;
-  if (config.env !== EnumOfNodeEnv.SANDBOX) {
+  if (config.application_env !== EnumOfNodeEnv.SANDBOX) {
     response = await emailService.sendEmailUsingGmail({
       to: [lenderPlacement.lenderContact.email, ...to],
       // for sending email in the thread we need to change subject like this
@@ -1671,7 +1678,7 @@ export const sendMessage = catchAsync(async (req, res) => {
       },
     }
   );
-  if (config.env !== EnumOfNodeEnv.SANDBOX) {
+  if (config.application_env !== EnumOfNodeEnv.SANDBOX) {
     const recipientEmails = response.accepted;
     const recipients = recipientEmails.join(' ,');
     logger.info(
