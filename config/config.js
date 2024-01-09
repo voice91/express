@@ -22,9 +22,9 @@ const envVarsSchema = Joi.object()
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     FRONT_URL: Joi.string().description('frontend url for email service'),
-    AWS_BUCKET_NAME: Joi.string().required().description('Aws Bucket Name is required'),
-    AWS_ACCESS_KEY: Joi.string().required().description('Aws Access Key is required'),
-    AWS_SECRET_ACCESS_KEY: Joi.string().required().description('Aws Secret Access Key is required'),
+    AWS_BUCKET_NAME: Joi.string().description('Aws Bucket Name is required'),
+    AWS_ACCESS_KEY: Joi.string().description('Aws Access Key is required'),
+    AWS_SECRET_ACCESS_KEY: Joi.string().description('Aws Secret Access Key is required'),
     ENABLE_PRIVATE_ACCESS: Joi.boolean()
       .description('Flag to enable/disable PRIVATE access of uploaded files')
       .default(false),
