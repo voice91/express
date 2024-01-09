@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 // TODO: implement in the future
 import config from 'config/config';
 import { logger } from 'config/logger';
-import socketAPI from 'appEvents/socketAPI';
+// import socketAPI from 'appEvents/socketAPI';
 import app from './app';
 import { seedDatabase } from './seed';
 
-const { initSockets } = require('appEvents/handler');
+// const { initSockets } = require('appEvents/handler');
 
 let server;
 mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
@@ -19,8 +19,8 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   seedDatabase().then().catch();
   // check whether Socket is enabled or not TODO: implement in the future
   // socketAPI.io.adapter(redisAdapter({ host: config.redis.host, port: config.redis.port }));
-  socketAPI.io.attach(server);
-  initSockets();
+  // socketAPI.io.attach(server);
+  // initSockets();
 });
 
 const db = mongoose.connection;
