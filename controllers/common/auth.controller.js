@@ -134,6 +134,7 @@ export const verifyEmail = catchAsync(async (req, res) => {
  */
 export const userInfo = catchAsync(async (req, res) => {
   // const user = await userService.getUserById(req.user._id);
+  console.log('here');
   res.status(httpStatus.OK).send({ results: { user: 'success' } });
 });
 
