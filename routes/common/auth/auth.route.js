@@ -27,7 +27,7 @@ router.post('/login', validate(authValidation.login), authController.login);
 /**
  * get the Current LoggedIn UserInfo using token
  */
-router.get('/me', auth(), authController.userInfo);
+router.get('/me', authController.userInfo);
 
 /**
  * When user is created from BE while sending email then user can change password

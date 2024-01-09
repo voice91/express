@@ -133,8 +133,8 @@ export const verifyEmail = catchAsync(async (req, res) => {
  * get the Current LoggedIn UserInfo using token
  */
 export const userInfo = catchAsync(async (req, res) => {
-  const user = await userService.getUserById(req.user._id);
-  res.status(httpStatus.OK).send({ results: { user } });
+  // const user = await userService.getUserById(req.user._id);
+  res.status(httpStatus.OK).send({ results: { user: 'success' } });
 });
 
 /**
