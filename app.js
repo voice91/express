@@ -9,19 +9,19 @@ import helmet from 'helmet';
 import express from 'express';
 import fileUpload from 'express-fileupload';
 import expressWinston from 'express-winston';
-import winstonInstance from './config/winston';
 import passport from 'passport';
+import routes from 'routes';
+import { isEmpty } from 'lodash';
+import winstonInstance from './config/winston';
 import jwtStrategy from './config/passport';
 // eslint-disable-next-line import/named
 import { globalLimiter } from './middlewares/rateLimiter';
-import routes from 'routes';
 import ApiError from './utils/ApiError';
 import { errorConverter, errorHandler } from './middlewares/error';
 import sendResponse from './middlewares/sendResponse';
 import config from './config/config';
 import { successHandler, errorHandler as morganErrorHandler } from './config/morgan';
 import { decryptRequestData } from './utils/encrypt-decrypt-text';
-import { isEmpty } from 'lodash';
 
 // require('newrelic');
 const actuator = require('express-actuator');
