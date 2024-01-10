@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import Joi from 'joi';
 import { EnumOfNodeEnv } from '../models/enum.model';
 
+console.log('path.join(__dirnam', path.join(__dirname, '../.env'));
 dotenv.config({ path: path.join(__dirname, '../.env') });
 const envVarsSchema = Joi.object()
   .keys({
