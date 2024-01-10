@@ -1,12 +1,12 @@
-import multer from 'multer';
+// import multer from 'multer';
 import express from 'express';
-import { importFileController } from 'controllers/common';
-import auth from 'middlewares/auth';
+// import { importFileController } from 'controllers/common';
+// import auth from 'middlewares/auth';
 
-const upload = multer({ dest: 'uploads/' });
+// const upload = multer({ dest: 'uploads/' });
 const router = express();
 /**
  * FileUpload
  * */
-router.post('/', auth('advisor'), upload.single('file'), importFileController.importDataFromFile);
+// router.post('/', auth('advisor'), upload.single('file'), importFileController.importDataFromFile);
 module.exports = router;
