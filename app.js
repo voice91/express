@@ -9,7 +9,7 @@ import helmet from 'helmet';
 import express from 'express';
 import fileUpload from 'express-fileupload';
 import expressWinston from 'express-winston';
-import winstonInstance from 'config/winston';
+import winstonInstance from './config/winston';
 import passport from 'passport';
 import jwtStrategy from './config/passport';
 // eslint-disable-next-line import/named
