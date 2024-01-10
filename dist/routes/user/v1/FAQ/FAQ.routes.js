@@ -1,16 +1,9 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _express = _interopRequireDefault(require("express"));
-var _user = require("../../../../controllers/user");
-var _user2 = require("../../../../validations/user");
-var _validate = _interopRequireDefault(require("../../../../middlewares/validate"));
-var _auth = _interopRequireDefault(require("../../../../middlewares/auth"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var router = _express["default"].Router();
+import express from 'express';
+import { FAQController } from "../../../../controllers/user";
+import { FAQValidation } from "../../../../validations/user";
+import validate from "../../../../middlewares/validate";
+import auth from "../../../../middlewares/auth";
+const router = express.Router();
 router.route('/sendMail-to-support')
 /**
  * send Email to Support Team
@@ -18,5 +11,5 @@ router.route('/sendMail-to-support')
 /**
  * @deprecated
  * This route is no longer in use as it's been removed from the UI.
- */.post((0, _auth["default"])('user'), (0, _validate["default"])(_user2.FAQValidation.sendMail), _user.FAQController.sendMail);
-var _default = exports["default"] = router;
+ */.post(auth('user'), validate(FAQValidation.sendMail), FAQController.sendMail);
+export default router;

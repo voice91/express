@@ -1,8 +1,5 @@
-"use strict";
+import express from 'express';
 
-var _express = _interopRequireDefault(require("express"));
-var _auth = _interopRequireDefault(require("./common/auth/auth.route"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 // import s3Routes from './common/aws/s3.route';
 //
 // import docsRoutes from './common/docs/swagger.route';
@@ -10,6 +7,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 // import searchRoutes from './common/search/search.route';
 //
 // import ratesRoutes from './common/rates/rates.route';
+
+import authRoutes from "./common/auth/auth.route";
 
 // import importFileRoutes from './common/import/importFile.route';
 //
@@ -27,8 +26,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 // const advisorRoutes = require('./advisor');
 // const lenderRoutes = require('./lender');
 
-var router = _express["default"].Router();
-router.use('/auth', _auth["default"]);
+const router = express.Router();
+router.use('/auth', authRoutes);
 // router.use('/user', userRoutes);
 // router.use('/advisor', advisorRoutes);
 // router.use('/lender', lenderRoutes);

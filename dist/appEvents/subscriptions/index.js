@@ -1,11 +1,8 @@
-"use strict";
-
-var _httpStatus = _interopRequireDefault(require("http-status"));
-var _jsonwebtoken = _interopRequireDefault(require("jsonwebtoken"));
-var _services = require("../../services");
-var _ApiError = _interopRequireDefault(require("../../utils/ApiError"));
-var _config = _interopRequireDefault(require("../../config/config"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+import httpStatus from 'http-status';
+import jwt from 'jsonwebtoken';
+import { userService } from "../../services";
+import ApiError from "../../utils/ApiError";
+import config from "../../config/config";
 module.exports = {
   /**
    *  we get the socket and from that we get the Query parameter and that should be the token so that we can verify that user exist and valid
@@ -14,16 +11,18 @@ module.exports = {
    * @param next
    * @returns {*}
    */
-  initSubscription: function initSubscription(socket, next) {
-    var token = socket.handshake.query.token;
+  initSubscription(socket, next) {
+    const {
+      token
+    } = socket.handshake.query;
     if (!token) {
-      return next(new _ApiError["default"](_httpStatus["default"].UNAUTHORIZED, 'Please authenticate'));
+      return next(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
     }
-    return _jsonwebtoken["default"].verify(token, _config["default"].jwt.secret, {}, function (err, decoded) {
+    return jwt.verify(token, config.jwt.secret, {}, (err, decoded) => {
       if (err || !decoded || !decoded.sub) {
-        return next(new _ApiError["default"](_httpStatus["default"].UNAUTHORIZED, 'Bad token', true));
+        return next(new ApiError(httpStatus.UNAUTHORIZED, 'Bad token', true));
       }
-      return _services.userService.getUserById(decoded.sub).then(function (user) {
+      return userService.getUserById(decoded.sub).then(user => {
         if (user) {
           // TODO: Add the user Session Init Code he if you have any condition on connection
           // eslint-disable-next-line no-param-reassign
@@ -32,13 +31,13 @@ module.exports = {
           };
           // eslint-disable-next-line no-param-reassign
           socket.startedAt = new Date();
-          socket.join("user.".concat(decoded.sub));
+          socket.join(`user.${decoded.sub}`);
           socket.on('disconnect', function () {
             // TODO: Add the User Disconnect Cleanup Code here
           });
           return next();
         }
-        return next(new _ApiError["default"](_httpStatus["default"].UNAUTHORIZED, 'Please authenticate'));
+        return next(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
       });
     });
   }

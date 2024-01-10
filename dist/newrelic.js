@@ -1,6 +1,4 @@
-"use strict";
-
-var config = require("./config/config")["default"];
+const config = require("./config/config").default;
 /**
  * New Relic agent configuration.
  *
@@ -12,7 +10,7 @@ exports.config = {
    * Array of application names.
    */
 
-  app_name: ["".concat(config.newRelic.newRelicAppName)],
+  app_name: [`${config.newRelic.newRelicAppName}`],
   /**
    * Your New Relic license key.
    */

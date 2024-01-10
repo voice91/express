@@ -1,17 +1,10 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _express = _interopRequireDefault(require("express"));
-var _advisor = require("../../../../controllers/advisor");
-var _advisor2 = require("../../../../validations/advisor");
-var _validate = _interopRequireDefault(require("../../../../middlewares/validate"));
-var _auth = _interopRequireDefault(require("../../../../middlewares/auth"));
-var _checkUserOfDeal = _interopRequireDefault(require("../../../../middlewares/checkUserOfDeal"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var router = _express["default"].Router();
+import express from 'express';
+import { dealDocumentController } from "../../../../controllers/advisor";
+import { dealDocumentValidation } from "../../../../validations/advisor";
+import validate from "../../../../middlewares/validate";
+import auth from "../../../../middlewares/auth";
+import checkAccessOfDeal from "../../../../middlewares/checkUserOfDeal";
+const router = express.Router();
 router.route('/')
 /**
  * createDealDocument
@@ -19,11 +12,11 @@ router.route('/')
 /**
  * @deprecated
  * This route is no longer in use instead we are using '/v2/add' as we now have functionality of 'add recommended file' also we can add comment with the docs.
- */.post((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.createDealDocument), _checkUserOfDeal["default"], _advisor.dealDocumentController.create);
+ */.post(auth('advisor'), validate(dealDocumentValidation.createDealDocument), checkAccessOfDeal, dealDocumentController.create);
 router.route('/v2/add')
 /**
  * createDealDocument updated flow
- * */.post((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.createDealDocumentV2), _checkUserOfDeal["default"], _advisor.dealDocumentController.createV2);
+ * */.post(auth('advisor'), validate(dealDocumentValidation.createDealDocumentV2), checkAccessOfDeal, dealDocumentController.createV2);
 router.route('/deal/:dealId')
 /**
  * getDealDocument
@@ -31,21 +24,21 @@ router.route('/deal/:dealId')
 /**
  * @deprecated
  * This route is no longer in use instead we are using '/v2/deal/:dealId'.
- */.get((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.getDealDocument), _checkUserOfDeal["default"], _advisor.dealDocumentController.getDealDocumentByDeal);
+ */.get(auth('advisor'), validate(dealDocumentValidation.getDealDocument), checkAccessOfDeal, dealDocumentController.getDealDocumentByDeal);
 router.route('/v2/deal/:dealId')
 /**
  * getDealDocuments list by deal
- * */.get((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.getDealDocument), _checkUserOfDeal["default"], _advisor.dealDocumentController.getDealDocumentByDealV2);
+ * */.get(auth('advisor'), validate(dealDocumentValidation.getDealDocument), checkAccessOfDeal, dealDocumentController.getDealDocumentByDealV2);
 router.route('/paginated')
 /**
  * getDealDocumentPaginated
- * */.get((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.paginatedDealDocument), _advisor.dealDocumentController.paginate);
+ * */.get(auth('advisor'), validate(dealDocumentValidation.paginatedDealDocument), dealDocumentController.paginate);
 router.route('/:dealDocumentId')
 /**
  * getDealDocumentById
- * */.get((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.getDealDocumentById), _advisor.dealDocumentController.get)
+ * */.get(auth('advisor'), validate(dealDocumentValidation.getDealDocumentById), dealDocumentController.get)
 /**
  * updateDealDocument
- * */.put((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.updateDealDocument), _checkUserOfDeal["default"], _advisor.dealDocumentController.update)["delete"]((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.removeDealDocument), _advisor.dealDocumentController.remove);
-router.route('/documents/:documentId')["delete"]((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.dealDocumentValidation.deleteDocument), _advisor.dealDocumentController.removeDocument);
-var _default = exports["default"] = router;
+ * */.put(auth('advisor'), validate(dealDocumentValidation.updateDealDocument), checkAccessOfDeal, dealDocumentController.update).delete(auth('advisor'), validate(dealDocumentValidation.removeDealDocument), dealDocumentController.remove);
+router.route('/documents/:documentId').delete(auth('advisor'), validate(dealDocumentValidation.deleteDocument), dealDocumentController.removeDocument);
+export default router;

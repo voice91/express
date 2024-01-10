@@ -1,35 +1,28 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _express = _interopRequireDefault(require("express"));
-var _lender = require("../../../../controllers/lender");
-var _lender2 = require("../../../../validations/lender");
-var _validate = _interopRequireDefault(require("../../../../middlewares/validate"));
-var _auth = _interopRequireDefault(require("../../../../middlewares/auth"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var router = _express["default"].Router();
+import express from 'express';
+import { emailTemplateController } from "../../../../controllers/lender";
+import { emailTemplateValidation } from "../../../../validations/lender";
+import validate from "../../../../middlewares/validate";
+import auth from "../../../../middlewares/auth";
+const router = express.Router();
 router.route('/')
 /**
  * createEmailTemplate
- * */.post((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.emailTemplateValidation.createEmailTemplate), _lender.emailTemplateController.create)
+ * */.post(auth('lender'), validate(emailTemplateValidation.createEmailTemplate), emailTemplateController.create)
 /**
  * getEmailTemplate
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.emailTemplateValidation.getEmailTemplate), _lender.emailTemplateController.list);
+ * */.get(auth('lender'), validate(emailTemplateValidation.getEmailTemplate), emailTemplateController.list);
 router.route('/paginated')
 /**
  * getEmailTemplatePaginated
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.emailTemplateValidation.paginatedEmailTemplate), _lender.emailTemplateController.paginate);
+ * */.get(auth('lender'), validate(emailTemplateValidation.paginatedEmailTemplate), emailTemplateController.paginate);
 router.route('/:emailTemplateId')
 /**
  * getEmailTemplateById
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.emailTemplateValidation.getEmailTemplateById), _lender.emailTemplateController.get)
+ * */.get(auth('lender'), validate(emailTemplateValidation.getEmailTemplateById), emailTemplateController.get)
 /**
  * updateEmailTemplate
- * */.put((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.emailTemplateValidation.updateEmailTemplate), _lender.emailTemplateController.update)
+ * */.put(auth('lender'), validate(emailTemplateValidation.updateEmailTemplate), emailTemplateController.update)
 /**
  * deleteEmailTemplateById
- * */["delete"]((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.emailTemplateValidation.deleteEmailTemplateById), _lender.emailTemplateController.remove);
-var _default = exports["default"] = router;
+ * */.delete(auth('lender'), validate(emailTemplateValidation.deleteEmailTemplateById), emailTemplateController.remove);
+export default router;

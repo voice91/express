@@ -1,20 +1,13 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _express = _interopRequireDefault(require("express"));
-var _lender = require("../../../../controllers/lender");
-var _lender2 = require("../../../../validations/lender");
-var _validate = _interopRequireDefault(require("../../../../middlewares/validate"));
-var _auth = _interopRequireDefault(require("../../../../middlewares/auth"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var router = _express["default"].Router();
+import express from 'express';
+import { dealController } from "../../../../controllers/lender";
+import { dealValidation } from "../../../../validations/lender";
+import validate from "../../../../middlewares/validate";
+import auth from "../../../../middlewares/auth";
+const router = express.Router();
 router.route('/')
 /**
  * getDeal
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.dealValidation.getDeal), _lender.dealController.list);
+ * */.get(auth('lender'), validate(dealValidation.getDeal), dealController.list);
 router.route('/paginated')
 /**
  * getDealPaginated
@@ -22,12 +15,12 @@ router.route('/paginated')
 /**
  * @deprecated
  * Not using this route anymore, as per the latest requirement we need placement stage and timeline on lender page
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.dealValidation.paginatedDeal), _lender.dealController.paginate);
+ * */.get(auth('lender'), validate(dealValidation.paginatedDeal), dealController.paginate);
 router.route('/:dealId')
 /**
  * getDealById
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.dealValidation.getDealById), _lender.dealController.get)
+ * */.get(auth('lender'), validate(dealValidation.getDealById), dealController.get)
 /**
  * deleteDealById
- * */["delete"]((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.dealValidation.deleteDealById), _lender.dealController.remove);
-var _default = exports["default"] = router;
+ * */.delete(auth('lender'), validate(dealValidation.deleteDealById), dealController.remove);
+export default router;

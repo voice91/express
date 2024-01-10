@@ -1,18 +1,15 @@
-"use strict";
-
-var _mongoose = _interopRequireDefault(require("mongoose"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : String(i); }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-var Schema = _mongoose["default"].Schema;
-var Model = _mongoose["default"].Model;
+import mongoose from 'mongoose';
+const {
+  Schema
+} = mongoose;
+const {
+  Model
+} = mongoose;
 function parseUpdateArguments(conditions, doc, options, callbackFunc) {
-  var callback = callbackFunc;
-  var condition = conditions;
-  var document = doc;
-  var option = options;
+  let callback = callbackFunc;
+  let condition = conditions;
+  let document = doc;
+  let option = options;
   if (typeof option === 'function') {
     // .update(conditions, doc, callback)
     callback = option;
@@ -29,14 +26,14 @@ function parseUpdateArguments(conditions, doc, options, callbackFunc) {
     condition = undefined;
     document = undefined;
     option = undefined;
-  } else if (_typeof(condition) === 'object' && !document && !option && !callback) {
+  } else if (typeof condition === 'object' && !document && !option && !callback) {
     // .update(doc)
     document = condition;
     condition = undefined;
     option = undefined;
     callback = undefined;
   }
-  var args = [];
+  const args = [];
   if (condition) args.push(condition);
   if (document) args.push(document);
   if (option) args.push(option);
@@ -44,23 +41,29 @@ function parseUpdateArguments(conditions, doc, options, callbackFunc) {
   return args;
 }
 function parseIndexFields(options) {
-  var deleted = options.deleted,
-    deletedAt = options.deletedAt,
-    deletedBy = options.deletedBy;
-  var indexFields = _defineProperty(_defineProperty(_defineProperty({}, deleted, false), deletedAt, false), deletedBy, false);
+  const {
+    deleted,
+    deletedAt,
+    deletedBy
+  } = options;
+  const indexFields = {
+    [deleted]: false,
+    [deletedAt]: false,
+    [deletedBy]: false
+  };
   if (!options.indexFields) {
     return indexFields;
   }
   if ((typeof options.indexFields === 'string' || options.indexFields instanceof String) && options.indexFields === 'all') {
     // eslint-disable-next-line guard-for-in,no-restricted-syntax
-    for (var item in indexFields) {
+    for (const item in indexFields) {
       indexFields[item] = true;
     }
   }
   if (typeof options.indexFields === 'boolean' && options.indexFields === true) {
     // eslint-disable-next-line guard-for-in,no-restricted-syntax
-    for (var _item in indexFields) {
-      indexFields[_item] = true;
+    for (const item in indexFields) {
+      indexFields[item] = true;
     }
   }
   if (Array.isArray(options.indexFields)) {
@@ -71,7 +74,7 @@ function parseIndexFields(options) {
   return indexFields;
 }
 function createSchemaObject(typeKey, typeValue, options) {
-  var option = options;
+  const option = options;
   option[typeKey] = typeValue;
   return option;
 }
@@ -80,15 +83,18 @@ function createSchemaObject(typeKey, typeValue, options) {
 /* eslint-disable-next-line prefer-rest-params */
 module.exports = function (schema, options) {
   options = options || {};
-  var indexFields = parseIndexFields(options);
-  var _options = options,
-    deleted = _options.deleted,
-    deletedAt = _options.deletedAt,
-    deletedBy = _options.deletedBy;
-  var typeKey = schema.options.typeKey;
-  var mongooseMajorVersion = +_mongoose["default"].version[0]; // 4, 5...
-  var mainUpdateMethod = mongooseMajorVersion < 5 ? 'update' : 'updateMany';
-  var mainUpdateWithDeletedMethod = "".concat(mainUpdateMethod, "WithDeleted");
+  const indexFields = parseIndexFields(options);
+  const {
+    deleted,
+    deletedAt,
+    deletedBy
+  } = options;
+  const {
+    typeKey
+  } = schema.options;
+  const mongooseMajorVersion = +mongoose.version[0]; // 4, 5...
+  const mainUpdateMethod = mongooseMajorVersion < 5 ? 'update' : 'updateMany';
+  const mainUpdateWithDeletedMethod = `${mainUpdateMethod}WithDeleted`;
   function updateDocumentsByQuery(model, conditions, updateQuery, callback) {
     if (model[mainUpdateWithDeletedMethod]) {
       return model[mainUpdateWithDeletedMethod](conditions, updateQuery, {
@@ -100,23 +106,29 @@ module.exports = function (schema, options) {
     }, callback);
   }
   if (options.deleted) {
-    schema.add(_defineProperty({}, deleted, createSchemaObject(typeKey, Boolean, {
-      "default": false,
-      index: indexFields[deleted]
-    })));
+    schema.add({
+      [deleted]: createSchemaObject(typeKey, Boolean, {
+        default: false,
+        index: indexFields[deleted]
+      })
+    });
   }
   if (options.deletedAt) {
-    schema.add(_defineProperty({}, deletedAt, createSchemaObject(typeKey, Date, {
-      "default": Date.now(),
-      index: indexFields[deletedAt]
-    })));
+    schema.add({
+      [deletedAt]: createSchemaObject(typeKey, Date, {
+        default: Date.now(),
+        index: indexFields[deletedAt]
+      })
+    });
   }
   if (options.deletedBy) {
-    schema.add(_defineProperty({}, deletedBy, createSchemaObject(typeKey, options.deletedByType || Schema.Types.ObjectId, {
-      index: indexFields[deletedBy]
-    })));
+    schema.add({
+      [deletedBy]: createSchemaObject(typeKey, options.deletedByType || Schema.Types.ObjectId, {
+        index: indexFields[deletedBy]
+      })
+    });
   }
-  var use$neOperator = true;
+  let use$neOperator = true;
   if (options.use$neOperator !== undefined && typeof options.use$neOperator === 'boolean') {
     use$neOperator = options.use$neOperator;
   }
@@ -127,9 +139,9 @@ module.exports = function (schema, options) {
     next();
   });
   if (options.overrideMethods) {
-    var overrideItems = options.overrideMethods;
-    var overridableMethods = ['count', 'countDocuments', 'find', 'findOne', 'findOneAndUpdate', 'update', 'updateOne', 'updateMany', 'aggregate'];
-    var finalList = [];
+    const overrideItems = options.overrideMethods;
+    const overridableMethods = ['count', 'countDocuments', 'find', 'findOne', 'findOneAndUpdate', 'update', 'updateOne', 'updateMany', 'aggregate'];
+    let finalList = [];
     if ((typeof overrideItems === 'string' || overrideItems instanceof String) && overrideItems === 'all') {
       finalList = overridableMethods;
     }
@@ -145,15 +157,17 @@ module.exports = function (schema, options) {
     }
     if (finalList.indexOf('aggregate') > -1) {
       schema.pre('aggregate', function () {
-        var firsMatchStr = JSON.stringify(this.pipeline()[0]);
-        if (firsMatchStr !== "{\"$match\":{\"".concat(deleted, "\":{\"$ne\":false}}}")) {
+        const firsMatchStr = JSON.stringify(this.pipeline()[0]);
+        if (firsMatchStr !== `{"$match":{"${deleted}":{"$ne":false}}}`) {
           if (firsMatchStr === '{"$match":{"showAllDocuments":"true"}}') {
             this.pipeline().shift();
           } else {
             this.pipeline().unshift({
-              $match: _defineProperty({}, deleted, {
-                $ne: true
-              })
+              $match: {
+                [deleted]: {
+                  $ne: true
+                }
+              }
             });
           }
         }
@@ -161,64 +175,55 @@ module.exports = function (schema, options) {
     }
     finalList.forEach(function (method) {
       if (['count', 'countDocuments', 'find', 'findOne'].indexOf(method) > -1) {
-        var modelMethodName = method;
+        let modelMethodName = method;
         // countDocuments do not exist in Mongoose v4
         /* istanbul ignore next */
         if (mongooseMajorVersion < 5 && method === 'countDocuments' && typeof Model.countDocuments !== 'function') {
           modelMethodName = 'count';
         }
-        schema.statics[method] = function () {
-          for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-          }
-          var query = Model[modelMethodName].apply(this, args);
+        schema.statics[method] = function (...args) {
+          const query = Model[modelMethodName].apply(this, args);
           if (!args[2] || args[2].withDeleted !== true) {
             if (use$neOperator) {
-              query.where("".concat(deleted)).ne(true);
+              query.where(`${deleted}`).ne(true);
             } else {
-              query.where(_defineProperty({}, deleted, false));
+              query.where({
+                [deleted]: false
+              });
             }
           }
           return query;
         };
-        schema.statics["".concat(method, "Deleted")] = function () {
-          for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-          }
+        schema.statics[`${method}Deleted`] = function (...args) {
           if (use$neOperator) {
-            return Model[modelMethodName].apply(this, args).where("'".concat(deleted, "'")).ne(false);
+            return Model[modelMethodName].apply(this, args).where(`'${deleted}'`).ne(false);
           }
-          return Model[modelMethodName].apply(this, args).where(_defineProperty({}, deleted, true));
+          return Model[modelMethodName].apply(this, args).where({
+            [deleted]: true
+          });
         };
-        schema.statics["".concat(method, "WithDeleted")] = function () {
-          for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-          }
+        schema.statics[`${method}WithDeleted`] = function (...args) {
           return Model[modelMethodName].apply(this, args);
         };
       } else if (method === 'aggregate') {
-        schema.statics["".concat(method, "Deleted")] = function () {
-          var args = [];
-          for (var _len4 = arguments.length, arg = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            arg[_key4] = arguments[_key4];
-          }
+        schema.statics[`${method}Deleted`] = function (...arg) {
+          const args = [];
           Array.prototype.push.apply(args, arg);
-          var match = {
-            $match: _defineProperty({}, deleted, {
-              $ne: false
-            })
+          const match = {
+            $match: {
+              [deleted]: {
+                $ne: false
+              }
+            }
           };
           // eslint-disable-next-line no-unused-expressions
           arg.length ? args[0].unshift(match) : args.push([match]);
           return Model[method].apply(this, args);
         };
-        schema.statics["".concat(method, "WithDeleted")] = function () {
-          var args = [];
-          for (var _len5 = arguments.length, arg = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-            arg[_key5] = arguments[_key5];
-          }
+        schema.statics[`${method}WithDeleted`] = function (...arg) {
+          const args = [];
           Array.prototype.push.apply(args, arg);
-          var match = {
+          const match = {
             $match: {
               showAllDocuments: 'true'
             }
@@ -228,12 +233,9 @@ module.exports = function (schema, options) {
           return Model[method].apply(this, args);
         };
       } else {
-        schema.statics[method] = function () {
-          for (var _len6 = arguments.length, arg = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-            arg[_key6] = arguments[_key6];
-          }
+        schema.statics[method] = function (...arg) {
           // eslint-disable-next-line prefer-spread
-          var args = parseUpdateArguments.apply(undefined, arg);
+          const args = parseUpdateArguments.apply(undefined, arg);
           if (use$neOperator) {
             args[0][deleted] = {
               $ne: true
@@ -243,12 +245,9 @@ module.exports = function (schema, options) {
           }
           return Model[method].apply(this, args);
         };
-        schema.statics["".concat(method, "Deleted")] = function () {
-          for (var _len7 = arguments.length, arg = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-            arg[_key7] = arguments[_key7];
-          }
+        schema.statics[`${method}Deleted`] = function (...arg) {
           // eslint-disable-next-line prefer-spread
-          var args = parseUpdateArguments.apply(undefined, arg);
+          const args = parseUpdateArguments.apply(undefined, arg);
           if (use$neOperator) {
             args[0][deleted] = {
               $ne: false
@@ -258,16 +257,13 @@ module.exports = function (schema, options) {
           }
           return Model[method].apply(this, args);
         };
-        schema.statics["".concat(method, "WithDeleted")] = function () {
-          for (var _len8 = arguments.length, arg = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-            arg[_key8] = arguments[_key8];
-          }
+        schema.statics[`${method}WithDeleted`] = function (...arg) {
           return Model[method].apply(this, arg);
         };
       }
     });
   }
-  schema.methods["delete"] = function (deleteBy, cb) {
+  schema.methods.delete = function (deleteBy, cb) {
     if (typeof deleteBy === 'function') {
       cb = deleteBy;
       deleteBy = null;
@@ -286,7 +282,7 @@ module.exports = function (schema, options) {
     }
     return this.save(cb);
   };
-  schema.statics["delete"] = function (conditions, deleteBy, callback) {
+  schema.statics.delete = function (conditions, deleteBy, callback) {
     if (typeof deleteBy === 'function') {
       callback = deleteBy;
       // eslint-disable-next-line no-self-assign
@@ -297,7 +293,9 @@ module.exports = function (schema, options) {
       conditions = {};
       deleteBy = null;
     }
-    var doc = _defineProperty({}, deleted, true);
+    const doc = {
+      [deleted]: true
+    };
     if (schema.path(deletedAt)) {
       doc[deletedAt] = new Date();
     }
@@ -308,13 +306,13 @@ module.exports = function (schema, options) {
   };
   schema.statics.deleteById = function (id, deleteBy, callback) {
     if (arguments.length === 0 || typeof id === 'function') {
-      var msg = 'First argument is mandatory and must not be a function.';
+      const msg = 'First argument is mandatory and must not be a function.';
       throw new TypeError(msg);
     }
-    var conditions = {
+    const conditions = {
       _id: id
     };
-    return this["delete"](conditions, deleteBy, callback);
+    return this.delete(conditions, deleteBy, callback);
   };
   schema.methods.restore = function (callback) {
     this[deleted] = false;
@@ -327,7 +325,11 @@ module.exports = function (schema, options) {
       callback = conditions;
       conditions = {};
     }
-    var doc = _defineProperty(_defineProperty(_defineProperty({}, deleted, false), deletedAt, undefined), deletedBy, undefined);
+    const doc = {
+      [deleted]: false,
+      [deletedAt]: undefined,
+      [deletedBy]: undefined
+    };
     return updateDocumentsByQuery(this, conditions, doc, callback);
   };
 };

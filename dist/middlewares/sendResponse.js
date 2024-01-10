@@ -1,14 +1,7 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _encryptDecryptText = require("../utils/encrypt-decrypt-text");
-var _config = _interopRequireDefault(require("../config/config"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+import { encryptResponseData } from "../utils/encrypt-decrypt-text";
+import config from "../config/config";
 function sendResponse(req, res, next) {
-  var response = res.send;
+  const response = res.send;
   res.send = function (originalData) {
     if (originalData.error) {
       // eslint-disable-next-line prefer-rest-params
@@ -26,13 +19,13 @@ function sendResponse(req, res, next) {
       };
     }
     // If dataEncryption is enabled then ,encrypt the response before sending
-    if (_config["default"].dataEncryption) {
+    if (config.dataEncryption) {
       // eslint-disable-next-line prefer-rest-params
-      arguments[0] = (0, _encryptDecryptText.encryptResponseData)(JSON.stringify(arguments[0]), _config["default"].encryptionPassword);
+      arguments[0] = encryptResponseData(JSON.stringify(arguments[0]), config.encryptionPassword);
     }
     // eslint-disable-next-line prefer-rest-params
     response.apply(res, arguments);
   };
   next();
 }
-var _default = exports["default"] = sendResponse;
+export default sendResponse;

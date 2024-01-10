@@ -1,12 +1,9 @@
-"use strict";
-
-var _express = _interopRequireDefault(require("express"));
-var _user = require("../../../../controllers/user");
-var _user2 = require("../../../../validations/user");
-var _auth = _interopRequireDefault(require("../../../../middlewares/auth"));
-var _validate = _interopRequireDefault(require("../../../../middlewares/validate"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var router = (0, _express["default"])();
+import express from 'express';
+import { dealSummaryController } from "../../../../controllers/user";
+import { dealSummaryValidation } from "../../../../validations/user";
+import auth from "../../../../middlewares/auth";
+import validate from "../../../../middlewares/validate";
+const router = express();
 router.route('/')
 /**
  * importFileForDealSummary
@@ -14,16 +11,16 @@ router.route('/')
 /**
  * @deprecated
  * This route is no longer in use as borrower don't have access to import file for deal summary anymore.
- */.post((0, _auth["default"])('user'), (0, _validate["default"])(_user2.dealSummaryValidation.importFileForDealSummary), _user.dealSummaryController.importFileForDealSummary);
+ */.post(auth('user'), validate(dealSummaryValidation.importFileForDealSummary), dealSummaryController.importFileForDealSummary);
 router.route('/create')
 /**
  * createDealSummary
- * */.post((0, _auth["default"])('user'), (0, _validate["default"])(_user2.dealSummaryValidation.createDealSummary), _user.dealSummaryController.create);
+ * */.post(auth('user'), validate(dealSummaryValidation.createDealSummary), dealSummaryController.create);
 router.route('/:dealSummaryId')
 /**
  * getDealSummaryById
- * */.get((0, _auth["default"])('user'), (0, _validate["default"])(_user2.dealSummaryValidation.getDealSummaryById), _user.dealSummaryController.get)
+ * */.get(auth('user'), validate(dealSummaryValidation.getDealSummaryById), dealSummaryController.get)
 /**
  * updateDealSummary
- * */.put((0, _auth["default"])('user'), (0, _validate["default"])(_user2.dealSummaryValidation.updateDealSummary), _user.dealSummaryController.update);
+ * */.put(auth('user'), validate(dealSummaryValidation.updateDealSummary), dealSummaryController.update);
 module.exports = router;

@@ -1,20 +1,18 @@
-"use strict";
-
 /* eslint-disable no-param-reassign */
 /**
  * A mongoose schema plugin which applies the following in the toJSON transform call:
  *  - removes __v, createdAt, updatedAt, and any path that has private: true
  *  - replaces _id with id
  */
-var toJSON = function toJSON(schema) {
-  var _transform;
+const toJSON = schema => {
+  let transform;
   if (schema.options.toJSON && schema.options.toJSON.transform) {
-    _transform = schema.options.toJSON.transform;
+    transform = schema.options.toJSON.transform;
   }
   schema.options.toJSON = Object.assign(schema.options.toJSON || {}, {
-    transform: function transform(doc, ret, options) {
-      Object.keys(schema.paths).forEach(function (path) {
-        if (schema.paths[path].options && schema.paths[path].options["private"]) {
+    transform(doc, ret, options) {
+      Object.keys(schema.paths).forEach(path => {
+        if (schema.paths[path].options && schema.paths[path].options.private) {
           delete ret[path];
         }
       });
@@ -23,8 +21,8 @@ var toJSON = function toJSON(schema) {
       delete ret.__v;
       // delete ret.createdAt;
       // delete ret.updatedAt;
-      if (_transform) {
-        return _transform(doc, ret, options);
+      if (transform) {
+        return transform(doc, ret, options);
       }
     },
     virtuals: true

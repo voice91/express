@@ -1,30 +1,23 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _express = _interopRequireDefault(require("express"));
-var _lender = require("../../../../controllers/lender");
-var _lender2 = require("../../../../validations/lender");
-var _validate = _interopRequireDefault(require("../../../../middlewares/validate"));
-var _auth = _interopRequireDefault(require("../../../../middlewares/auth"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var router = _express["default"].Router();
+import express from 'express';
+import { lenderPlacementController } from "../../../../controllers/lender";
+import { lenderPlacementValidation } from "../../../../validations/lender";
+import validate from "../../../../middlewares/validate";
+import auth from "../../../../middlewares/auth";
+const router = express.Router();
 router.route('/')
 /**
  * createLenderPlacement
- * */.post((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.createLenderPlacement), _lender.lenderPlacementController.create)
+ * */.post(auth('lender'), validate(lenderPlacementValidation.createLenderPlacement), lenderPlacementController.create)
 /**
  * getLenderPlacement
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.getLenderPlacement), _lender.lenderPlacementController.list);
+ * */.get(auth('lender'), validate(lenderPlacementValidation.getLenderPlacement), lenderPlacementController.list);
 router.route('/paginated')
 /**
  * getLenderPlacementPaginated
  * */
 /**
  * From now on have to use this route for showing deal, status and timeline for the placement.
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.paginatedLenderPlacement), _lender.lenderPlacementController.paginate);
+ * */.get(auth('lender'), validate(lenderPlacementValidation.paginatedLenderPlacement), lenderPlacementController.paginate);
 router.route('/message/:lenderPlacementId')
 /**
  * email lender
@@ -32,7 +25,7 @@ router.route('/message/:lenderPlacementId')
 /**
  * @deprecated
  * This route is no longer in use as lender can't send messages anymore.
- */.post((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.sendMessage), _lender.lenderPlacementController.sendMessage).get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.getMessages), _lender.lenderPlacementController.getMessages);
+ */.post(auth('lender'), validate(lenderPlacementValidation.sendMessage), lenderPlacementController.sendMessage).get(auth('lender'), validate(lenderPlacementValidation.getMessages), lenderPlacementController.getMessages);
 router.route('/:lenderPlacementId/document/:documentId')
 /**
  * remove document from message
@@ -40,15 +33,15 @@ router.route('/:lenderPlacementId/document/:documentId')
 /**
  * @deprecated
  * This route is no longer in use as lender don't have access to messages anymore.
- */["delete"]((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.removeDocument), _lender.lenderPlacementController.removeDocument);
+ */.delete(auth('lender'), validate(lenderPlacementValidation.removeDocument), lenderPlacementController.removeDocument);
 router.route('/:lenderPlacementId')
 /**
  * getLenderPlacementById
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.getLenderPlacementById), _lender.lenderPlacementController.get)
+ * */.get(auth('lender'), validate(lenderPlacementValidation.getLenderPlacementById), lenderPlacementController.get)
 /**
  * updateLenderPlacement
- * */.put((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.updateLenderPlacement), _lender.lenderPlacementController.update)
+ * */.put(auth('lender'), validate(lenderPlacementValidation.updateLenderPlacement), lenderPlacementController.update)
 /**
  * deleteLenderPlacementById
- * */["delete"]((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderPlacementValidation.deleteLenderPlacementById), _lender.lenderPlacementController.remove);
-var _default = exports["default"] = router;
+ * */.delete(auth('lender'), validate(lenderPlacementValidation.deleteLenderPlacementById), lenderPlacementController.remove);
+export default router;

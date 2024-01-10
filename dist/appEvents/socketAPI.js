@@ -1,11 +1,9 @@
-"use strict";
-
-var _socket = _interopRequireDefault(require("socket.io"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var _require = require("./subscriptions"),
-  initSubscription = _require.initSubscription;
-var io = (0, _socket["default"])();
-var socketAPI = {};
+import socketIO from 'socket.io';
+const {
+  initSubscription
+} = require("./subscriptions");
+const io = socketIO();
+const socketAPI = {};
 /**
  * This is used for the Authentication purpose and this can be added the conditionally
  */

@@ -1,37 +1,27 @@
-"use strict";
-
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.validateExtensionForPutObject = exports.uploadRequestedFiles = exports.uploadFileToS3bucket = exports.uploadFileToS3 = exports.uploadEmailAttachmentToS3 = exports.moveFile = exports.getSignedUrlPutObject = exports.getSignedUrl = exports.deleteObjects = exports.createThumbnails = void 0;
-var _fs = _interopRequireDefault(require("fs"));
-var _path = _interopRequireDefault(require("path"));
-var _httpStatus = _interopRequireDefault(require("http-status"));
-var _awsSdk = _interopRequireDefault(require("aws-sdk"));
-var _mongoose = _interopRequireDefault(require("mongoose"));
-var _axios = _interopRequireDefault(require("axios"));
-var _jimp = _interopRequireDefault(require("jimp"));
-var _common = require("../utils/common");
-var _ApiError = _interopRequireDefault(require("../utils/ApiError"));
-var _models = require("../models");
-var _config = _interopRequireDefault(require("../config/config"));
-var _contentType = _interopRequireDefault(require("../utils/content-type.json"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw new Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw new Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; } /**
+/**
  * This file is generated by Appinvento, also it can be overwritten by Appinvento.
  */
-_awsSdk["default"].config = new _awsSdk["default"].Config({
-  accessKeyId: _config["default"].aws.accessKeyId,
+import fs from 'fs';
+import path from 'path';
+import httpStatus from 'http-status';
+import AWS from 'aws-sdk';
+import mongoose from 'mongoose';
+import axios from 'axios';
+import jimp from 'jimp';
+import { asyncForEach } from "../utils/common";
+import ApiError from "../utils/ApiError";
+import { TempS3 } from "../models";
+import config from "../config/config";
+import allowedContentType from "../utils/content-type.json";
+AWS.config = new AWS.Config({
+  accessKeyId: config.aws.accessKeyId,
   // stored in the .env file
-  secretAccessKey: _config["default"].aws.secretAccessKey,
+  secretAccessKey: config.aws.secretAccessKey,
   // stored in the .env file
   region: process.env.AWS_BUCKET_REGION // This refers to your bucket configuration.
 });
 // AWS.config.update({ region: 'us-east-1' });
-var s3 = new _awsSdk["default"].S3({
+const s3 = new AWS.S3({
   apiVersion: '2006-03-01',
   signatureVersion: 'v4'
 });
@@ -42,182 +32,90 @@ var s3 = new _awsSdk["default"].S3({
  * @param {string} key - The unique identifier of the file you want to access.
  * @returns {string} - The special URL that can be used to get the file.
  */
-var getSignedUrl = exports.getSignedUrl = function getSignedUrl(key) {
-  var signedURL = {
-    Bucket: _config["default"].aws.bucket,
+export const getSignedUrl = key => {
+  const signedURL = {
+    Bucket: config.aws.bucket,
     Key: key,
-    Expires: _config["default"].aws.urlExpirationSeconds || 7200 // How long the signed URL remains valid in seconds.
+    Expires: config.aws.urlExpirationSeconds || 7200 // How long the signed URL remains valid in seconds.
   };
   return s3.getSignedUrl('getObject', signedURL);
 };
-var getSignedUrlPutObject = exports.getSignedUrlPutObject = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(key, contentType, isPublic) {
-    var signedURL;
-    return _regeneratorRuntime().wrap(function _callee$(_context) {
-      while (1) switch (_context.prev = _context.next) {
-        case 0:
-          signedURL = {
-            Bucket: _config["default"].aws.bucket,
-            ContentType: contentType,
-            Key: key,
-            Expires: 3600,
-            ACL: 'private'
-          };
-          if (isPublic) {
-            signedURL.ACL = 'public-read';
-          }
-          return _context.abrupt("return", s3.getSignedUrlPromise('putObject', signedURL));
-        case 3:
-        case "end":
-          return _context.stop();
-      }
-    }, _callee);
-  }));
-  return function getSignedUrlPutObject(_x, _x2, _x3) {
-    return _ref.apply(this, arguments);
+export const getSignedUrlPutObject = async (key, contentType, isPublic) => {
+  const signedURL = {
+    Bucket: config.aws.bucket,
+    ContentType: contentType,
+    Key: key,
+    Expires: 3600,
+    ACL: 'private'
   };
-}();
-var validateExtensionForPutObject = exports.validateExtensionForPutObject = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(preSignedReq, user) {
-    var ssExtensionsContentType, ssExtensions, maxTanglingFilesAllowed, extensionOfKey, dumpFilesCount, isPublicAccess, url, tempS3Body, tempS3;
-    return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-      while (1) switch (_context2.prev = _context2.next) {
-        case 0:
-          ssExtensionsContentType = _contentType["default"].map(function (ele) {
-            return ele.mimeType;
-          });
-          ssExtensions = _contentType["default"].map(function (ele) {
-            return ele.key;
-          }); // this is the number of unwanted file that is not used in system but uploaded in server
-          maxTanglingFilesAllowed = 10000;
-          extensionOfKey = preSignedReq.key.split('.');
-          extensionOfKey = extensionOfKey[extensionOfKey.length - 1];
-          if (extensionOfKey) {
-            _context2.next = 7;
-            break;
-          }
-          throw new _ApiError["default"](_httpStatus["default"].BAD_REQUEST, 'invalid key');
-        case 7:
-          if (!(ssExtensionsContentType.includes(preSignedReq.contentType) && ssExtensions.includes(extensionOfKey))) {
-            _context2.next = 11;
-            break;
-          }
-          Object.assign(preSignedReq, {
-            key: "users/".concat(user._id, "/").concat(_mongoose["default"].Types.ObjectId(), "/").concat(preSignedReq.key)
-          });
-          _context2.next = 12;
-          break;
-        case 11:
-          throw new _ApiError["default"](_httpStatus["default"].BAD_REQUEST, 'invalid content-type');
-        case 12:
-          _context2.next = 14;
-          return _models.TempS3.find({
-            active: false
-          }).count();
-        case 14:
-          dumpFilesCount = _context2.sent;
-          if (!(dumpFilesCount > maxTanglingFilesAllowed)) {
-            _context2.next = 17;
-            break;
-          }
-          throw new _ApiError["default"](_httpStatus["default"].BAD_REQUEST, 'Maximum upload size exceed');
-        case 17:
-          isPublicAccess = !preSignedReq.isPrivate;
-          _context2.next = 20;
-          return getSignedUrlPutObject(preSignedReq.key, preSignedReq.contentType, isPublicAccess);
-        case 20:
-          url = _context2.sent;
-          tempS3Body = {
-            user: user._id,
-            url: url.split('?')[0],
-            key: preSignedReq.key
-          };
-          tempS3 = new _models.TempS3(tempS3Body);
-          _context2.next = 25;
-          return tempS3.save();
-        case 25:
-          return _context2.abrupt("return", {
-            url: url,
-            key: preSignedReq.key
-          });
-        case 26:
-        case "end":
-          return _context2.stop();
-      }
-    }, _callee2);
-  }));
-  return function validateExtensionForPutObject(_x4, _x5) {
-    return _ref2.apply(this, arguments);
+  if (isPublic) {
+    signedURL.ACL = 'public-read';
+  }
+  return s3.getSignedUrlPromise('putObject', signedURL);
+};
+export const validateExtensionForPutObject = async (preSignedReq, user) => {
+  const ssExtensionsContentType = allowedContentType.map(ele => ele.mimeType);
+  const ssExtensions = allowedContentType.map(ele => ele.key);
+  // this is the number of unwanted file that is not used in system but uploaded in server
+  const maxTanglingFilesAllowed = 10000;
+  let extensionOfKey = preSignedReq.key.split('.');
+  extensionOfKey = extensionOfKey[extensionOfKey.length - 1];
+  if (!extensionOfKey) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'invalid key');
+  }
+  if (ssExtensionsContentType.includes(preSignedReq.contentType) && ssExtensions.includes(extensionOfKey)) {
+    Object.assign(preSignedReq, {
+      key: `users/${user._id}/${mongoose.Types.ObjectId()}/${preSignedReq.key}`
+    });
+  } else {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'invalid content-type');
+  }
+  const dumpFilesCount = await TempS3.find({
+    active: false
+  }).count();
+  if (dumpFilesCount > maxTanglingFilesAllowed) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Maximum upload size exceed');
+  }
+  const isPublicAccess = !preSignedReq.isPrivate;
+  const url = await getSignedUrlPutObject(preSignedReq.key, preSignedReq.contentType, isPublicAccess);
+  const tempS3Body = {
+    user: user._id,
+    url: url.split('?')[0],
+    key: preSignedReq.key
   };
-}();
-var deleteObjects = exports.deleteObjects = /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(keys) {
-    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-      while (1) switch (_context3.prev = _context3.next) {
-        case 0:
-          return _context3.abrupt("return", s3.deleteObjects({
-            Bucket: _config["default"].aws.bucket,
-            Delete: {
-              Objects: keys
-            }
-          }).promise());
-        case 1:
-        case "end":
-          return _context3.stop();
-      }
-    }, _callee3);
-  }));
-  return function deleteObjects(_x6) {
-    return _ref3.apply(this, arguments);
+  const tempS3 = new TempS3(tempS3Body);
+  await tempS3.save();
+  return {
+    url,
+    key: preSignedReq.key
   };
-}();
-var uploadFileToS3 = exports.uploadFileToS3 = /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(url, key) {
-    return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-      while (1) switch (_context5.prev = _context5.next) {
-        case 0:
-          return _context5.abrupt("return", _axios["default"].get(url, {
-            responseType: 'arraybuffer',
-            responseEncoding: 'binary'
-          }).then( /*#__PURE__*/function () {
-            var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(response) {
-              var params;
-              return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-                while (1) switch (_context4.prev = _context4.next) {
-                  case 0:
-                    params = {
-                      ContentType: response.headers['content-type'],
-                      ContentLength: response.data.length.toString(),
-                      // or response.header["content-length"] if available for the type of file downloaded
-                      Bucket: _config["default"].aws.bucket,
-                      Body: response.data,
-                      Key: key,
-                      ACL: 'public-read'
-                    };
-                    _context4.next = 3;
-                    return s3.putObject(params).promise();
-                  case 3:
-                    return _context4.abrupt("return", "https://".concat(_config["default"].aws.bucket, ".s3.amazonaws.com/").concat(key));
-                  case 4:
-                  case "end":
-                    return _context4.stop();
-                }
-              }, _callee4);
-            }));
-            return function (_x9) {
-              return _ref5.apply(this, arguments);
-            };
-          }()));
-        case 1:
-        case "end":
-          return _context5.stop();
-      }
-    }, _callee5);
-  }));
-  return function uploadFileToS3(_x7, _x8) {
-    return _ref4.apply(this, arguments);
-  };
-}();
+};
+export const deleteObjects = async keys => {
+  return s3.deleteObjects({
+    Bucket: config.aws.bucket,
+    Delete: {
+      Objects: keys
+    }
+  }).promise();
+};
+export const uploadFileToS3 = async (url, key) => {
+  return axios.get(url, {
+    responseType: 'arraybuffer',
+    responseEncoding: 'binary'
+  }).then(async response => {
+    const params = {
+      ContentType: response.headers['content-type'],
+      ContentLength: response.data.length.toString(),
+      // or response.header["content-length"] if available for the type of file downloaded
+      Bucket: config.aws.bucket,
+      Body: response.data,
+      Key: key,
+      ACL: 'public-read'
+    };
+    await s3.putObject(params).promise();
+    return `https://${config.aws.bucket}.s3.amazonaws.com/${key}`;
+  });
+};
 
 /**
  * Upload file from server to s3
@@ -226,41 +124,28 @@ var uploadFileToS3 = exports.uploadFileToS3 = /*#__PURE__*/function () {
  * @param file
  * @returns {Promise<String>}
  */
-var uploadFileToS3bucket = exports.uploadFileToS3bucket = /*#__PURE__*/function () {
-  var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(_ref6) {
-    var filepath, uploadpath, ContentType, ContentLength, stream, params;
-    return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-      while (1) switch (_context6.prev = _context6.next) {
-        case 0:
-          filepath = _ref6.filepath, uploadpath = _ref6.uploadpath, ContentType = _ref6.ContentType, ContentLength = _ref6.ContentLength;
-          _context6.next = 3;
-          return _fs["default"].createReadStream(filepath);
-        case 3:
-          stream = _context6.sent;
-          params = {
-            ContentType: ContentType,
-            ContentLength: ContentLength,
-            Bucket: _config["default"].aws.bucket,
-            Body: stream,
-            Key: uploadpath,
-            ACL: 'public-read'
-          };
-          return _context6.abrupt("return", new Promise(function (resolve, reject) {
-            return s3.putObject(params, function (err) {
-              if (err) return reject(err);
-              return resolve("https://".concat(_config["default"].aws.bucket, ".s3.amazonaws.com/").concat(uploadpath));
-            });
-          }));
-        case 6:
-        case "end":
-          return _context6.stop();
-      }
-    }, _callee6);
-  }));
-  return function uploadFileToS3bucket(_x10) {
-    return _ref7.apply(this, arguments);
+export const uploadFileToS3bucket = async ({
+  filepath,
+  uploadpath,
+  ContentType,
+  ContentLength
+}) => {
+  const stream = await fs.createReadStream(filepath);
+  const params = {
+    ContentType,
+    ContentLength,
+    Bucket: config.aws.bucket,
+    Body: stream,
+    Key: uploadpath,
+    ACL: 'public-read'
   };
-}();
+  return new Promise((resolve, reject) => {
+    return s3.putObject(params, function (err) {
+      if (err) return reject(err);
+      return resolve(`https://${config.aws.bucket}.s3.amazonaws.com/${uploadpath}`);
+    });
+  });
+};
 
 /**
  * this is promise function to crate file and upload file
@@ -271,26 +156,26 @@ var uploadFileToS3bucket = exports.uploadFileToS3bucket = /*#__PURE__*/function 
  * @param key
  * @returns {Promise<[]>}
  */
-var createAndUploadFile = function createAndUploadFile(file, user, dirPath, filePath, key) {
-  return new Promise(function (resolve, reject) {
-    var pathString = dirPath + file.name;
-    file.mv(_path["default"], function (err) {
+const createAndUploadFile = (file, user, dirPath, filePath, key) => {
+  return new Promise((resolve, reject) => {
+    const pathString = dirPath + file.name;
+    file.mv(path, err => {
       if (err) {
         console.log(err);
         reject(err);
       }
-      var uploadFilePath = "user/".concat(user._id, "/").concat(filePath, "/").concat(key, "/").concat(_mongoose["default"].Types.ObjectId(), "/").concat(file.name);
+      const uploadFilePath = `user/${user._id}/${filePath}/${key}/${mongoose.Types.ObjectId()}/${file.name}`;
       uploadFileToS3bucket({
         filepath: pathString,
-        user: user,
+        user,
         uploadpath: uploadFilePath,
         ContentLength: file.data.toString().length,
         ContentType: file.mimetype
-      }).then(function (data) {
-        _fs["default"].unlinkSync(pathString);
+      }).then(data => {
+        fs.unlinkSync(pathString);
         resolve(data);
-      })["catch"](function (e) {
-        _fs["default"].unlinkSync(pathString);
+      }).catch(e => {
+        fs.unlinkSync(pathString);
         console.log(e);
         resolve('err');
       });
@@ -304,64 +189,31 @@ var createAndUploadFile = function createAndUploadFile(file, user, dirPath, file
  * @param filePath
  * @returns {Promise<{}>}
  */
-var uploadRequestedFiles = exports.uploadRequestedFiles = /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(files, user, filePath) {
-    var dirPath, uploadedObj;
-    return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-      while (1) switch (_context8.prev = _context8.next) {
-        case 0:
-          if (!_fs["default"].existsSync("".concat(__dirname, "/tempFiles/"))) {
-            _fs["default"].mkdirSync("".concat(__dirname, "/tempFiles/"));
-          }
-          dirPath = "".concat(__dirname, "/tempFiles/").concat(Date.now(), "/");
-          if (!_fs["default"].existsSync(dirPath)) {
-            _fs["default"].mkdirSync(dirPath);
-          }
-          uploadedObj = {};
-          _context8.next = 6;
-          return (0, _common.asyncForEach)(Object.keys(files), /*#__PURE__*/function () {
-            var _ref9 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(key) {
-              var file, createFileArray, pathArray;
-              return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-                while (1) switch (_context7.prev = _context7.next) {
-                  case 0:
-                    file = files[key];
-                    createFileArray = [];
-                    if (Array.isArray(file)) {
-                      file.forEach(function (f) {
-                        createFileArray.push(createAndUploadFile(f, user, dirPath, filePath, key));
-                      });
-                    } else {
-                      createFileArray.push(createAndUploadFile(file, user, dirPath, filePath, key));
-                    }
-                    _context7.next = 5;
-                    return Promise.all(createFileArray);
-                  case 5:
-                    pathArray = _context7.sent;
-                    uploadedObj[key] = pathArray.length > 1 ? pathArray : pathArray[0];
-                  case 7:
-                  case "end":
-                    return _context7.stop();
-                }
-              }, _callee7);
-            }));
-            return function (_x14) {
-              return _ref9.apply(this, arguments);
-            };
-          }());
-        case 6:
-          _fs["default"].rmdirSync(dirPath);
-          return _context8.abrupt("return", uploadedObj);
-        case 8:
-        case "end":
-          return _context8.stop();
-      }
-    }, _callee8);
-  }));
-  return function uploadRequestedFiles(_x11, _x12, _x13) {
-    return _ref8.apply(this, arguments);
-  };
-}();
+export const uploadRequestedFiles = async (files, user, filePath) => {
+  if (!fs.existsSync(`${__dirname}/tempFiles/`)) {
+    fs.mkdirSync(`${__dirname}/tempFiles/`);
+  }
+  const dirPath = `${__dirname}/tempFiles/${Date.now()}/`;
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath);
+  }
+  const uploadedObj = {};
+  await asyncForEach(Object.keys(files), async key => {
+    const file = files[key];
+    const createFileArray = [];
+    if (Array.isArray(file)) {
+      file.forEach(f => {
+        createFileArray.push(createAndUploadFile(f, user, dirPath, filePath, key));
+      });
+    } else {
+      createFileArray.push(createAndUploadFile(file, user, dirPath, filePath, key));
+    }
+    const pathArray = await Promise.all(createFileArray);
+    uploadedObj[key] = pathArray.length > 1 ? pathArray : pathArray[0];
+  });
+  fs.rmdirSync(dirPath);
+  return uploadedObj;
+};
 
 /**
  * this function move given file to given destination path within s3 bucket
@@ -370,52 +222,34 @@ var uploadRequestedFiles = exports.uploadRequestedFiles = /*#__PURE__*/function 
  * @param isPrivate
  * @returns {Promise<>}
  */
-var moveFile = exports.moveFile = /*#__PURE__*/function () {
-  var _ref11 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(_ref10) {
-    var key, newFilePath, isPrivate, params;
-    return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-      while (1) switch (_context9.prev = _context9.next) {
-        case 0:
-          key = _ref10.key, newFilePath = _ref10.newFilePath, isPrivate = _ref10.isPrivate;
-          params = {
-            Bucket: _config["default"].aws.bucket,
-            // bucket name
-            CopySource: key,
-            // file source path
-            Key: newFilePath,
-            // new destination path where file will be moved
-            ACL: isPrivate ? 'private' : 'public-read'
-          }; // getting error for KeyTooLongError if key length more than 2024, so provided proper error message
-          if (!(params.Key.length > 1024)) {
-            _context9.next = 4;
-            break;
-          }
-          throw new _ApiError["default"](_httpStatus["default"].BAD_REQUEST, 'File URL length must be less than 1024 bytes');
-        case 4:
-          _context9.prev = 4;
-          _context9.next = 7;
-          return s3.copyObject(params).promise();
-        case 7:
-          _context9.next = 9;
-          return deleteObjects([{
-            Key: params.CopySource
-          }]);
-        case 9:
-          return _context9.abrupt("return", "https://".concat(_config["default"].aws.bucket, ".s3.amazonaws.com/").concat(params.Key));
-        case 12:
-          _context9.prev = 12;
-          _context9.t0 = _context9["catch"](4);
-          throw new _ApiError["default"](_httpStatus["default"].INTERNAL_SERVER_ERROR, _context9.t0);
-        case 15:
-        case "end":
-          return _context9.stop();
-      }
-    }, _callee9, null, [[4, 12]]);
-  }));
-  return function moveFile(_x15) {
-    return _ref11.apply(this, arguments);
+export const moveFile = async ({
+  key,
+  newFilePath,
+  isPrivate
+}) => {
+  const params = {
+    Bucket: config.aws.bucket,
+    // bucket name
+    CopySource: key,
+    // file source path
+    Key: newFilePath,
+    // new destination path where file will be moved
+    ACL: isPrivate ? 'private' : 'public-read'
   };
-}();
+  // getting error for KeyTooLongError if key length more than 2024, so provided proper error message
+  if (params.Key.length > 1024) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'File URL length must be less than 1024 bytes');
+  }
+  try {
+    await s3.copyObject(params).promise();
+    await deleteObjects([{
+      Key: params.CopySource
+    }]);
+    return `https://${config.aws.bucket}.s3.amazonaws.com/${params.Key}`;
+  } catch (e) {
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e);
+  }
+};
 
 /**
  * this functin create image thumb nails
@@ -423,102 +257,47 @@ var moveFile = exports.moveFile = /*#__PURE__*/function () {
  * @param resolutions
  * @returns {Promise<[]>}
  */
-var createThumbnails = exports.createThumbnails = /*#__PURE__*/function () {
-  var _ref13 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12(_ref12) {
-    var url, _ref12$resolutions, resolutions, name, fileNameIndex, uploadBasePath, writePath, writeAndUpload, uploadArray;
-    return _regeneratorRuntime().wrap(function _callee12$(_context12) {
-      while (1) switch (_context12.prev = _context12.next) {
-        case 0:
-          url = _ref12.url, _ref12$resolutions = _ref12.resolutions, resolutions = _ref12$resolutions === void 0 ? [] : _ref12$resolutions;
-          name = url.split('/').pop();
-          fileNameIndex = url.indexOf(name);
-          uploadBasePath = url.substring("https://".concat(_config["default"].aws.bucket, ".s3.amazonaws.com/").length, fileNameIndex); // `user/${user.id}/${modelName}/${modelId}/${thumbnailField}`
-          writePath = _path["default"].join(__dirname, '../thumbnails/');
-          if (!_fs["default"].existsSync(writePath)) {
-            _fs["default"].mkdirSync(writePath);
-          }
-          writeAndUpload = /*#__PURE__*/function () {
-            var _ref15 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(_ref14) {
-              var ele, fileName, uploadpath, image, thumbUrl;
-              return _regeneratorRuntime().wrap(function _callee10$(_context10) {
-                while (1) switch (_context10.prev = _context10.next) {
-                  case 0:
-                    ele = _ref14.ele, fileName = _ref14.fileName;
-                    uploadpath = "".concat(uploadBasePath).concat(_mongoose["default"].Types.ObjectId(), "/").concat(ele, "_").concat(fileName);
-                    _context10.next = 4;
-                    return _jimp["default"].read(url);
-                  case 4:
-                    image = _context10.sent;
-                    _context10.next = 7;
-                    return image.resize(ele, ele).writeAsync("".concat(writePath).concat(ele, "_").concat(fileName));
-                  case 7:
-                    _context10.t0 = uploadFileToS3bucket;
-                    _context10.t1 = "".concat(writePath).concat(ele, "_").concat(fileName);
-                    _context10.t2 = image.getMIME();
-                    _context10.next = 12;
-                    return image.getBufferAsync(image.getMIME());
-                  case 12:
-                    _context10.t3 = _context10.sent.toString().length;
-                    _context10.t4 = uploadpath;
-                    _context10.t5 = {
-                      filepath: _context10.t1,
-                      ContentType: _context10.t2,
-                      ContentLength: _context10.t3,
-                      uploadpath: _context10.t4
-                    };
-                    _context10.next = 17;
-                    return (0, _context10.t0)(_context10.t5);
-                  case 17:
-                    thumbUrl = _context10.sent;
-                    return _context10.abrupt("return", thumbUrl);
-                  case 19:
-                  case "end":
-                    return _context10.stop();
-                }
-              }, _callee10);
-            }));
-            return function writeAndUpload(_x17) {
-              return _ref15.apply(this, arguments);
-            };
-          }();
-          uploadArray = [];
-          resolutions.map( /*#__PURE__*/function () {
-            var _ref16 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(ele) {
-              var fileName;
-              return _regeneratorRuntime().wrap(function _callee11$(_context11) {
-                while (1) switch (_context11.prev = _context11.next) {
-                  case 0:
-                    fileName = name;
-                    uploadArray.push(writeAndUpload({
-                      ele: ele,
-                      fileName: fileName
-                    }));
-                  case 2:
-                  case "end":
-                    return _context11.stop();
-                }
-              }, _callee11);
-            }));
-            return function (_x18) {
-              return _ref16.apply(this, arguments);
-            };
-          }());
-          return _context12.abrupt("return", Promise.all(uploadArray).then(function (data) {
-            _fs["default"].rmdirSync(writePath, {
-              recursive: true
-            });
-            return data;
-          }));
-        case 10:
-        case "end":
-          return _context12.stop();
-      }
-    }, _callee12);
-  }));
-  return function createThumbnails(_x16) {
-    return _ref13.apply(this, arguments);
+export const createThumbnails = async ({
+  url,
+  resolutions = []
+}) => {
+  const name = url.split('/').pop();
+  const fileNameIndex = url.indexOf(name);
+  const uploadBasePath = url.substring(`https://${config.aws.bucket}.s3.amazonaws.com/`.length, fileNameIndex); // `user/${user.id}/${modelName}/${modelId}/${thumbnailField}`
+  const writePath = path.join(__dirname, '../thumbnails/');
+  if (!fs.existsSync(writePath)) {
+    fs.mkdirSync(writePath);
+  }
+  const writeAndUpload = async ({
+    ele,
+    fileName
+  }) => {
+    const uploadpath = `${uploadBasePath}${mongoose.Types.ObjectId()}/${ele}_${fileName}`;
+    const image = await jimp.read(url);
+    await image.resize(ele, ele).writeAsync(`${writePath}${ele}_${fileName}`);
+    const thumbUrl = await uploadFileToS3bucket({
+      filepath: `${writePath}${ele}_${fileName}`,
+      ContentType: image.getMIME(),
+      ContentLength: (await image.getBufferAsync(image.getMIME())).toString().length,
+      uploadpath
+    });
+    return thumbUrl;
   };
-}();
+  const uploadArray = [];
+  resolutions.map(async ele => {
+    const fileName = name;
+    uploadArray.push(writeAndUpload({
+      ele,
+      fileName
+    }));
+  });
+  return Promise.all(uploadArray).then(data => {
+    fs.rmdirSync(writePath, {
+      recursive: true
+    });
+    return data;
+  });
+};
 
 /**
  * upload the email attachment to s3 which we get from the postmark's webhook
@@ -526,34 +305,22 @@ var createThumbnails = exports.createThumbnails = /*#__PURE__*/function () {
  * @param isPrivate - Use to set the access of file private
  * @return {Promise<string>}
  */
-var uploadEmailAttachmentToS3 = exports.uploadEmailAttachmentToS3 = /*#__PURE__*/function () {
-  var _ref17 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13(attachment, isPrivate) {
-    var decodedContent, bucketName, key, ContentType, params;
-    return _regeneratorRuntime().wrap(function _callee13$(_context13) {
-      while (1) switch (_context13.prev = _context13.next) {
-        case 0:
-          decodedContent = Buffer.from(attachment.Content, 'base64');
-          bucketName = _config["default"].aws.bucket;
-          key = "users/".concat(attachment.userId, "/").concat(_mongoose["default"].Types.ObjectId(), "/").concat(attachment.Name);
-          ContentType = attachment.ContentType; // Set up the parameters for the S3 upload
-          params = {
-            Bucket: bucketName,
-            Key: key,
-            Body: decodedContent,
-            ContentType: ContentType,
-            ACL: isPrivate ? 'private' : 'public-read'
-          };
-          _context13.next = 7;
-          return s3.putObject(params).promise();
-        case 7:
-          return _context13.abrupt("return", "https://".concat(bucketName, ".s3.amazonaws.com/").concat(encodeURI(params.Key)));
-        case 8:
-        case "end":
-          return _context13.stop();
-      }
-    }, _callee13);
-  }));
-  return function uploadEmailAttachmentToS3(_x19, _x20) {
-    return _ref17.apply(this, arguments);
+export const uploadEmailAttachmentToS3 = async (attachment, isPrivate) => {
+  const decodedContent = Buffer.from(attachment.Content, 'base64');
+  const bucketName = config.aws.bucket;
+  const key = `users/${attachment.userId}/${mongoose.Types.ObjectId()}/${attachment.Name}`;
+  const {
+    ContentType
+  } = attachment;
+
+  // Set up the parameters for the S3 upload
+  const params = {
+    Bucket: bucketName,
+    Key: key,
+    Body: decodedContent,
+    ContentType,
+    ACL: isPrivate ? 'private' : 'public-read'
   };
-}();
+  await s3.putObject(params).promise();
+  return `https://${bucketName}.s3.amazonaws.com/${encodeURI(params.Key)}`;
+};

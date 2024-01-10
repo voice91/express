@@ -1,35 +1,28 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _express = _interopRequireDefault(require("express"));
-var _lender = require("../../../../controllers/lender");
-var _lender2 = require("../../../../validations/lender");
-var _validate = _interopRequireDefault(require("../../../../middlewares/validate"));
-var _auth = _interopRequireDefault(require("../../../../middlewares/auth"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var router = _express["default"].Router();
+import express from 'express';
+import { lenderProgramController } from "../../../../controllers/lender";
+import { lenderProgramValidation } from "../../../../validations/lender";
+import validate from "../../../../middlewares/validate";
+import auth from "../../../../middlewares/auth";
+const router = express.Router();
 router.route('/')
 /**
  * createLenderProgram
- * */.post((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderProgramValidation.createLenderProgram), _lender.lenderProgramController.create)
+ * */.post(auth('lender'), validate(lenderProgramValidation.createLenderProgram), lenderProgramController.create)
 /**
  * getLenderProgram
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderProgramValidation.getLenderProgram), _lender.lenderProgramController.list);
+ * */.get(auth('lender'), validate(lenderProgramValidation.getLenderProgram), lenderProgramController.list);
 router.route('/paginated')
 /**
  * getLenderProgramPaginated
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderProgramValidation.paginatedLenderProgram), _lender.lenderProgramController.paginate);
+ * */.get(auth('lender'), validate(lenderProgramValidation.paginatedLenderProgram), lenderProgramController.paginate);
 router.route('/:lenderProgramId')
 /**
  * getLenderProgramById
- * */.get((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderProgramValidation.getLenderProgramById), _lender.lenderProgramController.get)
+ * */.get(auth('lender'), validate(lenderProgramValidation.getLenderProgramById), lenderProgramController.get)
 /**
  * updateLenderProgram
- * */.put((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderProgramValidation.updateLenderProgram), _lender.lenderProgramController.update)
+ * */.put(auth('lender'), validate(lenderProgramValidation.updateLenderProgram), lenderProgramController.update)
 /**
  * deleteLenderProgramById
- * */["delete"]((0, _auth["default"])('lender'), (0, _validate["default"])(_lender2.lenderProgramValidation.deleteLenderProgramById), _lender.lenderProgramController.remove);
-var _default = exports["default"] = router;
+ * */.delete(auth('lender'), validate(lenderProgramValidation.deleteLenderProgramById), lenderProgramController.remove);
+export default router;

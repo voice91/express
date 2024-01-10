@@ -1,29 +1,22 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _express = _interopRequireDefault(require("express"));
-var _advisor = require("../../../../controllers/advisor");
-var _advisor2 = require("../../../../validations/advisor");
-var _validate = _interopRequireDefault(require("../../../../middlewares/validate"));
-var _auth = _interopRequireDefault(require("../../../../middlewares/auth"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-var router = _express["default"].Router();
+import express from 'express';
+import { lenderInstituteNotesController } from "../../../../controllers/advisor";
+import { lenderInstituteNotesValidation } from "../../../../validations/advisor";
+import validate from "../../../../middlewares/validate";
+import auth from "../../../../middlewares/auth";
+const router = express.Router();
 router.route('/')
 /**
  * createLenderInstituteNotes
- * */.post((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.lenderInstituteNotesValidation.createLenderInstituteNotes), _advisor.lenderInstituteNotesController.create);
+ * */.post(auth('advisor'), validate(lenderInstituteNotesValidation.createLenderInstituteNotes), lenderInstituteNotesController.create);
 router.route('/:lenderInstitute')
 /**
  * getLenderInstituteNotes
- * */.get((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.lenderInstituteNotesValidation.getLenderInstituteNotes), _advisor.lenderInstituteNotesController.list);
+ * */.get(auth('advisor'), validate(lenderInstituteNotesValidation.getLenderInstituteNotes), lenderInstituteNotesController.list);
 router.route('/:lenderInstituteNotesId')
 /**
  * updateLenderInstituteNotes
- * */.put((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.lenderInstituteNotesValidation.updateLenderInstituteNotes), _advisor.lenderInstituteNotesController.update)
+ * */.put(auth('advisor'), validate(lenderInstituteNotesValidation.updateLenderInstituteNotes), lenderInstituteNotesController.update)
 /**
  * deleteLenderInstituteNotesById
- * */["delete"]((0, _auth["default"])('advisor'), (0, _validate["default"])(_advisor2.lenderInstituteNotesValidation.deleteLenderInstituteNotesById), _advisor.lenderInstituteNotesController.remove);
-var _default = exports["default"] = router;
+ * */.delete(auth('advisor'), validate(lenderInstituteNotesValidation.deleteLenderInstituteNotesById), lenderInstituteNotesController.remove);
+export default router;

@@ -1,6 +1,4 @@
-"use strict";
-
-var configuration = {
+const configuration = {
   mongodb: {
     url: process.env.MONGODB_URL,
     options: {
