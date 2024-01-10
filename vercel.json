@@ -2,19 +2,8 @@
   "version": 2,
   "builds": [
     {
-      "src": "./index.js",
+      "src": "build/index.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "./index.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "15mb",
-        "functions": {
-          "preBuild": "npm install",
-          "build": "npm run build"
-        }
-      }
     }
   ],
   "routes": [
