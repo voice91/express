@@ -1,0 +1,36 @@
+"use strict";
+
+var _express = _interopRequireDefault(require("express"));
+var _user = _interopRequireDefault(require("./v1/user/user.route"));
+var _deal = _interopRequireDefault(require("./v1/deal/deal.route"));
+var _dealNotes = _interopRequireDefault(require("./v1/dealNotes/dealNotes.route"));
+var _lenderProgram = _interopRequireDefault(require("./v1/lenderProgram/lenderProgram.route"));
+var _lendingInstitution = _interopRequireDefault(require("./v1/lendingInstitution/lendingInstitution.route"));
+var _lenderPlacement = _interopRequireDefault(require("./v1/lenderPlacement/lenderPlacement.route"));
+var _lenderContact = _interopRequireDefault(require("./v1/lenderContact/lenderContact.route"));
+var _emailTemplate = _interopRequireDefault(require("./v1/emailTemplate/emailTemplate.route"));
+var _activityLog = _interopRequireDefault(require("./v1/activityLog/activityLog.route"));
+var _task = _interopRequireDefault(require("./v1/task/task.route"));
+var _dealDocument = _interopRequireDefault(require("./v1/dealDocument/dealDocument.route"));
+var _auth = _interopRequireDefault(require("./v1/auth/auth.route"));
+var _lenderNotes = _interopRequireDefault(require("./v1/lenderNotes/lenderNotes.route"));
+var _dealSummary = _interopRequireDefault(require("./v1/dealSummary/dealSummary.route"));
+var _feedback = _interopRequireDefault(require("./v1/feedback/feedback.routes"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var router = _express["default"].Router();
+router.use('/user', _user["default"]);
+router.use('/deal', _deal["default"]);
+router.use('/dealNotes', _dealNotes["default"]);
+router.use('/lenderProgram', _lenderProgram["default"]);
+router.use('/lendingInstitution', _lendingInstitution["default"]);
+router.use('/lenderPlacement', _lenderPlacement["default"]);
+router.use('/lenderContact', _lenderContact["default"]);
+router.use('/emailTemplate', _emailTemplate["default"]);
+router.use('/activityLog', _activityLog["default"]);
+router.use('/task', _task["default"]);
+router.use('/dealDocument', _dealDocument["default"]);
+router.use('/lenderNotes', _lenderNotes["default"]);
+router.use('/dealSummary', _dealSummary["default"]);
+router.use('/auth', _auth["default"]);
+router.use('/feedback', _feedback["default"]);
+module.exports = router;
