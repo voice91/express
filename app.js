@@ -19,7 +19,7 @@ import ApiError from './utils/ApiError';
 import { errorConverter, errorHandler } from './middlewares/error';
 import sendResponse from './middlewares/sendResponse';
 import config from './config/config';
-import { successHandler, errorHandler as morganErrorHandler } from 'config/morgan';
+import { successHandler, errorHandler as morganErrorHandler } from './config/morgan';
 import { decryptRequestData } from './utils/encrypt-decrypt-text';
 import { isEmpty } from 'lodash';
 
