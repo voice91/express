@@ -1,16 +1,3 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "controllers/*": ["./controllers/*"],
-      "services/*": ["./services/*"],
-      "middlewares/*": ["./middlewares/*"],
-      "validations/*": ["./validations/*"],
-      "models/*": ["./models/*"],
-      "routes/*": ["./routes/*"],
-      "utils/*": ["./utils/*"],
-      "docs/*": ["./docs/*"],
-      "appEvents/*": ["./appEvents/*"]
-    }
-  }
+
 }
