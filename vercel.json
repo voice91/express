@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "preBuild": {
+      "command": "npx babel . --out-dir dist --ignore 'node_modules/**,build/**,dist/**'"
+    }
+  },
   "builds": [
     {
       "src": "./dist/index.js",
