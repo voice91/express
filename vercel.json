@@ -11,6 +11,5 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "functions": { "routes/*.js": { "runtime": "nodejs18" } }
+  ]
 }
