@@ -14,7 +14,7 @@ import passport from 'passport';
 import jwtStrategy from './config/passport';
 // eslint-disable-next-line import/named
 import { globalLimiter } from './middlewares/rateLimiter';
-import routes from './routes';
+import routes from 'routes';
 import ApiError from './utils/ApiError';
 import { errorConverter, errorHandler } from './middlewares/error';
 import sendResponse from './middlewares/sendResponse';
