@@ -1,7 +1,7 @@
 {
   "functions": {
     "routes/index.js": {
-      "runtime": "@vercel/node"
+      "runtime": "@vercel/node@18"
     }
   },
   "rewrites": [{ "source": "/routes/(.*)", "destination": "/routes" }]
